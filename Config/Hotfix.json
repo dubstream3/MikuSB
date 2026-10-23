@@ -1,0 +1,51 @@
+{
+  "UseLocalCache": false,
+  "Hotfixes": {
+    "BETA V1.0": {
+      "Asb": {
+        "Android": {
+          "EnableTime": 0,
+          "Revision": "",
+          "Suffix": ""
+        },
+        "Iphone": {
+          "EnableTime": 0,
+          "Revision": "",
+          "Suffix": ""
+        },
+        "Pc": {
+          "EnableTime": 0,
+          "Revision": "",
+          "Suffix": ""
+        }
+      },
+      "AsbPreDownload": {
+        "Android": {
+          "EncryptKey": "",
+          "EnableTime": 0,
+          "Revision": "",
+          "Suffix": ""
+        },
+        "Iphone": {
+          "EncryptKey": "",
+          "EnableTime": 0,
+          "Revision": "",
+          "Suffix": ""
+        }
+      },
+      "Audio": {
+        "Platform": {},
+        "Revision": 0
+      },
+      "AudioPreDownload": {
+        "EnableTime": 0,
+        "Platform": {},
+        "Revision": 0
+      },
+      "VideoEncrypt": {
+        "FileName": ""
+      }
+    }
+  },
+  "AesKeys": {}
+}

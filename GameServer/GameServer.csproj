@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <CETCompat>false</CETCompat>
+    <RootNamespace>MikuSB.GameServer</RootNamespace>
+    <StartupObject></StartupObject>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>MikuGameServer</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Game\Hero\**" />
+    <EmbeddedResource Remove="Game\Hero\**" />
+    <None Remove="Game\Hero\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\MikuSB.Loader\MikuSB.Loader.csproj" />
+    <ProjectReference Include="..\TcpSharp\TcpSharp.csproj" />
+    <ProjectReference Include="..\Proto\Proto.csproj" />
+  </ItemGroup>
+
+</Project>
