@@ -915,19 +915,24 @@ public static class DlcClientPatches
         end
         local tbForceAct = tbDfwForceAct
         if not dfwTable(tbForceAct) then tbForceAct = {} tbDfwForceAct = tbForceAct end
+        local tbDlcIds = tbDfwIds
+        if not dfwTable(tbDlcIds) then tbDlcIds = {} tbDfwIds = tbDlcIds end
+        local tbDone = tbDfwDone
+        if not dfwTable(tbDone) then tbDone = {} tbDfwDone = tbDone end
         local function dfwGroup(nId)
         if not (Online and dfwFunc(Online.GetGroupConfig)) then return end
         local tbRows = Online.GetGroupConfig(nId)
         if not dfwTable(tbRows) then return end
         for _, row in pairs(tbRows) do
         if dfwTable(row) then
-        row.nStartTime = nWinStart row.nEndTime = nWinEnd row.tbCondition = nil
+        row.nStartTime = nWinStart row.nEndTime = nWinEnd row.nAwardTime = nWinEnd
+        row.tbCondition = nil row.tbOpenHour = {} row.nHide = 0
         end
         end
         end
         local function dfwActivity(nId)
         tbForceAct[nId] = true
-        local cfg = Activity and Activity.tbActivityConfig and Activity.tbActivityConfig[nId]
+        local cfg = Activity and Activity.tbConfig and Activity.tbConfig[nId]
         if not dfwTable(cfg) and Activity and dfwFunc(Activity.GetActivityConfig) then
         cfg = Activity.GetActivityConfig(nId)
         end
@@ -980,8 +985,9 @@ public static class DlcClientPatches
         cfg.IsOpen = function(self) return true end
         end
         local tbRoute = {
-        Rush = dfwGroup, Event = dfwGroup, Onlinesea = dfwGroup, Onlinepurge = dfwGroup, Towerrush = dfwGroup,
-        Puzzle = dfwActivity, Former = dfwActivity,
+        Rush = dfwGroup, Event = dfwGroup, Event2 = dfwGroup, Onlinesea = dfwGroup,
+        Onlinepurge = dfwGroup, Towerrush = dfwGroup, Assaultops = dfwGroup, Dive = dfwGroup,
+        Puzzle = dfwActivity, Former = dfwActivity, Nita = dfwActivity,
         Worldboss = dfwWorldboss, Farmwar = dfwFarmwar, Celebrate = dfwCelebrate,
         ClimbTower = dfwClimb, Rogue = dfwRogue, Mow = dfwMow, Rmol = dfwRmol,
         }
@@ -991,8 +997,11 @@ public static class DlcClientPatches
         local tbIds = conf and conf.tbDlcFuncConfId
         if not dfwTable(tbIds) then return end
         for sKey, nId in pairs(tbIds) do
+        if type(nId) == [[number]] then
+        tbDlcIds[nId] = true
         local fnFix = tbRoute[sKey]
-        if dfwFunc(fnFix) and type(nId) == [[number]] then fnFix(nId) end
+        if dfwFunc(fnFix) then fnFix(nId) end
+        end
         end
         end
         local function dfwGuards()
@@ -1000,15 +1009,38 @@ public static class DlcClientPatches
         local tbNames = { [[GetTimeInfo]], [[CheckIsUnlock]], [[GetSubTitle]], [[CheckRed]] }
         for _, sFn in ipairs(tbNames) do
         local fnOld = DLC_Logic[sFn]
-        if dfwFunc(fnOld) and not fnOld.bDfwGuard then
-        local fnNew = function(...)
+        if dfwFunc(fnOld) and not tbDone[sFn] then
+        tbDone[sFn] = true
+        DLC_Logic[sFn] = function(...)
         local bOk, v1, v2 = pcall(fnOld, ...)
         if bOk then return v1, v2 end
         return nil
         end
-        fnNew.bDfwGuard = true
-        DLC_Logic[sFn] = fnNew
         end
+        end
+        end
+        local function dfwOnlineOpen()
+        if not (dfwTable(Online) and dfwFunc(Online.CheckOpen)) then return end
+        if Online.bDfwOpen then return end
+        Online.bDfwOpen = true
+        local fnOld = Online.CheckOpen
+        Online.CheckOpen = function(tbConf, bSkip, bAward)
+        local bOk, sTip = fnOld(tbConf, bSkip, bAward)
+        if bOk then return bOk, sTip end
+        if dfwTable(tbConf) and (tbDlcIds[tbConf.nId] or tbDlcIds[tbConf.nGroup]) then return true end
+        return bOk, sTip
+        end
+        end
+        local function dfwRouter()
+        if not (dfwTable(FunctionRouter) and dfwFunc(FunctionRouter.IsOpenById)) then return end
+        if FunctionRouter.bDfwOpen then return end
+        FunctionRouter.bDfwOpen = true
+        local fnOld = FunctionRouter.IsOpenById
+        FunctionRouter.IsOpenById = function(nType, ...)
+        local bOk, tbMsg = fnOld(nType, ...)
+        if bOk then return bOk, tbMsg end
+        if next(tbDlcIds) ~= nil then return true, {} end
+        return bOk, tbMsg
         end
         end
         local function dfwUnlock()
@@ -1061,6 +1093,8 @@ public static class DlcClientPatches
         end
         end
         dfwRun([[guards]], dfwGuards)
+        dfwRun([[onlineopen]], dfwOnlineOpen)
+        dfwRun([[router]], dfwRouter)
         dfwRun([[activity]], dfwForceActivity)
         dfwRun([[unlock]], dfwUnlock)
         dfwRun([[stamp]], dfwStamp)
