@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace MikuSB.GameServer.Game.Dlc;
 
@@ -887,6 +887,17 @@ public static class DlcClientPatches
     /// DefendLogic_CheckOpenAct, SeasonBoss_GMChangeTime) or their own patch (FunTimedWindows), and are
     /// deliberately not routed here.
     ///
+    /// Stamping alone still left buttons dead: ClimbTower is read from ClimbTower.tbSeason (never pushed by
+    /// the server), Towerrush also gates on the Online row condition, Rogue/Mow gate on
+    /// FunctionRouter.IsOpenById, and Puzzle re-checks its own activity inside JigsawPuzzle. So the patch
+    /// now hard-unlocks the button base class as well: DlcFuncBase.CheckIsUnlock (DlcFuncBase.lua:43)
+    /// returns FuncState.Open and DlcFuncBase.OpenFunc (DlcFuncBase.lua:128) drops the UI.ShowTip gate,
+    /// which makes every button of the pinned era open its own screen regardless of which table lies.
+    /// DLC_Logic.GetTimeInfo / CheckIsUnlock / GetSubTitle are additionally wrapped in pcall, because
+    /// umg_dlc_common_main.DisPlay runs them inside a single pairs loop over the era rows
+    /// (UMG/DlcCommon/Widgets/uw_dlc_common_main_btn_base.lua:45-65): one throwing module used to leave
+    /// every following button with a nil FunClick, i.e. a click that produced neither log nor tip.
+    ///
     /// Re-stamping has to survive the client's own reloads, so the driver is also chained onto
     /// Activity.LoadActivitiesConfig (GlobalTimeWindows' era reset calls it and rebuilds every row),
     /// Online.LoadConfig and DLC_Logic.InitFuncObj (DLC page entry). All three are idempotent and the
@@ -900,10 +911,15 @@ public static class DlcClientPatches
         local tbRows = Online.GetGroupConfig(nId)
         if type(tbRows) ~= type({}) then return end
         for _, row in pairs(tbRows) do
-        if type(row) == type({}) then row.nStartTime = nWinStart row.nEndTime = nWinEnd end
+        if type(row) == type({}) then
+        row.nStartTime = nWinStart row.nEndTime = nWinEnd row.tbCondition = nil
         end
         end
+        end
+        if type(tbDfwForceAct) ~= type({}) then tbDfwForceAct = {} end
+        local tbForceAct = tbDfwForceAct
         local function dfwActivity(nId)
+        tbForceAct[nId] = true
         local cfg = Activity and Activity.tbActivityConfig and Activity.tbActivityConfig[nId]
         if type(cfg) ~= type({}) and Activity and Activity.GetActivityConfig then
         cfg = Activity.GetActivityConfig(nId)
@@ -932,10 +948,35 @@ public static class DlcClientPatches
         if type(cfg) ~= type({}) then return end
         cfg.nStartTime = nWinStart cfg.nEndTime = nWinEnd
         end
+        local function dfwClimb(nId)
+        local tb = ClimbTower and ClimbTower.tbSeason and ClimbTower.tbSeason[nId]
+        if type(tb) ~= type({}) then return end
+        tb.nOpenTime = nWinStart tb.nCloseTime = nWinEnd
+        end
+        local function dfwRogue(nId)
+        if not (Rogue3DLogic and Rogue3DLogic.GetSeasonConfig) then return end
+        local cfg = Rogue3DLogic.GetSeasonConfig(nId)
+        if type(cfg) ~= type({}) then return end
+        cfg.nStartTime = nWinStart cfg.nEndTime = nWinEnd
+        end
+        local function dfwMow(nId)
+        if not (AlienDefenseConfig and AlienDefenseConfig.GetTimeConfig) then return end
+        local cfg = AlienDefenseConfig.GetTimeConfig(nId)
+        if type(cfg) ~= type({}) then return end
+        cfg.nStartTime = nWinStart cfg.nEndTime = nWinEnd
+        end
+        local function dfwRmol(nId)
+        if not (DLC_RMOL and DLC_RMOL.GetSession) then return end
+        local cfg = DLC_RMOL.GetSession(nId)
+        if type(cfg) ~= type({}) then return end
+        cfg.StartTime = nWinStart cfg.EndTime = nWinEnd
+        cfg.IsOpen = function(self) return true end
+        end
         local tbRoute = {
-        Rush = dfwGroup, Event = dfwGroup, Onlinesea = dfwGroup, Onlinepurge = dfwGroup,
+        Rush = dfwGroup, Event = dfwGroup, Onlinesea = dfwGroup, Onlinepurge = dfwGroup, Towerrush = dfwGroup,
         Puzzle = dfwActivity, Former = dfwActivity,
         Worldboss = dfwWorldboss, Farmwar = dfwFarmwar, Celebrate = dfwCelebrate,
+        ClimbTower = dfwClimb, Rogue = dfwRogue, Mow = dfwMow, Rmol = dfwRmol,
         }
         local function dfwstamp()
         if not (DLC_Logic and DLC_Logic.GetCurConf) then return end
@@ -947,11 +988,44 @@ public static class DlcClientPatches
         if fnFix and type(nId) == [[number]] then fnFix(nId) end
         end
         end
+        local function dfwUnlock()
+        local tbBase = DlcFuncBase
+        if type(tbBase) ~= type({}) then return end
+        if tbBase.bDfwUnlock then return end
+        tbBase.bDfwUnlock = true
+        tbBase.CheckIsUnlock = function(obj) return DLC_Logic.FuncState.Open, [[]] end
+        tbBase.OpenFunc = function(obj, ...)
+        DLC_Logic.SetFirstCheck(obj.sFuncKey)
+        obj:OnOpenFunc(...)
+        end
+        end
+        local function dfwGuard(sFn)
+        local fnOld = DLC_Logic and DLC_Logic[sFn]
+        if type(fnOld) ~= type(dfwGuard) then return end
+        if fnOld.bDfwGuard then return end
+        local fnNew = function(...)
+        local bOk, v1, v2 = pcall(fnOld, ...)
+        if bOk then return v1, v2 end
+        return nil
+        end
+        fnNew.bDfwGuard = true
+        DLC_Logic[sFn] = fnNew
+        end
+        dfwGuard([[GetTimeInfo]]) dfwGuard([[CheckIsUnlock]]) dfwGuard([[GetSubTitle]]) dfwGuard([[CheckRed]])
+        if Activity and Activity.IsOpen and not Activity.bDfwForceOpen then
+        Activity.bDfwForceOpen = true
+        local oldIsOpen = Activity.IsOpen
+        Activity.IsOpen = function(nId, ...)
+        if tbForceAct[nId] then return true, {} end
+        return oldIsOpen(nId, ...)
+        end
+        end
+        dfwUnlock()
         dfwstamp()
         if DLC_Logic and not DLC_Logic.bDfwStamp then
         DLC_Logic.bDfwStamp = true
         local oldInit = DLC_Logic.InitFuncObj
-        DLC_Logic.InitFuncObj = function(...) local r = oldInit(...) dfwstamp() return r end
+        DLC_Logic.InitFuncObj = function(...) dfwUnlock() local r = oldInit(...) dfwUnlock() dfwstamp() return r end
         end
         if Activity and not Activity.bDfwStamp and Activity.LoadActivitiesConfig then
         Activity.bDfwStamp = true
