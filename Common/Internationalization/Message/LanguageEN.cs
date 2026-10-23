@@ -1,4 +1,4 @@
-﻿namespace MikuSB.Internationalization.Message;
+namespace MikuSB.Internationalization.Message;
 
 #region Root
 
@@ -92,6 +92,7 @@ public class CommandTextEN
     public GiveAllTextEN GiveAll { get; } = new();
     public DebugTextEN Debug { get; } = new();
     public GameCommandTextEN Game { get; } = new();
+    public GameCommandCnTextEN GameCn { get; } = new();
 }
 
 #endregion
@@ -261,6 +262,19 @@ public class GameCommandTextEN
     public string Usage => "Usage: /game [extra game args]";
     public string Started => "Game launched. PID: {0}";
     public string Failed => "Failed to launch game: {0}";
+}
+
+public class GameCommandCnTextEN
+{
+    public string Desc => "Launch the specific-channel client with the hosts records managed";
+    public string Usage => "Usage: /game-cn [extra game args]";
+    public string Started => "Game launched. PID: {0}";
+    public string Failed => "Failed to launch game: {0}";
+    public string HostsUpdated => "Updated the hosts file: {0}";
+    public string HostsCurrent => "The hosts file already contains the managed block.";
+    public string HostsFailed => "Failed to update the hosts file: {0}";
+    public string NeedAdmin => "Writing the hosts file needs administrator rights. Restart the server elevated, or add this block to {0} by hand:\n{1}";
+    public string Unsupported => "Managing the hosts file is not supported on this system.";
 }
 
 #endregion

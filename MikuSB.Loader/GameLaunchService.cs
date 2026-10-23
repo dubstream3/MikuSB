@@ -18,10 +18,32 @@ public static class GameLaunchService
         }
         PatchDownloadService.EnsurePatchPresent();
         var options = LaunchOptions.FromConfig(extraGameArguments);
-        return Launch(options);
+        return Launch(options, true);
+    }
+
+    /// <summary>
+    ///     Starts the client without loading the patch DLLs. Channels that are redirected through
+    ///     hosts records do not need an injected patch, and this path must not download one either.
+    /// </summary>
+    public static int LaunchWithoutPatch(params string[] extraGameArguments)
+    {
+        ConfigManager.LoadConfig();
+        if (ConfigManager.Config.Loader.EnableInGameConsole
+            && ConfigManager.Config.Loader.AutoUpdateInGameConsole)
+        {
+            InGameConsoleDownloadService.EnsurePresent();
+        }
+
+        var options = LaunchOptions.FromConfig(extraGameArguments);
+        return Launch(options, false);
     }
 
     public static int Launch(LaunchOptions options)
+    {
+        return Launch(options, true);
+    }
+
+    public static int Launch(LaunchOptions options, bool injectPatch)
     {
         var startupInfo = new STARTUPINFOW
         {
@@ -41,7 +63,8 @@ public static class GameLaunchService
                     lpProcessAttributes: IntPtr.Zero,
                     lpThreadAttributes: IntPtr.Zero,
                     bInheritHandles: false,
-                    dwCreationFlags: CreationFlags.CREATE_SUSPENDED | CreationFlags.CREATE_UNICODE_ENVIRONMENT,
+                    dwCreationFlags: (injectPatch ? CreationFlags.CREATE_SUSPENDED : 0) |
+                                     CreationFlags.CREATE_UNICODE_ENVIRONMENT,
                     lpEnvironment: environment,
                     lpCurrentDirectory: workingDirectory,
                     lpStartupInfo: ref startupInfo,
@@ -52,11 +75,14 @@ public static class GameLaunchService
 
             try
             {
-                foreach (var patchPath in options.PatchPaths)
-                    InjectDll(processInfo.hProcess, patchPath);
+                if (injectPatch)
+                {
+                    foreach (var patchPath in options.PatchPaths)
+                        InjectDll(processInfo.hProcess, patchPath);
 
-                if (ResumeThread(processInfo.hThread) == uint.MaxValue)
-                    throw new Win32Exception(Marshal.GetLastWin32Error(), "Failed to resume game process.");
+                    if (ResumeThread(processInfo.hThread) == uint.MaxValue)
+                        throw new Win32Exception(Marshal.GetLastWin32Error(), "Failed to resume game process.");
+                }
 
                 return processInfo.dwProcessId;
             }

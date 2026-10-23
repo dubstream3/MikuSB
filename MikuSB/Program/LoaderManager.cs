@@ -97,6 +97,68 @@ public class LoaderManager : MikuSB
         }
     }
 
+    private static bool IsSpecificChannel()
+    {
+        return (ConfigManager.Config.Loader.Arguments ?? [])
+            .Any(x => x.Contains("jinshan", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    ///     Points the specific-channel SDK host names at this machine for as long as the server runs.
+    ///     Needs an elevated process; when that is missing we keep going and only warn.
+    /// </summary>
+    public static void InitCnHosts()
+    {
+        if (!HostsFileService.IsSupported)
+            return;
+
+        if (!ConfigManager.Config.Loader.ManageCnHosts)
+        {
+            Logger.Info("Hosts maintenance is disabled in the loader options.");
+            return;
+        }
+
+        if (!IsSpecificChannel())
+        {
+            Logger.Info("Hosts maintenance skipped: the configured launch channel is not the specific one.");
+            return;
+        }
+
+        var result = HostsFileService.Ensure();
+        switch (result.Status)
+        {
+            case HostsSyncStatus.Applied:
+                Logger.Info($"Pointed the specific-channel host names at this machine ({HostsFileService.HostsPath}).");
+                break;
+            case HostsSyncStatus.AlreadyCurrent:
+                break;
+            case HostsSyncStatus.NotElevated:
+                Logger.Warn("Cannot update the hosts file without administrator rights. " +
+                            "Run the server elevated, or use /game-cn there to print the block.");
+                break;
+            default:
+                Logger.Warn($"Failed to update the hosts file: {result.Detail}");
+                break;
+        }
+    }
+
+    public static void ReleaseCnHosts()
+    {
+        if (!HostsFileService.IsSupported || !ConfigManager.Config.Loader.ManageCnHosts)
+            return;
+
+        var result = HostsFileService.Restore();
+        switch (result.Status)
+        {
+            case HostsSyncStatus.Applied:
+                Logger.Info("Removed the managed hosts block.");
+                break;
+            case HostsSyncStatus.Failed:
+                Logger.Warn($"Failed to restore the hosts file: {result.Detail}");
+                break;
+        }
+    }
+
     public static void InitDatabase()
     {
         // Initialize the database

@@ -1,4 +1,4 @@
-﻿namespace MikuSB.Internationalization.Message;
+namespace MikuSB.Internationalization.Message;
 
 #region Root
 
@@ -133,6 +133,7 @@ public class CommandTextCHT
     public GiveAllTextCHT GiveAll { get; } = new();
     public DebugTextCHT Debug { get; } = new();
     public GameCommandTextCHT Game { get; } = new();
+    public GameCommandCnTextCHT GameCn { get; } = new();
 }
 
 #endregion
@@ -295,6 +296,19 @@ public class GameCommandTextCHT
     public string Usage => "用法: /game [額外遊戲參數]";
     public string Started => "遊戲已啟動。PID: {0}";
     public string Failed => "遊戲啟動失敗: {0}";
+}
+
+public class GameCommandCnTextCHT
+{
+    public string Desc => "寫入 hosts 並啟動特定渠道的用戶端";
+    public string Usage => "用法: /game-cn [額外遊戲參數]";
+    public string Started => "遊戲已啟動。PID: {0}";
+    public string Failed => "遊戲啟動失敗: {0}";
+    public string HostsUpdated => "已更新 hosts 檔案: {0}";
+    public string HostsCurrent => "hosts 已包含託管條目。";
+    public string HostsFailed => "寫入 hosts 失敗: {0}";
+    public string NeedAdmin => "寫入 hosts 需要管理員權限。請以管理員身分重新啟動伺服器, 或手動把下面這段加入 {0}:\n{1}";
+    public string Unsupported => "當前系統不支援自動維護 hosts。";
 }
 
 #endregion

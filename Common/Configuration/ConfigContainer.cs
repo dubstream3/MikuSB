@@ -218,4 +218,10 @@ public class LoaderOptions
     public string InGameConsoleLoaderPath { get; set; } = @"Patch\MikuSB-InGame-GUI-Console.Loader.dll";
     public string[] Arguments { get; set; } = ["-FeatureLevelES31", "-channelid=seasun", "-NoSplash"];
     public bool SetAllProxy { get; set; } = true;
+
+    /// <summary>
+    ///     While the server runs, keep the specific-channel SDK host names pointed at this machine
+    ///     through a fenced block in the hosts file. The block is removed again on a clean shutdown.
+    /// </summary>
+    public bool ManageCnHosts { get; set; } = true;
 }

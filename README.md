@@ -84,6 +84,8 @@ That channel needs more than a normal login does:
 - **Resources.** The first start downloads `Kei-Luna/MikuSB-Resource` into `Resources/`. Offline, put it there by hand: `item/templates/card.json` and `item/templates/weapon.json` must exist or data loading stops.
 - **.NET 10 with the ASP.NET Core runtime.** The published zip is framework-dependent.
 
+If you skip the proxy, `/game-cn` from the server console does the mapping: it writes a fenced block in `hosts`, flushes the resolver cache and starts the client **without** injecting `Patch/MikuSB-Patch.dll`. Editing `hosts` needs administrator rights — an unelevated server still runs, but the command then prints the block instead of writing it. `Loader.ManageCnHosts` (on by default) keeps that block for as long as the server runs and drops it again on a clean shutdown.
+
 The game server itself listens on `127.0.0.1:21000` (TCP).
 
 ## Feature List

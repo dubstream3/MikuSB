@@ -1,4 +1,4 @@
-﻿using MikuSB.Data;
+using MikuSB.Data;
 using MikuSB.Database;
 using MikuSB.MikuSB.Tool;
 using MikuSB.GameServer.Command;
@@ -32,6 +32,7 @@ public class MikuSB
             return;
 
         RegisterExitEvent();
+        LoaderManager.InitCnHosts();
         await LoaderManager.InitSdkServer();
         LoaderManager.InitPacket();
 
@@ -109,6 +110,8 @@ public class MikuSB
 
     private static async Task ProcessExit(int exitCode)
     {
+        LoaderManager.ReleaseCnHosts();
+
         SocketListener.Connections.Values.ToList().ForEach(x => x.Stop(true));
 
         DatabaseHelper.Stop();          // notify stop

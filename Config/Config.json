@@ -76,6 +76,7 @@
       "-ChannelID=jinshan",
       "-NoSplash"
     ],
-    "SetAllProxy": true
+    "SetAllProxy": true,
+    "ManageCnHosts": true
   }
 }
