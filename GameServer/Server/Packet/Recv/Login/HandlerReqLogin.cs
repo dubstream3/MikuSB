@@ -603,6 +603,11 @@ public class HandlerReqLogin : Handler
             DlcClientPatches.GlobalTimeWindowsFor(floor, era));
         await SendClientPatch(connection, nameof(DlcClientPatches.DlcMissionBoard), DlcClientPatches.DlcMissionBoard);
         await SendClientPatch(connection, nameof(DlcClientPatches.DlcShopWindows), DlcClientPatches.DlcShopWindows);
+        // Every DlcFunc button reads its window straight from the table of its own module, and
+        // DlcFuncBase.lua:52 decides "已结束" from that table before it ever asks about unlock state -
+        // so the keys of the NEW era row (DlcFuncConfId) need their tables re-stamped as soon as the era
+        // changes, not only at login. The patch reads the era row itself, so there is nothing to bake in.
+        await SendClientPatch(connection, nameof(DlcClientPatches.DlcFuncWindowFix), DlcClientPatches.DlcFuncWindowFix);
 
         var tryActIds = GachaTryService.SelectEraActIds();
         if (tryActIds.Count == 0)
@@ -684,6 +689,12 @@ public class HandlerReqLogin : Handler
         // strategy as 抢滩登陆 - no-op when GirlRushConfig is not loaded yet, plus wrappers on the two
         // config loaders and on DLC_Logic.InitFuncObj.
         await SendClientPatch(connection, nameof(DlcClientPatches.GirlRushWindows), DlcClientPatches.GirlRushWindows);
+        // Window of every DLC page button that has no patch of its own (Worldboss / Farmwar / Celebrate /
+        // Puzzle / Former / Event / Onlinesea / Onlinepurge / Rush): DlcFuncBase.lua:52 reads each one
+        // from that module's shipped table and reports Over before unlock state is consulted, so nothing
+        // but re-stamping those tables re-opens them. Driven by the pinned era row, so it also has to be
+        // re-sent on an era switch - see PushDlcEraPatches.
+        await SendClientPatch(connection, nameof(DlcClientPatches.DlcFuncWindowFix), DlcClientPatches.DlcFuncWindowFix);
         // Cartoons: the framework helper hides only the top Stack UI, so a cartoon played from a panel
         // that sits on top of the dorm lets the dorm HUD poke through its four corners (entering 心意寄语
         // stacks Dlc35Main -&gt; Dorm -&gt; message panel). Misc/UE4.lua is required by Preload.lua:17, so

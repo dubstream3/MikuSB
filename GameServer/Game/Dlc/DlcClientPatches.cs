@@ -833,13 +833,18 @@ public static class DlcClientPatches
     /// </summary>
     public const string FunTimedWindows = """
         local now = GetTime() local off1 = 3600 local off2 = -2592000
+        local function ftfmt(t)
+        local s = os.date("%Y%m%d%H%M", t)
+        if s and #s >= 12 then return s end
+        return t
+        end
         local function ftstamp()
         if not FunTimed then return end
         if FunTimed.tbSession then
-        for _, s in pairs(FunTimed.tbSession) do s.tbOpenTime = { now - off1, now - off2 } end
+        for _, s in pairs(FunTimed.tbSession) do s.tbOpenTime = { ftfmt(now - off1), ftfmt(now - off2) } end
         end
         if FunTimed.tbLevels then
-        for _, l in pairs(FunTimed.tbLevels) do l.tbTimeLimit = { now - off1, now - off2 } end
+        for _, l in pairs(FunTimed.tbLevels) do l.tbTimeLimit = { ftfmt(now - off1), ftfmt(now - off2) } end
         end
         end
         ftstamp()
@@ -852,6 +857,111 @@ public static class DlcClientPatches
         DLC_Logic.bFtFuncStamp = true
         local oldInit = DLC_Logic.InitFuncObj
         DLC_Logic.InitFuncObj = function(...) local r = oldInit(...) ftstamp() return r end
+        end
+        """;
+
+    /// <summary>
+    /// Per-era window fix for the DLC function buttons that have no dedicated patch of their own.
+    ///
+    /// DlcFuncBase.CheckIsUnlock (DLC/DLCFunc/DlcFuncBase.lua:43-52) reads the button's window FIRST and
+    /// returns FuncState.Over ("ui.TxtDLC1Over", 已结束) before it ever asks OnCheckIsUnlock, so a button
+    /// whose table still carries the shipped CSV window is dead no matter how far GlobalTimeWindows
+    /// relaxes IsInTime - and GlobalTimeWindows cannot help anyway, because its era floor deliberately
+    /// keeps any window that ended before the pinned era's start closed.
+    ///
+    /// Every DlcFunc takes its window from one table, and the set of buttons that exist for an era is
+    /// exactly the keys of that era row's DlcFuncConfId (DLC_Logic.lua:69 evaluates it, :1381 builds one
+    /// button per key, DlcFuncBase.GetFuncConfigId:145-148 looks the key up again). So instead of a
+    /// patch per activity, this walks the CURRENT era's keys and re-stamps whatever table each of them
+    /// reads - era-agnostic, and correct for any era the /dlc command pins afterwards:
+    ///   Rush / Event / Onlinesea / Onlinepurge -> Online.GetGroupConfig(id)  (DlcFuncRush, DlcFuncEvent,
+    ///     DlcFuncOnlinesea, DlcFuncOnlinepurge all take min start / max end over the group's rows)
+    ///   Puzzle / Former                       -> Activity activity row (DlcFuncPuzzle.OnGetTimeInfo,
+    ///     DlcFuncFormer.OnGetTimeInfo; Activity.IsOpen also short-circuits on nCloseFlag > 0)
+    ///   Worldboss                             -> WorldBossLogic.tbBossListCfg[id][actId] (DlcFuncWorldboss
+    ///     filters the acts through IsInTime and FALLS BACK to act 2's raw window when none survives,
+    ///     which is why relaxing IsInTime alone still reads the button as Over)
+    ///   Farmwar                               -> FarmWarActivityCfg.tbActivityCfg[id]
+    ///   Celebrate                             -> StarWishConfig.tbTimeList[id]
+    /// Refresh / Defense / Teamboss / Sevendays already have a server push (DLCChapter_SyncTime,
+    /// DefendLogic_CheckOpenAct, SeasonBoss_GMChangeTime) or their own patch (FunTimedWindows), and are
+    /// deliberately not routed here.
+    ///
+    /// Re-stamping has to survive the client's own reloads, so the driver is also chained onto
+    /// Activity.LoadActivitiesConfig (GlobalTimeWindows' era reset calls it and rebuilds every row),
+    /// Online.LoadConfig and DLC_Logic.InitFuncObj (DLC page entry). All three are idempotent and the
+    /// flags keep a re-sent patch from stacking wrappers.
+    /// </summary>
+    public const string DlcFuncWindowFix = """
+        local now = GetTime() local off1 = 3600 local off2 = -2592000
+        local nWinStart = now - off1 local nWinEnd = now - off2
+        local function dfwGroup(nId)
+        if not (Online and Online.GetGroupConfig) then return end
+        local tbRows = Online.GetGroupConfig(nId)
+        if type(tbRows) ~= type({}) then return end
+        for _, row in pairs(tbRows) do
+        if type(row) == type({}) then row.nStartTime = nWinStart row.nEndTime = nWinEnd end
+        end
+        end
+        local function dfwActivity(nId)
+        local cfg = Activity and Activity.tbActivityConfig and Activity.tbActivityConfig[nId]
+        if type(cfg) ~= type({}) and Activity and Activity.GetActivityConfig then
+        cfg = Activity.GetActivityConfig(nId)
+        end
+        if type(cfg) ~= type({}) then return end
+        cfg.nStartTime = nWinStart cfg.nEndTime = nWinEnd
+        if (cfg.nCloseFlag or 0) > 0 then cfg.nCloseFlag = 0 end
+        end
+        local function dfwWorldboss(nId)
+        if not (WorldBossLogic and WorldBossLogic.tbBossListCfg) then return end
+        local tbActs = WorldBossLogic.tbBossListCfg[nId]
+        if type(tbActs) ~= type({}) then return end
+        for _, cfg in pairs(tbActs) do
+        if type(cfg) == type({}) then
+        cfg.nStartTime = nWinStart cfg.nEndTime = nWinEnd cfg.nAwardTime = nWinEnd
+        end
+        end
+        end
+        local function dfwFarmwar(nId)
+        local cfg = FarmWarActivityCfg and FarmWarActivityCfg.tbActivityCfg and FarmWarActivityCfg.tbActivityCfg[nId]
+        if type(cfg) ~= type({}) then return end
+        cfg.nStartTime = nWinStart cfg.nEndTime = nWinEnd
+        end
+        local function dfwCelebrate(nId)
+        local cfg = StarWishConfig and StarWishConfig.tbTimeList and StarWishConfig.tbTimeList[nId]
+        if type(cfg) ~= type({}) then return end
+        cfg.nStartTime = nWinStart cfg.nEndTime = nWinEnd
+        end
+        local tbRoute = {
+        Rush = dfwGroup, Event = dfwGroup, Onlinesea = dfwGroup, Onlinepurge = dfwGroup,
+        Puzzle = dfwActivity, Former = dfwActivity,
+        Worldboss = dfwWorldboss, Farmwar = dfwFarmwar, Celebrate = dfwCelebrate,
+        }
+        local function dfwstamp()
+        if not (DLC_Logic and DLC_Logic.GetCurConf) then return end
+        local conf = DLC_Logic.GetCurConf()
+        local tbIds = conf and conf.tbDlcFuncConfId
+        if type(tbIds) ~= type({}) then return end
+        for sKey, nId in pairs(tbIds) do
+        local fnFix = tbRoute[sKey]
+        if fnFix and type(nId) == "number" then fnFix(nId) end
+        end
+        end
+        dfwstamp()
+        if DLC_Logic and not DLC_Logic.bDfwStamp then
+        DLC_Logic.bDfwStamp = true
+        local oldInit = DLC_Logic.InitFuncObj
+        DLC_Logic.InitFuncObj = function(...) local r = oldInit(...) dfwstamp() return r end
+        end
+        if Activity and not Activity.bDfwStamp and Activity.LoadActivitiesConfig then
+        Activity.bDfwStamp = true
+        local oldActs = Activity.LoadActivitiesConfig
+        Activity.LoadActivitiesConfig = function(...) local r = oldActs(...) dfwstamp() return r end
+        end
+        if Online and not Online.bDfwStamp and Online.LoadConfig then
+        Online.bDfwStamp = true
+        local oldOnl = Online.LoadConfig
+        Online.LoadConfig = function(...) local r = oldOnl(...) dfwstamp() return r end
         end
         """;
 
