@@ -40,14 +40,22 @@ public static class HostsFileService
 {
     private const string BeginMarker = "# >>> MikuSB specific channel (managed) >>>";
     private const string EndMarker = "# <<< MikuSB specific channel <<<";
+    private const string RedirectSuffix = "# MikuSB-CN-REDIRECT";
 
+    /// <summary>
+    ///     Every name the client has to resolve locally before it can log in. Missing one of them
+    ///     either stalls the handshake or leaves the client without a server list, so the list lives
+    ///     in one place and is written verbatim.
+    /// </summary>
     public static IReadOnlyList<(string Address, string Host)> Entries { get; } =
     [
-        ("127.0.0.1", "js2sdk.xoyo.com"),
         ("127.0.0.1", "sh-jxsj.xgsdk.com"),
-        ("127.0.0.1", "sh-qrcode.xgsdk.com"),
         ("127.0.0.1", "xgdata.xgsdk.com"),
-        ("127.0.0.1", "gpm-conf.testplus.cn")
+        ("127.0.0.1", "js2sdk.xoyo.com"),
+        ("127.0.0.1", "sh-qrcode.xgsdk.com"),
+        ("127.0.0.1", "activity.xgsdk.com"),
+        ("127.0.0.1", "gpm-conf.testplus.cn"),
+        ("127.0.0.1", "cbjq-serverlist.xoyocdn.com")
     ];
 
     public static bool IsSupported => OperatingSystem.IsWindows();
@@ -74,13 +82,14 @@ public static class HostsFileService
         }
     }
 
-    public static string BuildBlock()
+    public static string BuildBlock(IEnumerable<(string Address, string Host)>? entries = null)
     {
+        var rows = (entries ?? Entries).ToList();
         var builder = new StringBuilder();
         builder.AppendLine(BeginMarker);
         builder.AppendLine("# Managed by MikuSB; removed again when the server shuts down cleanly.");
-        foreach (var (address, host) in Entries)
-            builder.Append(address).Append('\t').Append(host).AppendLine();
+        foreach (var (address, host) in rows)
+            builder.Append(address).Append(' ').Append(host).Append(' ').Append(RedirectSuffix).AppendLine();
         builder.Append(EndMarker);
         return builder.ToString();
     }
@@ -101,20 +110,35 @@ public static class HostsFileService
 
             var newLine = original.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
             var lines = SplitLines(original);
-            var desired = BuildBlock().ReplaceLineEndings(newLine);
+            var outside = StripManaged(lines);
+            var existing = GetManagedBlock(lines, newLine);
 
-            if (GetManagedBlock(lines, newLine) == desired)
+            // Whatever the user already redirected by hand counts as done: writing a second copy
+            // would only make the file harder to read, and removing it afterwards would be rude.
+            var mapped = MappedHosts(outside);
+            var wanted = Entries.Where(entry => !mapped.Contains(entry.Host)).ToList();
+
+            if (wanted.Count == 0)
+            {
+                if (existing is null)
+                    return HostsSyncResult.AlreadyCurrent();
+
+                File.WriteAllText(HostsPath, Join(outside, newLine), new UTF8Encoding(false));
+                return HostsSyncResult.Applied();
+            }
+
+            var desired = BuildBlock(wanted).ReplaceLineEndings(newLine);
+            if (existing == desired)
                 return HostsSyncResult.AlreadyCurrent();
 
-            var stripped = StripManaged(lines);
             var builder = new StringBuilder();
-            if (stripped.Count > 0)
+            if (outside.Count > 0)
             {
-                builder.Append(string.Join(newLine, stripped).TrimEnd('\r', '\n'));
+                builder.Append(string.Join(newLine, outside).TrimEnd('\r', '\n'));
                 builder.Append(newLine).Append(newLine);
             }
 
-            builder.Append(desired.ReplaceLineEndings(newLine)).Append(newLine);
+            builder.Append(desired).Append(newLine);
             File.WriteAllText(HostsPath, builder.ToString(), new UTF8Encoding(false));
             return HostsSyncResult.Applied();
         }
@@ -151,11 +175,7 @@ public static class HostsFileService
                 return HostsSyncResult.AlreadyCurrent();
 
             var stripped = StripManaged(lines);
-            var text = stripped.Count == 0
-                ? ""
-                : string.Join(newLine, stripped).TrimEnd('\r', '\n') + newLine;
-
-            File.WriteAllText(HostsPath, text, new UTF8Encoding(false));
+            File.WriteAllText(HostsPath, Join(stripped, newLine), new UTF8Encoding(false));
             return HostsSyncResult.Applied();
         }
         catch (UnauthorizedAccessException)
@@ -201,6 +221,33 @@ public static class HostsFileService
     private static bool IsBegin(string line) => line.Trim().Equals(BeginMarker, StringComparison.Ordinal);
 
     private static bool IsEnd(string line) => line.Trim().Equals(EndMarker, StringComparison.Ordinal);
+
+    /// <summary>
+    ///     Collects the names that already point at this machine, ignoring our own block.
+    /// </summary>
+    private static HashSet<string> MappedHosts(IEnumerable<string> lines)
+    {
+        var mapped = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var line in lines)
+        {
+            var comment = line.IndexOf('#');
+            var body = comment >= 0 ? line[..comment] : line;
+            var parts = body.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length >= 2 && parts[0] == "127.0.0.1")
+                mapped.Add(parts[1]);
+        }
+
+        return mapped;
+    }
+
+    /// <summary>
+    ///     Serialises host lines back out; an empty file stays empty instead of becoming a lone newline.
+    /// </summary>
+    private static string Join(List<string> lines, string newLine)
+    {
+        var text = string.Join(newLine, lines).TrimEnd('\r', '\n');
+        return text.Length == 0 ? "" : text + newLine;
+    }
 
     private static string? GetManagedBlock(List<string> lines, string newLine)
     {
