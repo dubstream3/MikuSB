@@ -906,69 +906,76 @@ public static class DlcClientPatches
     public const string DlcFuncWindowFix = """
         local now = GetTime() local off1 = 3600 local off2 = -2592000
         local nWinStart = now - off1 local nWinEnd = now - off2
+        local function dfwTable(v) return type(v) == type({}) end
+        local function dfwFunc(v) return type(v) == [[function]] end
+        local function dfwRun(sName, fn, ...)
+        local bOk, v1 = pcall(fn, ...)
+        if not bOk then print([[DlcFuncWindowFix failed:]], sName, v1) end
+        return v1
+        end
+        local tbForceAct = tbDfwForceAct
+        if not dfwTable(tbForceAct) then tbForceAct = {} tbDfwForceAct = tbForceAct end
         local function dfwGroup(nId)
-        if not (Online and Online.GetGroupConfig) then return end
+        if not (Online and dfwFunc(Online.GetGroupConfig)) then return end
         local tbRows = Online.GetGroupConfig(nId)
-        if type(tbRows) ~= type({}) then return end
+        if not dfwTable(tbRows) then return end
         for _, row in pairs(tbRows) do
-        if type(row) == type({}) then
+        if dfwTable(row) then
         row.nStartTime = nWinStart row.nEndTime = nWinEnd row.tbCondition = nil
         end
         end
         end
-        if type(tbDfwForceAct) ~= type({}) then tbDfwForceAct = {} end
-        local tbForceAct = tbDfwForceAct
         local function dfwActivity(nId)
         tbForceAct[nId] = true
         local cfg = Activity and Activity.tbActivityConfig and Activity.tbActivityConfig[nId]
-        if type(cfg) ~= type({}) and Activity and Activity.GetActivityConfig then
+        if not dfwTable(cfg) and Activity and dfwFunc(Activity.GetActivityConfig) then
         cfg = Activity.GetActivityConfig(nId)
         end
-        if type(cfg) ~= type({}) then return end
+        if not dfwTable(cfg) then return end
         cfg.nStartTime = nWinStart cfg.nEndTime = nWinEnd
         if (cfg.nCloseFlag or 0) ~= 0 then cfg.nCloseFlag = 0 end
         end
         local function dfwWorldboss(nId)
-        if not (WorldBossLogic and WorldBossLogic.tbBossListCfg) then return end
+        if not (WorldBossLogic and dfwTable(WorldBossLogic.tbBossListCfg)) then return end
         local tbActs = WorldBossLogic.tbBossListCfg[nId]
-        if type(tbActs) ~= type({}) then return end
+        if not dfwTable(tbActs) then return end
         for _, cfg in pairs(tbActs) do
-        if type(cfg) == type({}) then
+        if dfwTable(cfg) then
         cfg.nStartTime = nWinStart cfg.nEndTime = nWinEnd cfg.nAwardTime = nWinEnd
         end
         end
         end
         local function dfwFarmwar(nId)
         local cfg = FarmWarActivityCfg and FarmWarActivityCfg.tbActivityCfg and FarmWarActivityCfg.tbActivityCfg[nId]
-        if type(cfg) ~= type({}) then return end
+        if not dfwTable(cfg) then return end
         cfg.nStartTime = nWinStart cfg.nEndTime = nWinEnd
         end
         local function dfwCelebrate(nId)
         local cfg = StarWishConfig and StarWishConfig.tbTimeList and StarWishConfig.tbTimeList[nId]
-        if type(cfg) ~= type({}) then return end
+        if not dfwTable(cfg) then return end
         cfg.nStartTime = nWinStart cfg.nEndTime = nWinEnd
         end
         local function dfwClimb(nId)
         local tb = ClimbTower and ClimbTower.tbSeason and ClimbTower.tbSeason[nId]
-        if type(tb) ~= type({}) then return end
+        if not dfwTable(tb) then return end
         tb.nOpenTime = nWinStart tb.nCloseTime = nWinEnd
         end
         local function dfwRogue(nId)
-        if not (Rogue3DLogic and Rogue3DLogic.GetSeasonConfig) then return end
+        if not (Rogue3DLogic and dfwFunc(Rogue3DLogic.GetSeasonConfig)) then return end
         local cfg = Rogue3DLogic.GetSeasonConfig(nId)
-        if type(cfg) ~= type({}) then return end
+        if not dfwTable(cfg) then return end
         cfg.nStartTime = nWinStart cfg.nEndTime = nWinEnd
         end
         local function dfwMow(nId)
-        if not (AlienDefenseConfig and AlienDefenseConfig.GetTimeConfig) then return end
+        if not (AlienDefenseConfig and dfwFunc(AlienDefenseConfig.GetTimeConfig)) then return end
         local cfg = AlienDefenseConfig.GetTimeConfig(nId)
-        if type(cfg) ~= type({}) then return end
+        if not dfwTable(cfg) then return end
         cfg.nStartTime = nWinStart cfg.nEndTime = nWinEnd
         end
         local function dfwRmol(nId)
-        if not (DLC_RMOL and DLC_RMOL.GetSession) then return end
+        if not (DLC_RMOL and dfwFunc(DLC_RMOL.GetSession)) then return end
         local cfg = DLC_RMOL.GetSession(nId)
-        if type(cfg) ~= type({}) then return end
+        if not dfwTable(cfg) then return end
         cfg.StartTime = nWinStart cfg.EndTime = nWinEnd
         cfg.IsOpen = function(self) return true end
         end
@@ -978,31 +985,22 @@ public static class DlcClientPatches
         Worldboss = dfwWorldboss, Farmwar = dfwFarmwar, Celebrate = dfwCelebrate,
         ClimbTower = dfwClimb, Rogue = dfwRogue, Mow = dfwMow, Rmol = dfwRmol,
         }
-        local function dfwstamp()
-        if not (DLC_Logic and DLC_Logic.GetCurConf) then return end
+        local function dfwStamp()
+        if not (DLC_Logic and dfwFunc(DLC_Logic.GetCurConf)) then return end
         local conf = DLC_Logic.GetCurConf()
         local tbIds = conf and conf.tbDlcFuncConfId
-        if type(tbIds) ~= type({}) then return end
+        if not dfwTable(tbIds) then return end
         for sKey, nId in pairs(tbIds) do
         local fnFix = tbRoute[sKey]
-        if fnFix and type(nId) == [[number]] then fnFix(nId) end
+        if dfwFunc(fnFix) and type(nId) == [[number]] then fnFix(nId) end
         end
         end
-        local function dfwUnlock()
-        local tbBase = DlcFuncBase
-        if type(tbBase) ~= type({}) then return end
-        if tbBase.bDfwUnlock then return end
-        tbBase.bDfwUnlock = true
-        tbBase.CheckIsUnlock = function(obj) return DLC_Logic.FuncState.Open, [[]] end
-        tbBase.OpenFunc = function(obj, ...)
-        DLC_Logic.SetFirstCheck(obj.sFuncKey)
-        obj:OnOpenFunc(...)
-        end
-        end
-        local function dfwGuard(sFn)
-        local fnOld = DLC_Logic and DLC_Logic[sFn]
-        if type(fnOld) ~= type(dfwGuard) then return end
-        if fnOld.bDfwGuard then return end
+        local function dfwGuards()
+        if not dfwTable(DLC_Logic) then return end
+        local tbNames = { [[GetTimeInfo]], [[CheckIsUnlock]], [[GetSubTitle]], [[CheckRed]] }
+        for _, sFn in ipairs(tbNames) do
+        local fnOld = DLC_Logic[sFn]
+        if dfwFunc(fnOld) and not fnOld.bDfwGuard then
         local fnNew = function(...)
         local bOk, v1, v2 = pcall(fnOld, ...)
         if bOk then return v1, v2 end
@@ -1011,32 +1009,62 @@ public static class DlcClientPatches
         fnNew.bDfwGuard = true
         DLC_Logic[sFn] = fnNew
         end
-        dfwGuard([[GetTimeInfo]]) dfwGuard([[CheckIsUnlock]]) dfwGuard([[GetSubTitle]]) dfwGuard([[CheckRed]])
-        if Activity and Activity.IsOpen and not Activity.bDfwForceOpen then
+        end
+        end
+        local function dfwUnlock()
+        local tbBase = DlcFuncBase
+        if not dfwTable(tbBase) then return end
+        if tbBase.bDfwUnlock then return end
+        tbBase.bDfwUnlock = true
+        local nOpen = 0
+        if DLC_Logic and dfwTable(DLC_Logic.FuncState) then nOpen = DLC_Logic.FuncState.Open or 0 end
+        tbBase.CheckIsUnlock = function(obj) return nOpen end
+        tbBase.OpenFunc = function(obj, ...)
+        if DLC_Logic and dfwFunc(DLC_Logic.SetFirstCheck) then pcall(DLC_Logic.SetFirstCheck, obj.sFuncKey) end
+        local fnOpen = obj.OnOpenFunc
+        if dfwFunc(fnOpen) then fnOpen(obj, ...) end
+        end
+        end
+        local function dfwForceActivity()
+        if not (dfwTable(Activity) and dfwFunc(Activity.IsOpen)) then return end
+        if Activity.bDfwForceOpen then return end
         Activity.bDfwForceOpen = true
-        local oldIsOpen = Activity.IsOpen
+        local fnOldOpen = Activity.IsOpen
         Activity.IsOpen = function(nId, ...)
         if tbForceAct[nId] then return true, {} end
-        return oldIsOpen(nId, ...)
+        return fnOldOpen(nId, ...)
         end
         end
-        dfwUnlock()
-        dfwstamp()
-        if DLC_Logic and not DLC_Logic.bDfwStamp then
+        local function dfwHooks()
+        if dfwTable(DLC_Logic) and not DLC_Logic.bDfwStamp then
+        local fnInit = DLC_Logic.InitFuncObj
+        if dfwFunc(fnInit) then
         DLC_Logic.bDfwStamp = true
-        local oldInit = DLC_Logic.InitFuncObj
-        DLC_Logic.InitFuncObj = function(...) dfwUnlock() local r = oldInit(...) dfwUnlock() dfwstamp() return r end
+        DLC_Logic.InitFuncObj = function(...)
+        dfwRun([[unlock]], dfwUnlock)
+        local r = fnInit(...)
+        dfwRun([[unlock]], dfwUnlock)
+        dfwRun([[stamp]], dfwStamp)
+        return r
         end
-        if Activity and not Activity.bDfwStamp and Activity.LoadActivitiesConfig then
+        end
+        end
+        if dfwTable(Activity) and not Activity.bDfwStamp and dfwFunc(Activity.LoadActivitiesConfig) then
         Activity.bDfwStamp = true
-        local oldActs = Activity.LoadActivitiesConfig
-        Activity.LoadActivitiesConfig = function(...) local r = oldActs(...) dfwstamp() return r end
+        local fnActs = Activity.LoadActivitiesConfig
+        Activity.LoadActivitiesConfig = function(...) local r = fnActs(...) dfwRun([[stamp]], dfwStamp) return r end
         end
-        if Online and not Online.bDfwStamp and Online.LoadConfig then
+        if dfwTable(Online) and not Online.bDfwStamp and dfwFunc(Online.LoadConfig) then
         Online.bDfwStamp = true
-        local oldOnl = Online.LoadConfig
-        Online.LoadConfig = function(...) local r = oldOnl(...) dfwstamp() return r end
+        local fnOnl = Online.LoadConfig
+        Online.LoadConfig = function(...) local r = fnOnl(...) dfwRun([[stamp]], dfwStamp) return r end
         end
+        end
+        dfwRun([[guards]], dfwGuards)
+        dfwRun([[activity]], dfwForceActivity)
+        dfwRun([[unlock]], dfwUnlock)
+        dfwRun([[stamp]], dfwStamp)
+        dfwRun([[hooks]], dfwHooks)
         """;
 
     /// <summary>
