@@ -34,7 +34,7 @@ jobs:
           "tag=v$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Publish server
-        run: dotnet publish .\MikuSB\MikuSB.csproj -c Release -p:PublishProfile=MikuSB-Win64-MultiFile -o .\artifacts\publish\MikuSB
+        run: dotnet publish .\MikuSB\MikuSB.csproj -c Release -p:PublishProfile=MikuSB-Win64-MultiFile -p:DebugType=none -p:DebugSymbols=false -o .\artifacts\publish\MikuSB
 
       - name: Assemble release package
         shell: pwsh
@@ -43,6 +43,8 @@ jobs:
           New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
           Copy-Item .\artifacts\publish\MikuSB\* $packageDir -Recurse -Force
           if (-not (Test-Path "$packageDir\MikuSB.Updater.exe")) { throw 'MikuSB.Updater.exe was not bundled into the publish output.' }
+          $straySymbols = Get-ChildItem $packageDir -Filter *.pdb -Recurse
+          if ($straySymbols) { throw "Publish output still contains symbols: $($straySymbols.Name -join ', ')" }
           Copy-Item .\version.txt $packageDir -Force
           Compress-Archive -Path "$packageDir\*" -DestinationPath .\artifacts\MikuSB-win-x64.zip -Force
           $hash = (Get-FileHash .\artifacts\MikuSB-win-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -69,7 +71,7 @@ jobs:
 
       - name: Publish server
         run: |
-          dotnet publish ./MikuSB/MikuSB.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true --property:PublishDir=../artifacts/dist
+          dotnet publish ./MikuSB/MikuSB.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:DebugType=none -p:DebugSymbols=false --property:PublishDir=../artifacts/dist
 
       - name: Read version
         id: version
