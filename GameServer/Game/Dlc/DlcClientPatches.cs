@@ -834,8 +834,8 @@ public static class DlcClientPatches
     public const string FunTimedWindows = """
         local now = GetTime() local off1 = 3600 local off2 = -2592000
         local function ftfmt(t)
-        local s = os.date("%Y%m%d%H%M", t)
-        if s and #s >= 12 then return s end
+        local s = os.date([[%Y%m%d%H%M]], t)
+        if s and #s == 12 then return s end
         return t
         end
         local function ftstamp()
@@ -910,7 +910,7 @@ public static class DlcClientPatches
         end
         if type(cfg) ~= type({}) then return end
         cfg.nStartTime = nWinStart cfg.nEndTime = nWinEnd
-        if (cfg.nCloseFlag or 0) > 0 then cfg.nCloseFlag = 0 end
+        if (cfg.nCloseFlag or 0) ~= 0 then cfg.nCloseFlag = 0 end
         end
         local function dfwWorldboss(nId)
         if not (WorldBossLogic and WorldBossLogic.tbBossListCfg) then return end
@@ -944,7 +944,7 @@ public static class DlcClientPatches
         if type(tbIds) ~= type({}) then return end
         for sKey, nId in pairs(tbIds) do
         local fnFix = tbRoute[sKey]
-        if fnFix and type(nId) == "number" then fnFix(nId) end
+        if fnFix and type(nId) == [[number]] then fnFix(nId) end
         end
         end
         dfwstamp()
