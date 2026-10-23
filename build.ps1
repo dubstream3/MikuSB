@@ -35,6 +35,17 @@ $outDir = Join-Path $root 'build'
 $publishDir = Join-Path $outDir 'MikuSB-win-x64'
 $zipPath = Join-Path $outDir 'MikuSB-win-x64.zip'
 
+# Refuse to ship a Lua payload the client cannot decode. SendClientPatch drops any patch that
+# contains one of ForbiddenPatchChars ('+', '<', '>', '&', "'", '"') because System.Text.Json
+# escapes them to \uXXXX and the client's Lua 5.1 JSON decoder rejects the escape - the patch then
+# becomes a silent in-game no-op. Checked here so a broken payload cannot reach a release.
+$checkPatches = Join-Path $root 'tools\check_client_patches.py'
+if ((Test-Path $checkPatches) -and (Get-Command python -ErrorAction SilentlyContinue)) {
+    Write-Host '=== checking client patch payloads' -ForegroundColor Cyan
+    & python $checkPatches
+    if ($LASTEXITCODE -ne 0) { throw 'A client patch payload contains a character the client cannot decode.' }
+}
+
 # Prefer the portable SDK; fall back to whatever `dotnet` resolves to.
 $dotnet = Join-Path $env:USERPROFILE '.dotnet\dotnet.exe'
 $extraArgs = @()
