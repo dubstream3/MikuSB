@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
@@ -32,6 +33,33 @@ public static class UpdateService
         "item/templates/card.json",
         "item/templates/weapon.json"
     ];
+
+    // Direct GitHub access is unusable on some networks: the connection either never completes or
+    // crawls at a few KB/s, which used to abort startup resource installation. Downloads are retried
+    // through these reverse proxies, which serve https://<mirror>/https://github.com/... verbatim.
+    // Probed from the maintainer's machine on 2026-10-24 through a direct connection: each entry below
+    // completed a full 34 MB archive with a valid zip header; the ~30 sites dropped from the original
+    // list were dead, DNS-invalid, rate limited (429) or returned a non-archive body.
+    // MIKUSB_RESOURCE_MIRRORS overrides the list (semicolon separated) without rebuilding.
+    private static readonly string[] GitHubMirrors = ResolveMirrors(
+        "https://git.669966.xyz/",
+        "https://fastgit.cc/",
+        "https://github.ednovas.xyz/",
+        "https://cdn.akaere.online/",
+        "https://gh-proxy.com/",
+        "https://ghproxy.imciel.com/",
+        "https://ghpxy.hwinzniej.top/",
+        "https://git.yylx.win/",
+        "https://gh.catmak.name/",
+        "https://tvv.tw/");
+    private static readonly int DirectDownloadAttempts = 2;
+    private static readonly int MinDownloadBytesPerSecond = 10 * 1024;
+    private static readonly int SpeedFloorAfterSeconds = 5;
+    private static readonly int HeaderTimeoutSeconds = 20;
+    private static readonly JsonSerializerOptions ReleaseJsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     public static async Task<bool> TryStartSelfUpdateAsync()
     {
@@ -232,22 +260,35 @@ public static class UpdateService
         HttpClient client,
         CancellationToken cancellationToken)
     {
-        var requestUri =
-            $"https://api.github.com/repos/{RepositoryOwner}/{RepositoryName}/releases/latest";
-        using var response = await client.GetAsync(requestUri, cancellationToken);
+        var candidates = BuildDownloadCandidates(
+            $"https://api.github.com/repos/{RepositoryOwner}/{RepositoryName}/releases/latest");
 
-        if (response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+        foreach (var candidate in candidates)
         {
-            Logger.Warn("Latest GitHub release is not accessible. This is expected while the repository remains private.");
-            return null;
+            try
+            {
+                using var response = await client.GetAsync(candidate, cancellationToken);
+                if (response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+                {
+                    Logger.Warn("Latest GitHub release is not accessible. This is expected while the repository remains private.");
+                    return null;
+                }
+
+                response.EnsureSuccessStatusCode();
+                await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                return await JsonSerializer.DeserializeAsync<GitHubReleaseResponse>(stream, ReleaseJsonOptions, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug($"Release lookup via {new Uri(candidate).Host} failed ({ex.Message}). Trying the next source.");
+            }
         }
 
-        response.EnsureSuccessStatusCode();
-        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        return await JsonSerializer.DeserializeAsync<GitHubReleaseResponse>(stream, new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        }, cancellationToken);
+        return null;
     }
 
     private static async Task DownloadFileAsync(
@@ -256,13 +297,98 @@ public static class UpdateService
         string destinationPath,
         int timeoutSeconds)
     {
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Max(1, timeoutSeconds)));
-        using var response = await client.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, cts.Token);
+        var candidates = BuildDownloadCandidates(downloadUrl);
+        Exception? lastError = null;
+
+        for (var index = 0; index < candidates.Count; index++)
+        {
+            var candidate = candidates[index];
+            var host = new Uri(candidate).Host;
+            try
+            {
+                await DownloadOnceAsync(client, candidate, destinationPath, timeoutSeconds);
+                if (index >= DirectDownloadAttempts)
+                    Logger.Warn($"Downloaded {Path.GetFileName(destinationPath)} through mirror {host} because the direct GitHub source failed.");
+                else if (index > 0)
+                    Logger.Info($"Downloaded {Path.GetFileName(destinationPath)} on retry {index + 1}.");
+                return;
+            }
+            catch (Exception ex)
+            {
+                lastError = ex;
+                var hasNext = index + 1 < candidates.Count;
+                Logger.Debug($"Download of {downloadUrl} via {host} failed ({ex.Message}).{(hasNext ? " Trying the next source." : "")}");
+            }
+        }
+
+        throw lastError ?? new IOException($"Failed to download {downloadUrl}.");
+    }
+
+    private static async Task DownloadOnceAsync(
+        HttpClient client,
+        string downloadUrl,
+        string destinationPath,
+        int timeoutSeconds)
+    {
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Max(1, timeoutSeconds)));
+        using var headerCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token);
+        headerCts.CancelAfter(TimeSpan.FromSeconds(Math.Max(1, HeaderTimeoutSeconds)));
+
+        using var response = await client.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, headerCts.Token);
         response.EnsureSuccessStatusCode();
 
-        await using var source = await response.Content.ReadAsStreamAsync(cts.Token);
-        await using var destination = File.Create(destinationPath);
-        await source.CopyToAsync(destination, cts.Token);
+        var stopwatch = Stopwatch.StartNew();
+        long bytesRead = 0;
+        var buffer = ArrayPool<byte>.Shared.Rent(81_920);
+
+        try
+        {
+            await using var source = await response.Content.ReadAsStreamAsync(timeoutCts.Token);
+            await using var destination = File.Create(destinationPath);
+
+            int read;
+            while ((read = await source.ReadAsync(buffer.AsMemory(), timeoutCts.Token)) > 0)
+            {
+                await destination.WriteAsync(buffer.AsMemory(0, read), timeoutCts.Token);
+                bytesRead += read;
+
+                var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
+                if (elapsedSeconds >= SpeedFloorAfterSeconds
+                    && bytesRead / elapsedSeconds < MinDownloadBytesPerSecond)
+                {
+                    throw new IOException(
+                        $"Transfer from {new Uri(downloadUrl).Host} is {bytesRead / elapsedSeconds / 1024:F1} KB/s, " +
+                        $"below the {MinDownloadBytesPerSecond / 1024} KB/s floor.");
+                }
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+
+        if (bytesRead == 0)
+            throw new InvalidDataException($"Download from {new Uri(downloadUrl).Host} returned no data.");
+    }
+
+    private static List<string> BuildDownloadCandidates(string downloadUrl)
+    {
+        // Two direct attempts first; a mirror is only used after the direct source failed twice
+        // (connection error, error status, timeout, or the speed floor above).
+        var candidates = new List<string>(DirectDownloadAttempts + GitHubMirrors.Length);
+        for (var attempt = 0; attempt < DirectDownloadAttempts; attempt++)
+            candidates.Add(downloadUrl);
+        foreach (var mirror in GitHubMirrors)
+            candidates.Add(mirror + downloadUrl);
+        return candidates;
+    }
+
+    private static string[] ResolveMirrors(params string[] defaults)
+    {
+        var configured = Environment.GetEnvironmentVariable("MIKUSB_RESOURCE_MIRRORS")
+            ?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var mirrors = configured is { Length: > 0 } ? configured : defaults;
+        return mirrors.Select(m => m.EndsWith('/') ? m : m + "/").ToArray();
     }
 
     private static void CopyDirectory(string sourceDirectory, string targetDirectory)
