@@ -93,6 +93,7 @@ public class CommandTextEN
     public DebugTextEN Debug { get; } = new();
     public GameCommandTextEN Game { get; } = new();
     public GameCommandCnTextEN GameCn { get; } = new();
+    public GameCommandHostsCleanTextEN HostsClean { get; } = new();
 }
 
 #endregion
@@ -179,6 +180,10 @@ public class ServerInfoTextEN
     public string HostsFailed => "Failed to update the hosts file: {0}";
     public string HostsReleased => "Removed the managed hosts block.";
     public string HostsRestoreFailed => "Failed to restore the hosts file: {0}";
+    public string HostsNothingToRemove => "The hosts file has no managed block to remove.";
+    public string HostsCleanElevated =>
+        "Cleaning the hosts file needs administrator rights. Run MikuSB elevated and try again.";
+    public string HostsCleanUnsupported => "Managing the hosts file is not supported on this system.";
 
     public string AutoUpdateSkippedNotConfigured =>
         "Auto update skipped because the GitHub release source is not configured.";
@@ -324,6 +329,17 @@ public class GameCommandCnTextEN
     public string HostsCurrent => "The hosts file already contains the managed block.";
     public string HostsFailed => "Failed to update the hosts file: {0}";
     public string NeedAdmin => "Writing the hosts file needs administrator rights. Restart the server elevated, or add this block to {0} by hand:\n{1}";
+    public string Unsupported => "Managing the hosts file is not supported on this system.";
+}
+
+public class GameCommandHostsCleanTextEN
+{
+    public string Desc => "Remove the hosts block written by /game-cn";
+    public string Usage => "Usage: /hosts-clean";
+    public string Removed => "Removed the managed hosts block and flushed the DNS cache: {0}";
+    public string NothingToRemove => "The hosts file has no managed block to remove: {0}";
+    public string NeedAdmin => "Cleaning the hosts file needs administrator rights. Restart the server elevated and try again: {0}";
+    public string Failed => "Failed to clean the hosts file: {0}";
     public string Unsupported => "Managing the hosts file is not supported on this system.";
 }
 

@@ -145,9 +145,14 @@ public class LoaderManager : MikuSB
         }
     }
 
+    /// <summary>
+    ///     Drops the managed block on the way out. This deliberately ignores <c>Loader.ManageCnHosts</c>:
+    ///     the switch decides whether a block may be written, and leaving one behind because the switch
+    ///     was flipped in the meantime would keep every SDK host name on this machine.
+    /// </summary>
     public static void ReleaseCnHosts()
     {
-        if (!HostsFileService.IsSupported || !ConfigManager.Config.Loader.ManageCnHosts)
+        if (!HostsFileService.IsSupported)
             return;
 
         var result = HostsFileService.Restore();

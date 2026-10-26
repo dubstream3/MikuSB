@@ -42,6 +42,12 @@ public static class HostsFileService
     private const string EndMarker = "# <<< MikuSB specific channel <<<";
     private const string RedirectSuffix = "# MikuSB-CN-REDIRECT";
 
+    // Blocks written by the first generation of the redirect script (hosts-cn-sdk.ps1) use their own
+    // fence text, and they are still around on machines that were set up before the server managed the
+    // file itself. Restore() has to recognise them, otherwise the cleanup claims there is nothing to do.
+    private const string LegacyBeginMarker = "# MikuSB-CN-REDIRECT begin";
+    private const string LegacyEndMarker = "# MikuSB-CN-REDIRECT end";
+
     /// <summary>
     ///     Every name the client has to resolve locally before it can log in. Missing one of them
     ///     either stalls the handshake or leaves the client without a server list, so the list lives
@@ -111,7 +117,7 @@ public static class HostsFileService
             var newLine = original.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
             var lines = SplitLines(original);
             var outside = StripManaged(lines);
-            var existing = GetManagedBlock(lines, newLine);
+            var existing = ManagedLines(lines);
 
             // Whatever the user already redirected by hand counts as done: writing a second copy
             // would only make the file harder to read, and removing it afterwards would be rude.
@@ -120,16 +126,18 @@ public static class HostsFileService
 
             if (wanted.Count == 0)
             {
-                if (existing is null)
+                if (existing.Count == 0)
                     return HostsSyncResult.AlreadyCurrent();
 
                 File.WriteAllText(HostsPath, Join(outside, newLine), new UTF8Encoding(false));
                 return HostsSyncResult.Applied();
             }
 
-            var desired = BuildBlock(wanted).ReplaceLineEndings(newLine);
-            if (existing == desired)
+            var expected = wanted.Select(entry => $"{entry.Address} {entry.Host} {RedirectSuffix}");
+            if (NormalizeManaged(existing).SequenceEqual(expected))
                 return HostsSyncResult.AlreadyCurrent();
+
+            var desired = BuildBlock(wanted).ReplaceLineEndings(newLine);
 
             var builder = new StringBuilder();
             if (outside.Count > 0)
@@ -171,10 +179,10 @@ public static class HostsFileService
 
             var newLine = original.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
             var lines = SplitLines(original);
-            if (GetManagedBlock(lines, newLine) is null)
+            var stripped = StripManaged(lines);
+            if (stripped.Count == lines.Count)
                 return HostsSyncResult.AlreadyCurrent();
 
-            var stripped = StripManaged(lines);
             File.WriteAllText(HostsPath, Join(stripped, newLine), new UTF8Encoding(false));
             return HostsSyncResult.Applied();
         }
@@ -218,9 +226,19 @@ public static class HostsFileService
     private static List<string> SplitLines(string text) =>
         text.Length == 0 ? [] : text.ReplaceLineEndings("\n").Split('\n').ToList();
 
-    private static bool IsBegin(string line) => line.Trim().Equals(BeginMarker, StringComparison.Ordinal);
+    private static bool IsBegin(string line)
+    {
+        var trimmed = line.Trim();
+        return trimmed.Equals(BeginMarker, StringComparison.Ordinal) ||
+               trimmed.StartsWith(LegacyBeginMarker, StringComparison.Ordinal);
+    }
 
-    private static bool IsEnd(string line) => line.Trim().Equals(EndMarker, StringComparison.Ordinal);
+    private static bool IsEnd(string line)
+    {
+        var trimmed = line.Trim();
+        return trimmed.Equals(EndMarker, StringComparison.Ordinal) ||
+               trimmed.Equals(LegacyEndMarker, StringComparison.Ordinal);
+    }
 
     /// <summary>
     ///     Collects the names that already point at this machine, ignoring our own block.
@@ -249,35 +267,73 @@ public static class HostsFileService
         return text.Length == 0 ? "" : text + newLine;
     }
 
-    private static string? GetManagedBlock(List<string> lines, string newLine)
+    /// <summary>
+    ///     The lines that live between the fence markers, whichever generation of markers they use.
+    /// </summary>
+    private static List<string> ManagedLines(List<string> lines)
     {
-        var begin = lines.FindIndex(IsBegin);
-        if (begin < 0)
-            return null;
+        var result = new List<string>();
+        var inside = false;
+        foreach (var line in lines)
+        {
+            if (!inside && IsBegin(line))
+            {
+                inside = true;
+                continue;
+            }
 
-        var end = lines.FindIndex(begin + 1, IsEnd);
-        if (end < 0)
-            return null;
+            if (!inside)
+                continue;
 
-        return string.Join(newLine, lines.Skip(begin).Take(end - begin + 1));
-    }
+            if (IsEnd(line))
+            {
+                inside = false;
+                continue;
+            }
 
-    private static List<string> StripManaged(List<string> lines)
-    {
-        var begin = lines.FindIndex(IsBegin);
-        if (begin < 0)
-            return lines;
+            result.Add(line);
+        }
 
-        var end = lines.FindIndex(begin + 1, IsEnd);
-        if (end < 0)
-            return lines;
-
-        var result = lines.Take(begin).ToList();
-        var rest = lines.Skip(end + 1).ToList();
-        while (rest.Count > 0 && string.IsNullOrWhiteSpace(rest[0]))
-            rest.RemoveAt(0);
-
-        result.AddRange(rest);
         return result;
     }
+
+    /// <summary>
+    ///     Drops every fenced block (all generations), plus any redirect line whose fence was removed by
+    ///     hand, and keeps everything else in order.
+    /// </summary>
+    private static List<string> StripManaged(List<string> lines)
+    {
+        var result = new List<string>(lines.Count);
+        var inside = false;
+        foreach (var line in lines)
+        {
+            if (!inside && IsBegin(line))
+            {
+                inside = true;
+                continue;
+            }
+
+            if (inside)
+            {
+                if (IsEnd(line))
+                    inside = false;
+                continue;
+            }
+
+            if (line.TrimEnd().EndsWith(RedirectSuffix, StringComparison.Ordinal))
+                continue;
+
+            result.Add(line);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    ///     What <see cref="Ensure" /> compares against: comments and blank lines dropped, so the two
+    ///     marker generations and the entries they carry can be compared line by line.
+    /// </summary>
+    private static IEnumerable<string> NormalizeManaged(IEnumerable<string> lines) =>
+        lines.Select(line => line.TrimEnd())
+            .Where(line => line.Length > 0 && line[0] != '#');
 }

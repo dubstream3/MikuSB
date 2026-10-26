@@ -134,6 +134,7 @@ public class CommandTextCHT
     public DebugTextCHT Debug { get; } = new();
     public GameCommandTextCHT Game { get; } = new();
     public GameCommandCnTextCHT GameCn { get; } = new();
+    public GameCommandHostsCleanTextCHT HostsClean { get; } = new();
 }
 
 #endregion
@@ -213,6 +214,9 @@ public class ServerInfoTextCHT
     public string HostsFailed => "修改 hosts 文件失敗: {0}";
     public string HostsReleased => "已移除託管的 hosts 段落。";
     public string HostsRestoreFailed => "還原 hosts 文件失敗: {0}";
+    public string HostsNothingToRemove => "hosts 裡沒有 MikuSB 的託管段落, 無需清理。";
+    public string HostsCleanElevated => "清理 hosts 需要管理員權限, 請以管理員身份重新運行。";
+    public string HostsCleanUnsupported => "當前系統不支援自動維護 hosts。";
 
     public string AutoUpdateSkippedNotConfigured => "未配置 GitHub 發布源, 已跳過自動更新。";
     public string AutoUpdateSkippedNoUpdater => "沒有找到 MikuSB.Updater.exe, 已跳過自動更新。";
@@ -355,6 +359,17 @@ public class GameCommandCnTextCHT
     public string HostsCurrent => "hosts 已包含託管條目。";
     public string HostsFailed => "寫入 hosts 失敗: {0}";
     public string NeedAdmin => "寫入 hosts 需要管理員權限。請以管理員身分重新啟動伺服器, 或手動把下面這段加入 {0}:\n{1}";
+    public string Unsupported => "當前系統不支援自動維護 hosts。";
+}
+
+public class GameCommandHostsCleanTextCHT
+{
+    public string Desc => "移除 /game-cn 寫入 hosts 的託管段落";
+    public string Usage => "用法: /hosts-clean";
+    public string Removed => "已移除 hosts 中的託管段落, 並清空了 DNS 快取: {0}";
+    public string NothingToRemove => "hosts 裡沒有 MikuSB 的託管段落, 無需清理: {0}";
+    public string NeedAdmin => "清理 hosts 需要管理員權限, 請以管理員身份重新啟動服務端後再試: {0}";
+    public string Failed => "清理 hosts 失敗: {0}";
     public string Unsupported => "當前系統不支援自動維護 hosts。";
 }
 

@@ -24,6 +24,9 @@ public class MikuSB
 
     public static async Task Main()
     {
+        if (TryCleanHostsFromCommandLine())
+            return;
+
         var time = DateTime.Now;
         IConsole.InitConsole();
         LoaderManager.InitConfig();
@@ -65,6 +68,48 @@ public class MikuSB
         await consoleTask;
 
         await ProcessExit(Volatile.Read(ref _exitCode));
+    }
+
+    /// <summary>
+    ///     <c>MikuSB --clean-hosts</c> drops the hosts block and exits without starting the server, because
+    ///     starting it would write the block straight back. This is the way out when the server crashed,
+    ///     was killed, or refuses to boot with the redirect still in place. It writes to stdout instead of
+    ///     going through <see cref="Logger" />: the logger redraws the input line and would throw as soon as
+    ///     the output is redirected.
+    /// </summary>
+    private static bool TryCleanHostsFromCommandLine()
+    {
+        if (!Environment.GetCommandLineArgs()
+                .Any(argument => argument.Equals("--clean-hosts", StringComparison.OrdinalIgnoreCase)))
+            return false;
+
+        I18NManager.LoadLanguage(ConfigManager.PeekLanguage(), announce: false);
+
+        if (!HostsFileService.IsSupported)
+        {
+            Console.WriteLine(I18NManager.Translate("Server.ServerInfo.HostsCleanUnsupported"));
+            return true;
+        }
+
+        var result = HostsFileService.Restore();
+        switch (result.Status)
+        {
+            case HostsSyncStatus.Applied:
+                HostsFileService.FlushDnsCache();
+                Console.WriteLine(I18NManager.Translate("Server.ServerInfo.HostsReleased"));
+                break;
+            case HostsSyncStatus.AlreadyCurrent:
+                Console.WriteLine(I18NManager.Translate("Server.ServerInfo.HostsNothingToRemove"));
+                break;
+            case HostsSyncStatus.NotElevated:
+                Console.WriteLine(I18NManager.Translate("Server.ServerInfo.HostsCleanElevated"));
+                break;
+            default:
+                Console.WriteLine(I18NManager.Translate("Server.ServerInfo.HostsRestoreFailed", result.Detail));
+                break;
+        }
+
+        return true;
     }
 
     private static void ShowAntiScamWarning()
