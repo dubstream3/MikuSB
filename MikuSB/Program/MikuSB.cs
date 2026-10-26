@@ -69,12 +69,12 @@ public class MikuSB
 
     private static void ShowAntiScamWarning()
     {
-        Logger.Warn("============================================================");
-        Logger.Warn("MikuSB is completely free and open source.");
-        Logger.Warn("If you paid anyone for this server, you were scammed.");
-        Logger.Warn("Request a refund immediately and report the seller to us.");
-        Logger.Warn("Discord: https://discord.gg/aMwCu9JyUR");
-        Logger.Warn("============================================================");
+        Logger.Warn(I18NManager.Translate("Server.ServerInfo.AntiScamSeparator"));
+        Logger.Warn(I18NManager.Translate("Server.ServerInfo.AntiScamFree"));
+        Logger.Warn(I18NManager.Translate("Server.ServerInfo.AntiScamScam"));
+        Logger.Warn(I18NManager.Translate("Server.ServerInfo.AntiScamRefund"));
+        Logger.Warn(I18NManager.Translate("Server.ServerInfo.AntiScamDiscord"));
+        Logger.Warn(I18NManager.Translate("Server.ServerInfo.AntiScamSeparator"));
     }
 
     #region Exit

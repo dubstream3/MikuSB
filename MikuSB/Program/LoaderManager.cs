@@ -52,6 +52,10 @@ public class LoaderManager : MikuSB
 
         Logger.SetLogFile(new FileInfo(Path.Combine(logDir, "Server.log")));
 
+        // Localize the boot banner before its first line is printed. The language lives in Config.json,
+        // which LoadConfig() only reads further down, so peek at the file instead of waiting for it.
+        I18NManager.LoadLanguage(ConfigManager.PeekLanguage(), announce: false);
+
         // Init all directories
         try
         {
@@ -66,7 +70,7 @@ public class LoaderManager : MikuSB
 
         // Starting the server
         Logger.Info(I18NManager.Translate("Server.ServerInfo.StartingServer"));
-        Logger.Info($"Build version: {BuildVersion.Current}");
+        Logger.Info(I18NManager.Translate("Server.ServerInfo.BuildVersion", BuildVersion.Current));
 
         // Load the config
         Logger.Info(I18NManager.Translate("Server.ServerInfo.LoadingItem", I18NManager.Translate("Word.Config")));
@@ -114,13 +118,13 @@ public class LoaderManager : MikuSB
 
         if (!ConfigManager.Config.Loader.ManageCnHosts)
         {
-            Logger.Info("Hosts maintenance is disabled in the loader options.");
+            Logger.Info(I18NManager.Translate("Server.ServerInfo.HostsDisabled"));
             return;
         }
 
         if (!IsSpecificChannel())
         {
-            Logger.Info("Hosts maintenance skipped: the configured launch channel is not the specific one.");
+            Logger.Info(I18NManager.Translate("Server.ServerInfo.HostsSkipped"));
             return;
         }
 
@@ -128,16 +132,15 @@ public class LoaderManager : MikuSB
         switch (result.Status)
         {
             case HostsSyncStatus.Applied:
-                Logger.Info($"Pointed the specific-channel host names at this machine ({HostsFileService.HostsPath}).");
+                Logger.Info(I18NManager.Translate("Server.ServerInfo.HostsApplied", HostsFileService.HostsPath));
                 break;
             case HostsSyncStatus.AlreadyCurrent:
                 break;
             case HostsSyncStatus.NotElevated:
-                Logger.Warn("Cannot update the hosts file without administrator rights. " +
-                            "Run the server elevated, or use /game-cn there to print the block.");
+                Logger.Warn(I18NManager.Translate("Server.ServerInfo.HostsNotElevated"));
                 break;
             default:
-                Logger.Warn($"Failed to update the hosts file: {result.Detail}");
+                Logger.Warn(I18NManager.Translate("Server.ServerInfo.HostsFailed", result.Detail));
                 break;
         }
     }
@@ -151,10 +154,10 @@ public class LoaderManager : MikuSB
         switch (result.Status)
         {
             case HostsSyncStatus.Applied:
-                Logger.Info("Removed the managed hosts block.");
+                Logger.Info(I18NManager.Translate("Server.ServerInfo.HostsReleased"));
                 break;
             case HostsSyncStatus.Failed:
-                Logger.Warn($"Failed to restore the hosts file: {result.Detail}");
+                Logger.Warn(I18NManager.Translate("Server.ServerInfo.HostsRestoreFailed", result.Detail));
                 break;
         }
     }

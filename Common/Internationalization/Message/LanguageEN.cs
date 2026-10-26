@@ -146,6 +146,56 @@ public class ServerInfoTextEN
         "You cannot enter the game yet. Please wait for all items to load before trying again";
 
     public string UnhandledException => "An unhandled exception occurred: {0}";
+
+    public string CurrentLanguage => "Current language: {0}";
+    public string BuildVersion => "Build version: {0}";
+    public string RequiredResourcesMissing => "Required resources are missing. Downloading the resource package.";
+    public string InstallingResources => "Installing resources into {0}...";
+    public string ResourcesInstalled => "Installed {0} resource files into {1}.";
+    public string DownloadSourceDirect => "Download source: {0} (direct GitHub)";
+    public string DownloadSourceMirror => "Download source: {2} (mirror {0}/{1}); the direct source failed, switched automatically";
+    public string DownloadProgress => "Download {0}% ({1}/{2}), {3}, {4} left, from {5}";
+    public string Unknown => "unknown";
+    public string DownloadedItem => "Downloaded {0} from {1}.";
+    public string DownloadedThroughMirror => "Downloaded {0} through mirror {1} because the direct GitHub source failed.";
+    public string DownloadSourceFailed => "Download source {0} failed ({1}), trying the next source...";
+    public string DownloadSourceFailedAll => "Download source {0} failed ({1}), no sources left.";
+    public string DownloadStalled => "{0} delivered only {2} in {1}s, below the {3} floor";
+    public string DownloadNoResponse => "{0} sent no response headers within {1}s";
+    public string DownloadTimedOut => "{0} took longer than {1}s to finish";
+    public string DownloadNoData => "{0} returned no data.";
+    public string ConfirmUpdate => "New version found: {0} -> {1}. Update now? [Y/n]: ";
+    public string AntiScamSeparator => "============================================================";
+    public string AntiScamFree => "MikuSB is completely free and open source.";
+    public string AntiScamScam => "If you paid anyone for this server, you were scammed.";
+    public string AntiScamRefund => "Request a refund immediately and report the seller to us.";
+    public string AntiScamDiscord => "Discord: https://discord.gg/aMwCu9JyUR";
+
+    public string HostsDisabled => "Hosts maintenance is disabled in the loader options.";
+    public string HostsSkipped => "Hosts maintenance skipped: the configured launch channel is not the specific one.";
+    public string HostsApplied => "Pointed the specific-channel host names at this machine ({0}).";
+    public string HostsNotElevated =>
+        "Cannot update the hosts file without administrator rights. Run the server elevated, or use /game-cn there to print the block.";
+    public string HostsFailed => "Failed to update the hosts file: {0}";
+    public string HostsReleased => "Removed the managed hosts block.";
+    public string HostsRestoreFailed => "Failed to restore the hosts file: {0}";
+
+    public string AutoUpdateSkippedNotConfigured =>
+        "Auto update skipped because the GitHub release source is not configured.";
+    public string AutoUpdateSkippedNoUpdater => "Auto update skipped because MikuSB.Updater.exe was not found.";
+    public string CurrentBuildVersion => "Current build version: {0}";
+    public string LatestReleaseMissingAsset => "Latest release {0} does not contain asset {1}.";
+    public string SkippedUpdateByUser => "Skipped update {0} by user choice.";
+    public string DownloadingUpdate => "Downloading update {0}.";
+    public string DownloadingResourcePackage => "Downloading resource package.";
+    public string FailedToStartUpdater => "Failed to start MikuSB.Updater.exe.";
+    public string UpdateHandedOver => "Update {0} found. Handing over to updater and shutting down.";
+    public string AutoUpdateCheckFailed => "Auto update check failed. Continuing normal startup.";
+    public string LatestReleaseNotAccessible =>
+        "Latest GitHub release is not accessible. This is expected while the repository remains private.";
+    public string ReleaseLookupFailed => "Release lookup via {0} failed ({1}). Trying the next source.";
+    public string ProxyListening => "MikuSB SOCKS5 proxy listening on {0}:{1}";
+    public string ProxyDisabled => "MikuSB proxy is disabled.";
 }
 
 #endregion

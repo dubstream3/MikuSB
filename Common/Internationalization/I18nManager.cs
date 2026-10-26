@@ -1,4 +1,4 @@
-﻿using MikuSB.Enums.Language;
+using MikuSB.Enums.Language;
 using MikuSB.Internationalization.Message;
 using MikuSB.Util;
 using System.Reflection;
@@ -12,10 +12,16 @@ public static class I18NManager
     public static object Language { get; set; } = new LanguageEN();
     public static Dictionary<string, Dictionary<ProgramLanguageTypeEnum, object>> PluginLanguages { get; } = [];
 
-    public static void LoadLanguage()
+    /// <summary>
+    ///     Loads the configured language. <paramref name="languageOverride" /> lets the loader pick the
+    ///     language out of Config.json before <see cref="ConfigManager" /> has finished loading, so even
+    ///     the first log lines are localized; pass <c>announce: false</c> for that early call and log the
+    ///     result yourself.
+    /// </summary>
+    public static void LoadLanguage(string? languageOverride = null, bool announce = true)
     {
         var languageStr = "MikuSB.Internationalization.Message.Language" +
-                          ConfigManager.Config.ServerOption.Language;
+                          (languageOverride ?? ConfigManager.Config.ServerOption.Language);
         var languageType = Type.GetType(languageStr);
         if (languageType == null)
         {
@@ -27,7 +33,8 @@ public static class I18NManager
         var language = Activator.CreateInstance(languageType) ?? throw new Exception("Language not found");
         Language = language;
 
-        Logger.Info(Translate("Server.ServerInfo.LoadedItem", Translate("Word.Language")));
+        if (announce)
+            Logger.Info(Translate("Server.ServerInfo.LoadedItem", Translate("Word.Language")));
     }
 
     public static void LoadPluginLanguage(Dictionary<string, List<Type>> pluginAssemblies)

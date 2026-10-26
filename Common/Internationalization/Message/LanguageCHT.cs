@@ -181,6 +181,53 @@ public class ServerInfoTextCHT
     public string WaitForAllDone => "現在還不可以進入遊戲, 請等待所有項目加載完成後再試";
 
     public string UnhandledException => "發生未經處理的異常: {0}";
+
+    public string CurrentLanguage => "當前語言: {0}";
+    public string BuildVersion => "構建版本: {0}";
+    public string RequiredResourcesMissing => "缺少必要的資源文件, 正在下載資源包…";
+    public string InstallingResources => "正在安裝資源到 {0}…";
+    public string ResourcesInstalled => "已安裝 {0} 個資源文件到 {1}。";
+    public string DownloadSourceDirect => "下載源: {0} (GitHub 直連)";
+    public string DownloadSourceMirror => "下載源: {2} (鏡像 {0}/{1}), 直連不可用, 已自動切換";
+    public string DownloadProgress => "下載進度 {0}% ({1}/{2}), {3}, 剩餘 {4}, 來源 {5}";
+    public string Unknown => "未知";
+    public string DownloadedItem => "已從 {1} 下載 {0}。";
+    public string DownloadedThroughMirror => "已通過鏡像 {1} 下載 {0} (直連 GitHub 失敗)。";
+    public string DownloadSourceFailed => "下載源 {0} 失敗 ({1}), 正在切換下一個源…";
+    public string DownloadSourceFailedAll => "下載源 {0} 失敗 ({1}), 已沒有可用的源。";
+    public string DownloadStalled => "{0} 在 {1} 秒內只收到 {2}, 低於 {3} 的下限";
+    public string DownloadNoResponse => "{0} 在 {1} 秒內沒有返回響應頭";
+    public string DownloadTimedOut => "{0} 超過 {1} 秒仍未下載完成";
+    public string DownloadNoData => "{0} 沒有返回任何數據。";
+    public string ConfirmUpdate => "發現新版本: {0} -> {1}。現在更新? [Y/n]: ";
+    public string AntiScamSeparator => "============================================================";
+    public string AntiScamFree => "MikuSB 完全免費且開源。";
+    public string AntiScamScam => "如果你為這個服務端付過錢, 說明你被騙了。";
+    public string AntiScamRefund => "請立即申請退款, 並把賣家舉報給我們。";
+    public string AntiScamDiscord => "Discord: https://discord.gg/aMwCu9JyUR";
+
+    public string HostsDisabled => "已在啟動選項中禁用 hosts 維護。";
+    public string HostsSkipped => "跳過 hosts 維護: 當前啟動渠道不是特定渠道。";
+    public string HostsApplied => "已把特定渠道的域名指向本機 ({0})。";
+    public string HostsNotElevated => "沒有管理員權限, 無法修改 hosts 文件。請以管理員身份運行服務端, 或在其中用 /game-cn 打印要寫入的條目。";
+    public string HostsFailed => "修改 hosts 文件失敗: {0}";
+    public string HostsReleased => "已移除託管的 hosts 段落。";
+    public string HostsRestoreFailed => "還原 hosts 文件失敗: {0}";
+
+    public string AutoUpdateSkippedNotConfigured => "未配置 GitHub 發布源, 已跳過自動更新。";
+    public string AutoUpdateSkippedNoUpdater => "沒有找到 MikuSB.Updater.exe, 已跳過自動更新。";
+    public string CurrentBuildVersion => "當前構建版本: {0}";
+    public string LatestReleaseMissingAsset => "最新版本 {0} 裡沒有 {1}。";
+    public string SkippedUpdateByUser => "已按你的選擇跳過更新 {0}。";
+    public string DownloadingUpdate => "正在下載更新 {0}。";
+    public string DownloadingResourcePackage => "正在下載資源包。";
+    public string FailedToStartUpdater => "啟動 MikuSB.Updater.exe 失敗。";
+    public string UpdateHandedOver => "發現新版本 {0}, 已交給更新程序, 本進程即將退出。";
+    public string AutoUpdateCheckFailed => "自動更新檢查失敗, 繼續正常啟動。";
+    public string LatestReleaseNotAccessible => "無法訪問 GitHub 上的最新發布 (倉庫仍為私有, 屬正常現象)。";
+    public string ReleaseLookupFailed => "通過 {0} 查詢發布信息失敗 ({1}), 正在嘗試下一個源。";
+    public string ProxyListening => "MikuSB SOCKS5 代理正在監聽 {0}:{1}";
+    public string ProxyDisabled => "MikuSB 代理已停用。";
 }
 
 #endregion

@@ -26,6 +26,38 @@ public static class ConfigManager
         SaveData(Config, ConfigFilePath);
     }
 
+    /// <summary>
+    ///     Reads the configured language straight out of Config.json (with the Config.Local.json override
+    ///     applied) without touching <see cref="Config" />, so the boot banner can already be localized
+    ///     before <see cref="LoadConfig" /> runs. Returns null when neither file carries a usable value.
+    /// </summary>
+    public static string? PeekLanguage()
+    {
+        try
+        {
+            var file = new FileInfo(ConfigFilePath);
+            if (!file.Exists)
+                return null;
+
+            string json;
+            using (var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var reader = new StreamReader(stream))
+                json = reader.ReadToEnd();
+
+            var language = JObject.Parse(json)["ServerOption"]?["Language"]?.ToString();
+
+            if (string.IsNullOrWhiteSpace(language) && File.Exists(LocalConfigFilePath))
+                language = JObject.Parse(File.ReadAllText(LocalConfigFilePath))["ServerOption"]?["Language"]
+                    ?.ToString();
+
+            return string.IsNullOrWhiteSpace(language) ? null : language;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     private static void LoadConfigData()
     {
         var file = new FileInfo(ConfigFilePath);
@@ -39,7 +71,9 @@ public static class ConfigManager
                 }
             };
 
-            Logger.Info("Current Language is " + Config.ServerOption.Language);
+            // First run: the language choice is only known as of here, so load it before anything is
+            // printed in it. The line itself is logged once the config object exists (see below).
+            I18NManager.LoadLanguage(Config.ServerOption.Language, announce: false);
             SaveData(Config, ConfigFilePath);
         }
 
@@ -60,6 +94,7 @@ public static class ConfigManager
         }
 
         Config = root.ToObject<ConfigContainer>()!;
+        Logger.Info(I18NManager.Translate("Server.ServerInfo.CurrentLanguage", Config.ServerOption.Language));
 
         Config.Loader.Arguments = NormalizeLoaderArguments(Config.Loader.Arguments);
         // Never write merged local overrides back into the tracked Config.json.

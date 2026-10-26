@@ -1,3 +1,4 @@
+using MikuSB.Internationalization;
 using MikuSB.Proto;
 using MikuSB.Util;
 using System.Reflection;
@@ -18,7 +19,8 @@ public static class CallGSRouter
             if (attr == null) continue;
             Handlers[attr.Api] = (ICallGSHandler)Activator.CreateInstance(type)!;
         }
-        Logger.Info($"Registered {Handlers.Count} CallGS handlers.");
+        Logger.Info(I18NManager.Translate("Server.ServerInfo.RegisterItem",
+            Handlers.Count.ToString(), "CallGS"));
     }
 
     public static async Task Route(Connection connection, ReqCallGS req, ushort seqNo)

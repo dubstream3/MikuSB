@@ -1,10 +1,12 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.IO.Compression;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using MikuSB.Internationalization;
 using MikuSB.Util;
 
 namespace MikuSB.MikuSB.Update;
@@ -52,10 +54,15 @@ public static class UpdateService
         "https://git.yylx.win/",
         "https://gh.catmak.name/",
         "https://tvv.tw/");
-    private static readonly int DirectDownloadAttempts = 2;
-    private static readonly int MinDownloadBytesPerSecond = 10 * 1024;
-    private static readonly int SpeedFloorAfterSeconds = 5;
-    private static readonly int HeaderTimeoutSeconds = 20;
+    // Every source gets a ten second window to prove itself: one direct attempt, then the mirrors in
+    // order, and each window has to deliver at least 1 MB. The previous rule (10 KB/s once five
+    // seconds had passed) was only evaluated after a read returned, so a connection that never sent a
+    // byte was invisible to it and cost the full 300 s timeout twice before the first mirror ran.
+    private static readonly int DirectDownloadAttempts = 1;
+    private static readonly int ProgressWindowSeconds = 10;
+    private static readonly int ProgressWindowBytes = 1024 * 1024;
+    private static readonly int ProgressReportIntervalMilliseconds = 2000;
+    private static readonly int HeaderTimeoutSeconds = 10;
     private static readonly JsonSerializerOptions ReleaseJsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
@@ -70,20 +77,20 @@ public static class UpdateService
             || string.IsNullOrWhiteSpace(RepositoryName)
             || string.IsNullOrWhiteSpace(AssetName))
         {
-            Logger.Debug("Auto update skipped because the GitHub release source is not configured.");
+            Logger.Debug(I18NManager.Translate("Server.ServerInfo.AutoUpdateSkippedNotConfigured"));
             return false;
         }
 
         var updaterPath = Path.Combine(AppContext.BaseDirectory, "MikuSB.Updater.exe");
         if (!File.Exists(updaterPath))
         {
-            Logger.Debug("Auto update skipped because MikuSB.Updater.exe was not found.");
+            Logger.Debug(I18NManager.Translate("Server.ServerInfo.AutoUpdateSkippedNoUpdater"));
             return false;
         }
 
         try
         {
-            Logger.Info($"Current build version: {BuildVersion.Current}");
+            Logger.Info(I18NManager.Translate("Server.ServerInfo.CurrentBuildVersion", BuildVersion.Current));
 
             using var client = CreateHttpClient();
             using var releaseCts =
@@ -100,13 +107,14 @@ public static class UpdateService
                 string.Equals(x.Name, AssetName, StringComparison.OrdinalIgnoreCase));
             if (asset == null)
             {
-                Logger.Warn($"Latest release {release.TagName} does not contain asset {AssetName}.");
+                Logger.Warn(I18NManager.Translate("Server.ServerInfo.LatestReleaseMissingAsset",
+                    release.TagName, AssetName));
                 return false;
             }
 
             if (AskBeforeUpdate && !ConfirmUpdate(latestVersion))
             {
-                Logger.Info($"Skipped update {latestVersion} by user choice.");
+                Logger.Info(I18NManager.Translate("Server.ServerInfo.SkippedUpdateByUser", latestVersion));
                 return false;
             }
 
@@ -114,11 +122,11 @@ public static class UpdateService
             Directory.CreateDirectory(tempRoot);
 
             var packagePath = Path.Combine(tempRoot, asset.Name);
-            Logger.Info($"Downloading update {release.TagName}.");
+            Logger.Info(I18NManager.Translate("Server.ServerInfo.DownloadingUpdate", release.TagName));
             await DownloadFileAsync(client, asset.DownloadUrl, packagePath, PackageDownloadTimeoutSeconds);
 
             var resourcePackagePath = Path.Combine(tempRoot, "MikuSB-Resource-main.zip");
-            Logger.Info("Downloading resource package.");
+            Logger.Info(I18NManager.Translate("Server.ServerInfo.DownloadingResourcePackage"));
             await DownloadFileAsync(client, ResourceArchiveUrl, resourcePackagePath, ResourceDownloadTimeoutSeconds);
 
             var checksumAsset = release.Assets.FirstOrDefault(x =>
@@ -149,16 +157,16 @@ public static class UpdateService
 
             if (process == null)
             {
-                Logger.Warn("Failed to start MikuSB.Updater.exe.");
+                Logger.Warn(I18NManager.Translate("Server.ServerInfo.FailedToStartUpdater"));
                 return false;
             }
 
-            Logger.Warn($"Update {latestVersion} found. Handing over to updater and shutting down.");
+            Logger.Warn(I18NManager.Translate("Server.ServerInfo.UpdateHandedOver", latestVersion));
             return true;
         }
         catch (Exception ex)
         {
-            Logger.Warn("Auto update check failed. Continuing normal startup.", ex);
+            Logger.Warn(I18NManager.Translate("Server.ServerInfo.AutoUpdateCheckFailed"), ex);
             return false;
         }
     }
@@ -167,7 +175,7 @@ public static class UpdateService
     {
         if (!AreRequiredResourcesPresent())
         {
-            Logger.Warn("Required resources are missing. Downloading resource package.");
+            Logger.Warn(I18NManager.Translate("Server.ServerInfo.RequiredResourcesMissing"));
             await DownloadAndInstallResourcesAsync();
         }
     }
@@ -206,14 +214,19 @@ public static class UpdateService
         var tempRoot = Path.Combine(Path.GetTempPath(), "MikuSB", "resources", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempRoot);
 
+        var resourceTargetDirectory = Path.Combine(AppContext.BaseDirectory, ConfigManager.Config.Path.ResourcePath);
         var resourcePackagePath = Path.Combine(tempRoot, "MikuSB-Resource-main.zip");
         await DownloadFileAsync(client, ResourceArchiveUrl, resourcePackagePath, ResourceDownloadTimeoutSeconds);
-        InstallResourcesFromArchive(resourcePackagePath,
-            Path.Combine(AppContext.BaseDirectory, ConfigManager.Config.Path.ResourcePath));
+
+        var installedFiles = InstallResourcesFromArchive(resourcePackagePath, resourceTargetDirectory);
+        Logger.Info(I18NManager.Translate("Server.ServerInfo.ResourcesInstalled",
+            installedFiles.ToString(), resourceTargetDirectory));
     }
 
-    private static void InstallResourcesFromArchive(string resourcePackagePath, string resourceTargetDirectory)
+    private static int InstallResourcesFromArchive(string resourcePackagePath, string resourceTargetDirectory)
     {
+        Logger.Info(I18NManager.Translate("Server.ServerInfo.InstallingResources", resourceTargetDirectory));
+
         var resourceStagingDirectory = Path.Combine(Path.GetTempPath(), "MikuSB", "resource-staging", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(resourceStagingDirectory);
 
@@ -221,12 +234,13 @@ public static class UpdateService
 
         var extractedRoot = Directory.GetDirectories(resourceStagingDirectory).FirstOrDefault() ?? resourceStagingDirectory;
         Directory.CreateDirectory(resourceTargetDirectory);
-        CopyDirectory(extractedRoot, resourceTargetDirectory);
+        return CopyDirectory(extractedRoot, resourceTargetDirectory);
     }
 
     private static bool ConfirmUpdate(string latestVersion)
     {
-        Console.Write($"New version found: {BuildVersion.Current} -> {latestVersion}. Update now? [Y/n]: ");
+        Console.Write(I18NManager.Translate("Server.ServerInfo.ConfirmUpdate",
+            BuildVersion.Current, latestVersion));
 
         try
         {
@@ -270,7 +284,7 @@ public static class UpdateService
                 using var response = await client.GetAsync(candidate, cancellationToken);
                 if (response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
                 {
-                    Logger.Warn("Latest GitHub release is not accessible. This is expected while the repository remains private.");
+                    Logger.Warn(I18NManager.Translate("Server.ServerInfo.LatestReleaseNotAccessible"));
                     return null;
                 }
 
@@ -284,7 +298,8 @@ public static class UpdateService
             }
             catch (Exception ex)
             {
-                Logger.Debug($"Release lookup via {new Uri(candidate).Host} failed ({ex.Message}). Trying the next source.");
+                Logger.Debug(I18NManager.Translate("Server.ServerInfo.ReleaseLookupFailed",
+                    new Uri(candidate).Host, ex.Message));
             }
         }
 
@@ -298,26 +313,38 @@ public static class UpdateService
         int timeoutSeconds)
     {
         var candidates = BuildDownloadCandidates(downloadUrl);
+        var fileName = Path.GetFileName(destinationPath);
         Exception? lastError = null;
 
         for (var index = 0; index < candidates.Count; index++)
         {
             var candidate = candidates[index];
             var host = new Uri(candidate).Host;
+            var isMirror = index >= DirectDownloadAttempts;
+
+            if (isMirror)
+                Logger.Info(I18NManager.Translate("Server.ServerInfo.DownloadSourceMirror",
+                    (index - DirectDownloadAttempts + 1).ToString(), GitHubMirrors.Length.ToString(), host));
+            else
+                Logger.Info(I18NManager.Translate("Server.ServerInfo.DownloadSourceDirect", host));
+
+            var progress = new TransferProgress(fileName, host);
             try
             {
-                await DownloadOnceAsync(client, candidate, destinationPath, timeoutSeconds);
-                if (index >= DirectDownloadAttempts)
-                    Logger.Warn($"Downloaded {Path.GetFileName(destinationPath)} through mirror {host} because the direct GitHub source failed.");
-                else if (index > 0)
-                    Logger.Info($"Downloaded {Path.GetFileName(destinationPath)} on retry {index + 1}.");
+                await DownloadOnceAsync(client, candidate, destinationPath, timeoutSeconds, progress);
+                if (isMirror)
+                    Logger.Warn(I18NManager.Translate("Server.ServerInfo.DownloadedThroughMirror", fileName, host));
+                else
+                    Logger.Info(I18NManager.Translate("Server.ServerInfo.DownloadedItem", fileName, host));
                 return;
             }
             catch (Exception ex)
             {
                 lastError = ex;
                 var hasNext = index + 1 < candidates.Count;
-                Logger.Debug($"Download of {downloadUrl} via {host} failed ({ex.Message}).{(hasNext ? " Trying the next source." : "")}");
+                Logger.Warn(I18NManager.Translate(
+                    hasNext ? "Server.ServerInfo.DownloadSourceFailed" : "Server.ServerInfo.DownloadSourceFailedAll",
+                    host, ex.Message));
             }
         }
 
@@ -328,53 +355,193 @@ public static class UpdateService
         HttpClient client,
         string downloadUrl,
         string destinationPath,
-        int timeoutSeconds)
+        int timeoutSeconds,
+        TransferProgress progress)
     {
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Max(1, timeoutSeconds)));
-        using var headerCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token);
-        headerCts.CancelAfter(TimeSpan.FromSeconds(Math.Max(1, HeaderTimeoutSeconds)));
+        using var attemptCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token);
+        using var watchdogStop = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token);
 
-        using var response = await client.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, headerCts.Token);
-        response.EnsureSuccessStatusCode();
-
-        var stopwatch = Stopwatch.StartNew();
-        long bytesRead = 0;
         var buffer = ArrayPool<byte>.Shared.Rent(81_920);
+        Task? watchdog = null;
 
         try
         {
-            await using var source = await response.Content.ReadAsStreamAsync(timeoutCts.Token);
+            // The header has its own ten second budget, so a source that answers the connection but
+            // never sends headers is dropped just as quickly as one that stops mid-transfer.
+            using var headerCts = CancellationTokenSource.CreateLinkedTokenSource(attemptCts.Token);
+            headerCts.CancelAfter(TimeSpan.FromSeconds(Math.Max(1, HeaderTimeoutSeconds)));
+
+            using var response =
+                await client.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, headerCts.Token);
+            response.EnsureSuccessStatusCode();
+
+            progress.TotalBytes = response.Content.Headers.ContentLength ?? 0;
+            progress.Restart();
+
+            // Start the watchdog only once the body is flowing, so slow handshakes are not billed to
+            // the first ten second window.
+            watchdog = WatchTransferAsync(progress, attemptCts, watchdogStop.Token);
+
+            await using var source = await response.Content.ReadAsStreamAsync(attemptCts.Token);
             await using var destination = File.Create(destinationPath);
 
             int read;
-            while ((read = await source.ReadAsync(buffer.AsMemory(), timeoutCts.Token)) > 0)
+            while ((read = await source.ReadAsync(buffer.AsMemory(), attemptCts.Token)) > 0)
             {
-                await destination.WriteAsync(buffer.AsMemory(0, read), timeoutCts.Token);
-                bytesRead += read;
-
-                var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
-                if (elapsedSeconds >= SpeedFloorAfterSeconds
-                    && bytesRead / elapsedSeconds < MinDownloadBytesPerSecond)
-                {
-                    throw new IOException(
-                        $"Transfer from {new Uri(downloadUrl).Host} is {bytesRead / elapsedSeconds / 1024:F1} KB/s, " +
-                        $"below the {MinDownloadBytesPerSecond / 1024} KB/s floor.");
-                }
+                await destination.WriteAsync(buffer.AsMemory(0, read), attemptCts.Token);
+                progress.Add(read);
             }
+        }
+        catch (OperationCanceledException) when (!timeoutCts.IsCancellationRequested)
+        {
+            // Either the progress watchdog or the header deadline stopped this source; both are
+            // routine here, so report which one instead of the bare "A task was canceled."
+            throw new IOException(progress.Stall
+                                  ?? I18NManager.Translate("Server.ServerInfo.DownloadNoResponse",
+                                      progress.Host, HeaderTimeoutSeconds.ToString()));
+        }
+        catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
+        {
+            throw new IOException(I18NManager.Translate("Server.ServerInfo.DownloadTimedOut",
+                progress.Host, timeoutSeconds.ToString()));
         }
         finally
         {
+            watchdogStop.Cancel();
             ArrayPool<byte>.Shared.Return(buffer);
+            progress.Stop(progress.Stall == null);
+            if (watchdog != null)
+                await watchdog;
         }
 
-        if (bytesRead == 0)
-            throw new InvalidDataException($"Download from {new Uri(downloadUrl).Host} returned no data.");
+        if (progress.Bytes == 0)
+            throw new InvalidDataException(I18NManager.Translate("Server.ServerInfo.DownloadNoData", progress.Host));
+    }
+
+    /// <summary>
+    ///     Aborts a transfer that fails to move at least <see cref="ProgressWindowBytes" /> inside a
+    ///     <see cref="ProgressWindowSeconds" /> window. Works on a stall that never returns from a read,
+    ///     which a rate check placed after the read cannot see.
+    /// </summary>
+    private static async Task WatchTransferAsync(
+        TransferProgress progress,
+        CancellationTokenSource attemptCts,
+        CancellationToken stopToken)
+    {
+        var lastBytes = 0L;
+        try
+        {
+            while (!stopToken.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(ProgressWindowSeconds), stopToken);
+
+                var current = progress.Bytes;
+                var windowBytes = current - lastBytes;
+                if (windowBytes < ProgressWindowBytes)
+                {
+                    progress.Stall = I18NManager.Translate("Server.ServerInfo.DownloadStalled",
+                        progress.Host, ProgressWindowSeconds.ToString(),
+                        TransferProgress.FormatSize(windowBytes), TransferProgress.FormatSize(ProgressWindowBytes));
+                    attemptCts.Cancel();
+                    return;
+                }
+
+                lastBytes = current;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // The transfer finished or the overall deadline expired; nothing to abort.
+        }
+        catch (ObjectDisposedException)
+        {
+            // The attempt was already unwinding; the caller has the result it needs.
+        }
+    }
+
+    private sealed class TransferProgress(string fileName, string host)
+    {
+        private readonly Stopwatch _stopwatch = new();
+        private long _bytes;
+        private long _lastReport;
+
+        public string FileName { get; } = fileName;
+        public string Host { get; } = host;
+        public long TotalBytes { get; set; }
+        public long Bytes => Interlocked.Read(ref _bytes);
+        public string? Stall { get; set; }
+
+        public void Restart()
+        {
+            _stopwatch.Restart();
+            _lastReport = Environment.TickCount64;
+            Report();
+        }
+
+        public void Add(int count)
+        {
+            Interlocked.Add(ref _bytes, count);
+
+            var now = Environment.TickCount64;
+            if (now - _lastReport < ProgressReportIntervalMilliseconds)
+                return;
+
+            _lastReport = now;
+            Report();
+        }
+
+        public void Stop(bool report)
+        {
+            _stopwatch.Stop();
+            if (report)
+                Report();
+        }
+
+        private void Report()
+        {
+            var elapsed = _stopwatch.Elapsed.TotalSeconds;
+            if (elapsed <= 0)
+                return;
+
+            var bytes = Bytes;
+            var speed = bytes / elapsed;
+            var percent = TotalBytes > 0 ? bytes * 100d / TotalBytes : 0d;
+            var remaining = TotalBytes > 0 && speed > 1 ? (TotalBytes - bytes) / speed : -1d;
+
+            Logger.Info(I18NManager.Translate("Server.ServerInfo.DownloadProgress",
+                percent.ToString("F1", CultureInfo.InvariantCulture),
+                FormatSize(bytes),
+                TotalBytes > 0 ? FormatSize(TotalBytes) : I18NManager.Translate("Server.ServerInfo.Unknown"),
+                FormatSpeed(speed),
+                remaining >= 0
+                    ? FormatRemaining(remaining)
+                    : I18NManager.Translate("Server.ServerInfo.Unknown"),
+                Host));
+        }
+
+        /// <summary>Formats the estimated time left as h:mm:ss so very slow mirrors stay readable.</summary>
+        private static string FormatRemaining(double seconds)
+        {
+            var left = TimeSpan.FromSeconds(seconds);
+            return $"{(int)left.TotalHours:00}:{left.Minutes:00}:{left.Seconds:00}";
+        }
+
+        public static string FormatSize(long bytes)
+            => bytes >= 1024L * 1024
+                ? (bytes / 1024d / 1024d).ToString("F1", CultureInfo.InvariantCulture) + " MB"
+                : (bytes / 1024d).ToString("F1", CultureInfo.InvariantCulture) + " KB";
+
+        private static string FormatSpeed(double bytesPerSecond)
+            => bytesPerSecond >= 1024 * 1024
+                ? (bytesPerSecond / 1024 / 1024).ToString("F2", CultureInfo.InvariantCulture) + " MB/s"
+                : (bytesPerSecond / 1024).ToString("F0", CultureInfo.InvariantCulture) + " KB/s";
     }
 
     private static List<string> BuildDownloadCandidates(string downloadUrl)
     {
-        // Two direct attempts first; a mirror is only used after the direct source failed twice
-        // (connection error, error status, timeout, or the speed floor above).
+        // One direct attempt first, then the mirrors in order: a source that does not deliver 1 MB
+        // within ten seconds is dropped and the next one is tried (see ProgressWindowSeconds).
         var candidates = new List<string>(DirectDownloadAttempts + GitHubMirrors.Length);
         for (var attempt = 0; attempt < DirectDownloadAttempts; attempt++)
             candidates.Add(downloadUrl);
@@ -391,7 +558,7 @@ public static class UpdateService
         return mirrors.Select(m => m.EndsWith('/') ? m : m + "/").ToArray();
     }
 
-    private static void CopyDirectory(string sourceDirectory, string targetDirectory)
+    private static int CopyDirectory(string sourceDirectory, string targetDirectory)
     {
         foreach (var directory in Directory.GetDirectories(sourceDirectory, "*", SearchOption.AllDirectories))
         {
@@ -399,13 +566,17 @@ public static class UpdateService
             Directory.CreateDirectory(Path.Combine(targetDirectory, relativePath));
         }
 
+        var copied = 0;
         foreach (var file in Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories))
         {
             var relativePath = Path.GetRelativePath(sourceDirectory, file);
             var destinationPath = Path.Combine(targetDirectory, relativePath);
             Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
             File.Copy(file, destinationPath, overwrite: true);
+            copied++;
         }
+
+        return copied;
     }
 
     private static void VerifySha256(string packagePath, string checksumPath)
