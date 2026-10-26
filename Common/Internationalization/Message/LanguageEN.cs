@@ -36,6 +36,7 @@ public class ServerTextEN
 public class WordTextEN
 {
     public string Furniture => "Furniture";
+    public string GirlPiece => "character fragment";
     public string Skin => "Skin";
     public string WeaponPart => "Weapon Part";
     public string CallItem => "Call Item";
@@ -291,7 +292,8 @@ public class GiveAllTextEN
                            "Usage: /giveall profile <detail/-1> -g<genre> -p<particular> -l<level>" +
                            "Usage: /giveall skinpart <detail/-1> -g<genre> -p<particular> -l<level>" +
                            "Usage: /giveall weaponpart <detail/-1> -g<genre> -p<particular> -l<level>" +
-                           "Usage: /giveall call <detail/-1> -g<genre> -p<particular> -l<level>";
+                           "Usage: /giveall call <detail/-1> -g<genre> -p<particular> -l<level>\n" +
+                           "Usage: /giveall piece <detail/-1> -p<particular> -c<count>";
     public string NotFound => "{0} not found!";
     public string GiveAllItems => "Added {0} {1} to player!";
 }

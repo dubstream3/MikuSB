@@ -1,4 +1,4 @@
-﻿using MikuSB.Data;
+using MikuSB.Data;
 using MikuSB.Database;
 using MikuSB.Database.Inventory;
 using MikuSB.Enums.Item;
@@ -349,5 +349,51 @@ public class CommandGiveAll : ICommands
         DatabaseHelper.SaveDatabaseType(player.InventoryManager.InventoryData);
         await arg.SendMsg(I18NManager.Translate("Game.Command.GiveAll.GiveAllItems",
             I18NManager.Translate("Word.Furniture"), furnitureItems.Count.ToString()));
+    }
+
+    /// <summary>
+    /// 角色碎片：item/templates/suplies.json 里的 supplies.piecesNNN，GDPL 固定为 (5,4,角色号,版本号)。
+    /// 客户端商店读的是它自己 pak 里的商品表，服务端新加的商品 id 它不认识，所以 girl044（芙提雅-炬芯）
+    /// 这种数据里缺碎片入口的角色只能从这里补：/giveall piece 4 -p4 -c60，再走 GirlCard_UnLockCharacter。
+    /// </summary>
+    [CommandMethod("piece")]
+    public async ValueTask GiveAllGirlPiece(CommandArg arg)
+    {
+        if (!await arg.CheckOnlineTarget()) return;
+
+        var detail = arg.GetInt(0);
+        var particular = await arg.GetOption('p') is int particularOpt ? particularOpt : 1;
+        var count = await arg.GetOption('c') is int countOpt && countOpt > 0 ? countOpt : 60;
+
+        var player = arg.Target!.Player!;
+        List<BaseGameItemInfo> pieceItems = [];
+        if (detail == -1)
+        {
+            // add all
+            foreach (var config in GameData.SuppliesData.Values)
+            {
+                if (config.Genre != 5 || config.Detail != 4)
+                    continue;
+
+                var piece = await player.InventoryManager!.AddSuppliesItem(config, (uint)count, false);
+                if (piece != null) pieceItems.Add(piece);
+            }
+        }
+        else
+        {
+            var templateId = GameResourceTemplateId.FromGdpl(5, (uint)detail, (uint)particular, 1);
+            if (!GameData.SuppliesData.TryGetValue(templateId, out var config))
+            {
+                await arg.SendMsg(I18NManager.Translate("Game.Command.GiveAll.NotFound", I18NManager.Translate("Word.GirlPiece")));
+                return;
+            }
+
+            var piece = await player.InventoryManager!.AddSuppliesItem(config, (uint)count, false);
+            if (piece != null) pieceItems.Add(piece);
+        }
+        if (pieceItems.Count > 0) await player.SendPacket(new PacketNtfCallScript(pieceItems));
+        DatabaseHelper.SaveDatabaseType(player.InventoryManager.InventoryData);
+        await arg.SendMsg(I18NManager.Translate("Game.Command.GiveAll.GiveAllItems",
+            I18NManager.Translate("Word.GirlPiece"), pieceItems.Count.ToString()));
     }
 }
