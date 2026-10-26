@@ -608,6 +608,11 @@ public class HandlerReqLogin : Handler
         // so the keys of the NEW era row (DlcFuncConfId) need their tables re-stamped as soon as the era
         // changes, not only at login. The patch reads the era row itself, so there is nothing to bake in.
         await SendClientPatch(connection, nameof(DlcClientPatches.DlcFuncWindowFix), DlcClientPatches.DlcFuncWindowFix);
+        // Before DLC 35 the era main screens (Dlc1Main..Dlc34Main) compare their button windows themselves
+        // instead of going through DlcFuncBase/IsInTime, so a pinned DLC 6/7 still answers 已结束 on
+        // every entry - see DlcLegacyMainWindows. Era-independent (it only rewrites windows that already
+        // ended), but re-sent here because the modules it wraps may load after the login push.
+        await SendClientPatch(connection, nameof(DlcClientPatches.DlcLegacyMainWindows), DlcClientPatches.DlcLegacyMainWindows);
 
         var tryActIds = GachaTryService.SelectEraActIds();
         if (tryActIds.Count == 0)
@@ -695,6 +700,11 @@ public class HandlerReqLogin : Handler
         // but re-stamping those tables re-opens them. Driven by the pinned era row, so it also has to be
         // re-sent on an era switch - see PushDlcEraPatches.
         await SendClientPatch(connection, nameof(DlcClientPatches.DlcFuncWindowFix), DlcClientPatches.DlcFuncWindowFix);
+        // The pre-common era main screens (Dlc1Main..Dlc34Main) never ask DlcFuncBase or IsInTime: they
+        // compare each button's table window with now themselves (umg_dlc6_main.lua:187-190), which is why
+        // a pinned DLC 6/7 still shows 已结束 everywhere. Wraps the six accessors those screens read and
+        // rewrites only windows that have already ended.
+        await SendClientPatch(connection, nameof(DlcClientPatches.DlcLegacyMainWindows), DlcClientPatches.DlcLegacyMainWindows);
         // Cartoons: the framework helper hides only the top Stack UI, so a cartoon played from a panel
         // that sits on top of the dorm lets the dorm HUD poke through its four corners (entering 心意寄语
         // stacks Dlc35Main -&gt; Dorm -&gt; message panel). Misc/UE4.lua is required by Preload.lua:17, so

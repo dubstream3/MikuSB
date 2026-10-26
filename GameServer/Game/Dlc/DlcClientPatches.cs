@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 
 namespace MikuSB.GameServer.Game.Dlc;
 
@@ -1099,6 +1099,118 @@ public static class DlcClientPatches
         dfwRun([[unlock]], dfwUnlock)
         dfwRun([[stamp]], dfwStamp)
         dfwRun([[hooks]], dfwHooks)
+        """;
+
+    /// <summary>
+    /// Windows of the pre-common DLC main screens (Dlc1Main .. Dlc34Main).
+    ///
+    /// Up to DLC 34 every era shipped its OWN main screen (UMG/DlcN/umg_dlcN_main.lua), and those screens
+    /// do not ask DlcFuncBase or IsInTime at all - they read each button window straight out of a module
+    /// table and compare it raw (umg_dlc6_main.lua:187-190, umg_dlc7_main.lua:197-198):
+    ///     local bLock = now &lt; info.tbTime[1]
+    ///     local bOver = now &gt; info.tbTime[2]
+    ///     if info.bOver then UI.ShowTip('ui.TxtDLC1Over') end     -- umg_dlc6_main.lua:298-300
+    /// so on a pinned DLC 6/7 every button is desaturated and answers 已结束, even though GlobalTimeWindows
+    /// (IsInTime), DlcFuncWindowFix (DlcFunc* tables), DlcMissionBoard / DlcShopWindows (the era row's
+    /// mission and shop ids) all did their job: era 6/7 rows have no DlcFuncConfId at all (era 7 only
+    /// {Story=9}), so none of those patches owns the buttons that are actually shown.
+    ///
+    /// The sources, by button (umg_dlc6_main.lua:111-179, umg_dlc7_main.lua:123-188):
+    ///   Refresh        -&gt; DLC_Chapter.GetChapterCfg(id).OpenTime/CloseTime
+    ///   Online (联机Boss) -&gt; OnlineBoss.GetConfig(id).nStartTime/nEndTime/nAwardTime
+    ///   Defense (死斗)  -&gt; DefendLogic.GetDlcActTime(id)  (two return values)
+    ///   Event (永续连战)  -&gt; Online.GetGroupConfig(id)    (min start / max end over the group rows)
+    ///   Roguelike      -&gt; Online.GetConfig(id).nStartTime/nEndTime
+    ///   Try (队员试用)   -&gt; GachaTry.GetTimeConf(tbTryID) (two return values)
+    ///   Repression / Vircapture -&gt; Repression_Chapter.tbActivity rows / VirCaptureConfig.GetTimeConfig(id)
+    ///
+    /// So instead of a patch per screen this wraps those accessors and only rewrites a window that has
+    /// ALREADY ENDED (end != 0 / -1 and now &gt;= end) to now-1h .. now+30d: a window still in the future,
+    /// a permanent one, or one the server already stamped is left exactly as it is. That keeps live
+    /// semantics for everything the era floor deliberately closes on the *content* side while making the
+    /// legacy screens usable again, and it needs no era id in the payload - the check "this window is
+    /// over" is what the screens themselves test.
+    ///
+    /// Only tables read through those accessors are touched, and the wrappers re-install themselves from
+    /// DLC_Logic.InitFuncObj because the modules they belong to are required lazily (the same reason
+    /// FunTimedWindows and GirlRushWindows hook it): a push that lands before Online/OnlineBoss/DefendLogic
+    /// are loaded still takes effect the moment the DLC page is built.
+    /// </summary>
+    public const string DlcLegacyMainWindows = """
+        local now = GetTime() local off1 = 3600 local off2 = -2592000
+        local wS = now - off1 local wE = now - off2
+        local function lwOver(e)
+        if type(e) ~= [[number]] or e == 0 or e == -1 then return false end
+        return math.max(e, now) == now
+        end
+        local function lwRow(t)
+        if type(t) ~= [[table]] then return t end
+        if type(t.OpenTime) == [[number]] and lwOver(t.CloseTime) then t.OpenTime = wS t.CloseTime = wE end
+        if type(t.nStartTime) == [[number]] and lwOver(t.nEndTime) then
+        t.nStartTime = wS t.nEndTime = wE
+        if type(t.nAwardTime) == [[number]] and t.nAwardTime ~= 0 then t.nAwardTime = wE end
+        end
+        return t
+        end
+        local function lwDead(s, e)
+        if type(e) ~= [[number]] then return false end
+        if e == -1 then return false end
+        if e == 0 then return true end
+        local started = math.max(s or 0, now) == now
+        local live = math.max(e, now) == e and e ~= now
+        return not (started and live)
+        end
+        local function lwList(tb)
+        if type(tb) ~= [[table]] then return tb end
+        for _, t in pairs(tb) do lwRow(t) end
+        return tb
+        end
+        local function lwRowGet(cls, name, flag)
+        if not cls or type(cls[name]) ~= [[function]] or cls[flag] then return end
+        cls[flag] = true
+        local old = cls[name]
+        cls[name] = function(...) return lwRow(old(...)) end
+        end
+        local function lwListGet(cls, name, flag)
+        if not cls or type(cls[name]) ~= [[function]] or cls[flag] then return end
+        cls[flag] = true
+        local old = cls[name]
+        cls[name] = function(...) return lwList(old(...)) end
+        end
+        local function lwPairGet(cls, name, flag)
+        if not cls or type(cls[name]) ~= [[function]] or cls[flag] then return end
+        cls[flag] = true
+        local old = cls[name]
+        cls[name] = function(...)
+        local s, e = old(...)
+        if lwDead(s, e) then return wS, wE end
+        return s, e
+        end
+        end
+        local function lwfix()
+        lwRowGet(DLC_Chapter, [[GetChapterCfg]], [[bMikuLegacyCh]])
+        lwRowGet(Online, [[GetConfig]], [[bMikuLegacyCfg]])
+        lwListGet(Online, [[GetGroupConfig]], [[bMikuLegacyGrp]])
+        lwRowGet(OnlineBoss, [[GetConfig]], [[bMikuLegacyBoss]])
+        lwPairGet(DefendLogic, [[GetDlcActTime]], [[bMikuLegacyDef]])
+        lwPairGet(GachaTry, [[GetTimeConf]], [[bMikuLegacyTry]])
+        if VirCaptureConfig and type(VirCaptureConfig.GetTimeConfig) == [[function]] then
+        if not VirCaptureConfig.bMikuLegacyVc then
+        VirCaptureConfig.bMikuLegacyVc = true
+        local oldVc = VirCaptureConfig.GetTimeConfig
+        VirCaptureConfig.GetTimeConfig = function(self, ...) return lwRow(oldVc(self, ...)) end
+        end
+        end
+        if Repression_Chapter and type(Repression_Chapter.tbActivity) == [[table]] then
+        lwList(Repression_Chapter.tbActivity)
+        end
+        end
+        lwfix()
+        if DLC_Logic and type(DLC_Logic.InitFuncObj) == [[function]] and not DLC_Logic.bMikuLegacyHook then
+        DLC_Logic.bMikuLegacyHook = true
+        local oldInit = DLC_Logic.InitFuncObj
+        DLC_Logic.InitFuncObj = function(...) local r = oldInit(...) lwfix() return r end
+        end
         """;
 
     /// <summary>
