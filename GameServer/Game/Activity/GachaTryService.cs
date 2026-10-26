@@ -3,8 +3,12 @@ using System.Text.RegularExpressions;
 using MikuSB.Data;
 using MikuSB.Data.Excel;
 using MikuSB.Database;
+using MikuSB.Database.Character;
+using MikuSB.Database.Inventory;
+using MikuSB.Enums.Item;
 using MikuSB.GameServer.Game.Dlc;
 using MikuSB.GameServer.Game.Player;
+using MikuSB.GameServer.Server.Packet.Send.Misc;
 using MikuSB.Proto;
 using MikuSB.Util;
 using Newtonsoft.Json.Linq;
@@ -214,6 +218,77 @@ public static class GachaTryService
                  $"firstClear={first}, {group.Count} row(s) granted.");
 
         return group;
+    }
+
+    /// <summary>
+    /// The characters an era hands out: every try girl of the era's live try acts, granted as owned
+    /// cards. A new account starts with these instead of the whole roster, and /dlc calls it again when
+    /// the era changes so accounts that already exist pick the new era up too. AddCharacter is keyed on
+    /// the template id, so switching back and forth never grants the same card twice.
+    /// </summary>
+    public static async ValueTask<int> GrantEraCharactersAsync(PlayerInstance player, bool notify = true)
+    {
+        if (!DlcRuntimeOverrides.PinActive)
+            return 0;
+
+        List<CharacterInfo> granted = [];
+        foreach (var actId in SelectEraActIds())
+        {
+            if (!GameData.GachaTryData.TryGetValue(actId, out var act))
+                continue;
+
+            foreach (var tryGirlId in act.TryGirlIds)
+            {
+                if (!GameData.TryGirlData.TryGetValue(tryGirlId, out var girl))
+                    continue;
+
+                if (!TryReadCardGdpl(girl.Girl, out var genre, out var detail, out var particular, out var level))
+                    continue;
+
+                var character = await player.CharacterManager.AddCharacter(
+                    (ItemTypeEnum)genre, detail, particular, level, 1, false);
+                if (character != null)
+                    granted.Add(character);
+            }
+        }
+
+        if (granted.Count == 0)
+            return 0;
+
+        if (notify)
+        {
+            await player.SendPacket(new PacketNtfCallScript(granted));
+            await player.SendPacket(new PacketNtfCallScript(player));
+        }
+
+        Save(player);
+        Log.Info($"Era characters granted to uid={player.Uid}: {granted.Count} card(s).");
+        return granted.Count;
+    }
+
+    /// <summary>try_girl.Girl is [genre, detail, particular, level]; genre 1 is a character card.</summary>
+    private static bool TryReadCardGdpl(JToken? token, out uint genre, out uint detail, out uint particular, out uint level)
+    {
+        genre = 0;
+        detail = 0;
+        particular = 0;
+        level = 0;
+        if (token is not JArray row || row.Count < 4)
+            return false;
+
+        genre = ToUint(row[0]);
+        detail = ToUint(row[1]);
+        particular = ToUint(row[2]);
+        level = ToUint(row[3]);
+        return genre != 0 && detail != 0;
+    }
+
+    private static uint ToUint(JToken? token)
+    {
+        if (token is null)
+            return 0;
+
+        return uint.TryParse(token.ToString().Trim('[', ']', '"', ' '), out var value) ? value : 0;
     }
 
     private static void SetAttr(PlayerInstance player, uint gid, uint sid, uint value, NtfSyncPlayer? sync)

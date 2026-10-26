@@ -36,6 +36,7 @@ public class ServerTextCHT
 public class WordTextCHT
 {
     public string Furniture => "傢俱";
+    public string Girl => "角色";
     public string GirlPiece => "角色碎片";
     public string Skin => "皮膚";
     public string WeaponPart => "武器部件";
@@ -323,7 +324,8 @@ public class GiveAllTextCHT
                            "用法：/giveall skinpart <detail/-1> -g<類型> -p<特定> -l<等級>" +
                            "用法：/giveall weaponpart <detail/-1> -g<類型> -p<特定> -l<等級>" +
                            "用法：/giveall call <detail/-1> -g<類型> -p<特定> -l<等級>\n" +
-                           "用法：/giveall piece <detail/-1> -p<特定> -c<數量>";
+                           "用法：/giveall piece <detail/-1> -p<特定> -c<數量>\n" +
+                           "用法：/giveall girl <detail/-1> -p<特定>";
     public string NotFound => "未找到 {0}！";
     public string GiveAllItems => "已向玩家添加 {0} 個 {1}！";
 }

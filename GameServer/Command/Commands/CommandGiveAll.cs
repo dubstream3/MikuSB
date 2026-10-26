@@ -1,5 +1,6 @@
 using MikuSB.Data;
 using MikuSB.Database;
+using MikuSB.Database.Character;
 using MikuSB.Database.Inventory;
 using MikuSB.Enums.Item;
 using MikuSB.Enums.Player;
@@ -349,6 +350,40 @@ public class CommandGiveAll : ICommands
         DatabaseHelper.SaveDatabaseType(player.InventoryManager.InventoryData);
         await arg.SendMsg(I18NManager.Translate("Game.Command.GiveAll.GiveAllItems",
             I18NManager.Translate("Word.Furniture"), furnitureItems.Count.ToString()));
+    }
+
+    /// <summary>
+    /// 角色卡：新号不再一上来就全给，缺谁用这个补。碎片走 /giveall piece，两者是同一张卡的两条路径。
+    /// </summary>
+    [CommandMethod("girl")]
+    public async ValueTask GiveAllGirl(CommandArg arg)
+    {
+        if (!await arg.CheckOnlineTarget()) return;
+
+        var detail = arg.GetInt(0);
+        var particular = await arg.GetOption('p') is int particularOpt ? particularOpt : (int?)null;
+        var player = arg.Target!.Player!;
+        List<CharacterInfo> girlItems = [];
+        foreach (var card in GameData.CardData.Values)
+        {
+            if (detail != -1 && card.Detail != (uint)detail) continue;
+            if (particular is not null && card.Particular != (uint)particular.Value) continue;
+
+            var character = await player.CharacterManager!
+                .AddCharacter(ItemTypeEnum.TYPE_CARD, card.Detail, card.Particular, card.Level, 1, false);
+            if (character != null) girlItems.Add(character);
+        }
+        if (girlItems.Count == 0)
+        {
+            await arg.SendMsg(I18NManager.Translate("Game.Command.GiveAll.NotFound", I18NManager.Translate("Word.Girl")));
+            return;
+        }
+        await player.SendPacket(new PacketNtfCallScript(girlItems));
+        await player.SendPacket(new PacketNtfCallScript(player));
+        DatabaseHelper.SaveDatabaseType(player.CharacterManager.CharacterData);
+        DatabaseHelper.SaveDatabaseType(player.Data);
+        await arg.SendMsg(I18NManager.Translate("Game.Command.GiveAll.GiveAllItems",
+            I18NManager.Translate("Word.Girl"), girlItems.Count.ToString()));
     }
 
     /// <summary>

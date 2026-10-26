@@ -7,7 +7,9 @@ using MikuSB.Database.Inventory;
 using MikuSB.Database.Player;
 using MikuSB.Enums.Item;
 using MikuSB.GameServer.Command;
+using MikuSB.GameServer.Game.Activity;
 using MikuSB.GameServer.Game.Character;
+using MikuSB.GameServer.Game.Dlc;
 using MikuSB.GameServer.Game.Inventory;
 using MikuSB.GameServer.Game.Lineup;
 using MikuSB.GameServer.Game.Quest;
@@ -77,10 +79,7 @@ public class PlayerInstance(PlayerGameData data)
             {
                 await InventoryManager.AddManifestationItem((ItemTypeEnum)manifest.Genre, manifest.Detail, manifest.Particular, manifest.Level, false);
             }
-            foreach (var card in GameData.CardData.Values)
-            {
-                await CharacterManager.AddCharacter((ItemTypeEnum)card.Genre, card.Detail, card.Particular, card.Level, sendPacket:false);
-            }
+            await GrantStarterCharacters();
             foreach (var supplies in GameData.AllSuppliesData)
             {
                 await InventoryManager.AddSuppliesItem(supplies, 90000, false);
@@ -99,6 +98,28 @@ public class PlayerInstance(PlayerGameData data)
 
         Initialized = true;
     }
+
+    /// <summary>
+    /// The three starters every new account keeps. Handing out the whole roster here made the client
+    /// replay one "character obtained" presentation per card before the lobby became usable, so the
+    /// roster now starts small: three starters plus the characters of the pinned DLC era. Everything
+    /// else comes from the shops, /giveall and GirlCard_UnLockCharacter.
+    /// </summary>
+    private static readonly (uint Detail, uint Particular)[] StarterCards =
+    [
+        (1, 1), // 安卡希雅
+        (2, 1), // 里芙
+        (3, 1)  // 妮塔
+    ];
+
+    private async ValueTask GrantStarterCharacters()
+    {
+        foreach (var (detail, particular) in StarterCards)
+            await CharacterManager.AddCharacter(ItemTypeEnum.TYPE_CARD, detail, particular, 1, sendPacket: false);
+
+        await GachaTryService.GrantEraCharactersAsync(this, notify: false);
+    }
+
     private async ValueTask InitialPlayerManager()
     {
         Uid = Data.Uid;

@@ -1,6 +1,7 @@
 using MikuSB.Configuration;
 using MikuSB.Data;
 using MikuSB.Enums.Player;
+using MikuSB.GameServer.Game.Activity;
 using MikuSB.GameServer.Game.Dlc;
 using MikuSB.GameServer.Server;
 using MikuSB.GameServer.Server.Packet.Recv.Login;
@@ -100,6 +101,8 @@ public class CommandDlc : ICommands
 
             var sync = new NtfSyncPlayer();
             HandlerReqLogin.ApplyPinnedEra(player, sync);
+            // The era's try girls are owned cards on this server, so a switch has to hand them out.
+            await GachaTryService.GrantEraCharactersAsync(player);
             DlcMissionActiveService.RollDailyState(player, sync);
             if (sync.Custom.Count > 0)
                 await player.SendPacket(CmdIds.NtfSyncAttr, sync);
