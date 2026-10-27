@@ -155,6 +155,8 @@ public class ServerInfoTextEN
     public string RequiredResourcesMissing => "Required resources are missing. Downloading the resource package.";
     public string InstallingResources => "Installing resources into {0}...";
     public string ResourcesInstalled => "Installed {0} resource files into {1}.";
+    /// <summary>Resource data version changed ({0} -> {1}); downloading the package again.</summary>
+    public string ResourcesOutdated => "Resource data version changed ({0} -> {1}); downloading the package again.";
     public string DownloadSourceDirect => "Download source: {0} (direct GitHub)";
     public string DownloadSourceMirror => "Download source: {2} (mirror {0}/{1}); the direct source failed, switched automatically";
     public string DownloadProgress => "Download {0}% ({1}/{2}), {3}, {4} left, from {5}";

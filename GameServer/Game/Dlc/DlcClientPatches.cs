@@ -426,6 +426,31 @@ public static class DlcClientPatches
         63	3415	{2,4,31,1,1}	104		ordinary	{3,1}
         63	3416	{2,3,32,1,1}	102		ordinary	{3,1}
         63	3417	{2,7,4,1,1}	101		ordinary	{3,1}
+        63	3418	{2,1,15,1,1}	176		ordinary	{3,1}
+        63	3419	{2,1,16,1,1}	177		ordinary	{3,1}
+        63	3420	{2,2,9,1,1}	178		ordinary	{3,1}
+        63	3421	{2,2,14,1,1}	179		ordinary	{3,1}
+        63	3422	{2,3,10,1,1}	180		ordinary	{3,1}
+        63	3423	{2,3,16,1,1}	181		ordinary	{3,1}
+        63	3424	{2,4,13,1,1}	182		ordinary	{3,1}
+        63	3425	{2,4,14,1,1}	183		ordinary	{3,1}
+        63	3426	{2,5,13,1,1}	184		ordinary	{3,1}
+        63	3427	{2,5,14,1,1}	185		ordinary	{3,1}
+        63	3428	{2,6,3,1,1}	186		ordinary	{3,1}
+        63	3429	{2,1,19,1,1}	187		ordinary	{3,1}
+        63	3430	{2,1,20,1,1}	188		ordinary	{3,1}
+        63	3431	{2,2,18,1,1}	189		ordinary	{3,1}
+        63	3432	{2,2,20,1,1}	190		ordinary	{3,1}
+        63	3433	{2,3,18,1,1}	191		ordinary	{3,1}
+        63	3434	{2,3,19,1,1}	192		ordinary	{3,1}
+        63	3435	{2,3,20,1,1}	193		ordinary	{3,1}
+        63	3436	{2,4,17,1,1}	194		ordinary	{3,1}
+        63	3437	{2,4,19,1,1}	195		ordinary	{3,1}
+        63	3438	{2,4,24,1,1}	196		ordinary	{3,1}
+        63	3439	{2,4,33,1,1}	197		ordinary	{3,1}
+        63	3440	{2,5,17,1,1}	198		ordinary	{3,1}
+        63	3441	{2,5,18,1,1}	199		ordinary	{3,1}
+        63	3442	{2,5,20,1,1}	200		ordinary	{3,1}
         ]]
         local TABS_CSV = [[
         xxx_454630312	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A
@@ -517,6 +542,7 @@ public static class DlcClientPatches
             ShopLogic.LoadGoodsConf = function(...) local r = oldGoods(...) MergeSupplyShop() return r end
             ShopLogic.LoadShopTabConf = function(...) local r = oldTabs(...) MergeSupplyShop() return r end
         end
+        print([[SupplyShop goods=]] .. tostring(nGoods) .. [[ tabs=]] .. tostring(nTabs) .. [[ groups=]] .. tostring(#ShopLogic.tbGroupId))
 
         """;
     // <<< SUPPLY SHOP PAYLOAD <<<

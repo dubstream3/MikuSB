@@ -190,6 +190,8 @@ public class ServerInfoTextCHS
     public string RequiredResourcesMissing => "缺少必要的资源文件, 正在下载资源包…";
     public string InstallingResources => "正在安装资源到 {0}…";
     public string ResourcesInstalled => "已安装 {0} 个资源文件到 {1}。";
+    /// <summary>资源数据版本已更新 ({0} → {1}), 正在重新下载整包…</summary>
+    public string ResourcesOutdated => "资源数据版本已更新 ({0} → {1}), 正在重新下载整包…";
     public string DownloadSourceDirect => "下载源: {0} (GitHub 直连)";
     public string DownloadSourceMirror => "下载源: {2} (镜像 {0}/{1}), 直连不可用, 已自动切换";
     public string DownloadProgress => "下载进度 {0}% ({1}/{2}), {3}, 剩余 {4}, 来源 {5}";

@@ -36,6 +36,14 @@ public static class UpdateService
         "item/templates/weapon.json"
     ];
 
+    // Bumped whenever the committed resource data changes (new goods rows, corrected tables,
+    // added text keys). The updater used to only ask "do these two files exist", so a data fix
+    // could never reach a deployment that already had a Resources tree - it kept running against
+    // stale tables forever. The installed version is written next to the data and compared on
+    // every start; a mismatch throws the whole tree away and downloads the package again.
+    public const string ResourceDataVersion = "0.0.1";
+    private const string ResourceVersionFileName = ".mikusb-resource-version";
+
     // Direct GitHub access is unusable on some networks: the connection either never completes or
     // crawls at a few KB/s, which used to abort startup resource installation. Downloads are retried
     // through these reverse proxies, which serve https://<mirror>/https://github.com/... verbatim.
@@ -205,7 +213,26 @@ public static class UpdateService
         if (!Directory.Exists(resourcePath))
             return false;
 
-        return RequiredResourceFiles.All(fileName => File.Exists(Path.Combine(resourcePath, fileName)));
+        if (!RequiredResourceFiles.All(fileName => File.Exists(Path.Combine(resourcePath, fileName))))
+            return false;
+
+        return ReadInstalledResourceVersion(resourcePath) == ResourceDataVersion;
+    }
+
+    private static string? ReadInstalledResourceVersion(string resourcePath)
+    {
+        var versionPath = Path.Combine(resourcePath, ResourceVersionFileName);
+        if (!File.Exists(versionPath))
+            return null;
+
+        try
+        {
+            return File.ReadAllText(versionPath).Trim();
+        }
+        catch (IOException)
+        {
+            return null;
+        }
     }
 
     private static async Task DownloadAndInstallResourcesAsync()
@@ -215,6 +242,17 @@ public static class UpdateService
         Directory.CreateDirectory(tempRoot);
 
         var resourceTargetDirectory = Path.Combine(AppContext.BaseDirectory, ConfigManager.Config.Path.ResourcePath);
+
+        // A version bump means the data on disk is stale, not broken: replace the tree wholesale so
+        // rows that were removed upstream disappear as well. Installing over the top would keep them.
+        if (Directory.Exists(resourceTargetDirectory))
+        {
+            var installedVersion = ReadInstalledResourceVersion(resourceTargetDirectory) ?? "unknown";
+            Logger.Warn(I18NManager.Translate("Server.ServerInfo.ResourcesOutdated",
+                installedVersion, ResourceDataVersion));
+            Directory.Delete(resourceTargetDirectory, recursive: true);
+        }
+
         var resourcePackagePath = Path.Combine(tempRoot, "MikuSB-Resource-main.zip");
         await DownloadFileAsync(client, ResourceArchiveUrl, resourcePackagePath, ResourceDownloadTimeoutSeconds);
 
@@ -234,7 +272,9 @@ public static class UpdateService
 
         var extractedRoot = Directory.GetDirectories(resourceStagingDirectory).FirstOrDefault() ?? resourceStagingDirectory;
         Directory.CreateDirectory(resourceTargetDirectory);
-        return CopyDirectory(extractedRoot, resourceTargetDirectory);
+        var copiedFiles = CopyDirectory(extractedRoot, resourceTargetDirectory);
+        File.WriteAllText(Path.Combine(resourceTargetDirectory, ResourceVersionFileName), ResourceDataVersion);
+        return copiedFiles;
     }
 
     private static bool ConfirmUpdate(string latestVersion)
