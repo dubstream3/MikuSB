@@ -57,6 +57,7 @@ jobs:
           $straySymbols = Get-ChildItem $packageDir -Filter *.pdb -Recurse
           if ($straySymbols) { throw "Publish output still contains symbols: $($straySymbols.Name -join ', ')" }
           Copy-Item .\version.txt $packageDir -Force
+          Copy-Item .\packaging\MikuSB.cmd $packageDir -Force
           Compress-Archive -Path "$packageDir\*" -DestinationPath .\artifacts\MikuSB-win-x64.zip -Force
           $hash = (Get-FileHash .\artifacts\MikuSB-win-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  MikuSB-win-x64.zip" | Set-Content .\artifacts\MikuSB-win-x64.zip.sha256

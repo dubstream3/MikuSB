@@ -24,6 +24,22 @@ public class MikuSB
 
     public static async Task Main()
     {
+        try
+        {
+            await RunAsync();
+        }
+        catch (Exception exception)
+        {
+            // Everything below runs before the server is usable, so a throw here is a startup failure the
+            // user must be able to read: double-clicking in Explorer closes the console together with the
+            // process, and the stack trace goes with it. CrashReporter writes logs\crash-*.log and pops a
+            // dialog that names the likely cause.
+            Environment.ExitCode = CrashReporter.Report(exception, "startup");
+        }
+    }
+
+    private static async Task RunAsync()
+    {
         if (TryCleanHostsFromCommandLine())
             return;
 
