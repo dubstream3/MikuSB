@@ -41,7 +41,10 @@ public static class UpdateService
     // could never reach a deployment that already had a Resources tree - it kept running against
     // stale tables forever. The installed version is written next to the data and compared on
     // every start; a mismatch throws the whole tree away and downloads the package again.
-    public const string ResourceDataVersion = "0.0.1";
+    // 0.0.2: adds ui/replay/*.png - the DLC era key art the admin panel serves on its replay page.
+    //        Without the bump an existing deployment keeps its old tree and the panel shows empty
+    //        thumbnails, because the art only arrives with a fresh archive.
+    public const string ResourceDataVersion = "0.0.2";
     private const string ResourceVersionFileName = ".mikusb-resource-version";
 
     // Direct GitHub access is unusable on some networks: the connection either never completes or
