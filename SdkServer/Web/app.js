@@ -1481,9 +1481,13 @@ const SETUP_STRINGS = {
     "setup.hosts": "CN hosts 重定向",
     "setup.hosts.on": "已写入 {0} 条",
     "setup.hosts.off": "未写入",
+    "setup.hosts.already": "已是最新",
+    "setup.hosts.needsAdmin": "需要管理员权限才能修改 hosts：以管理员身份重新运行本程序即可自动写入，或手动编辑 {0}，把下列 7 个域名指向本机地址。",
+    "setup.hosts.removedOk": "已移除 hosts 条目",
+    "setup.hosts.none": "hosts 中没有 MikuSB 的条目",
     "setup.hosts.apply": "写入 hosts",
     "setup.hosts.remove": "移除条目",
-    "setup.hosts.note": "需要管理员权限，会弹一次 UAC。改完正常启动游戏即可，不用注入 DLL。",
+    "setup.hosts.note": "「写入配置」时会一并写入 hosts，只有失败才提示；移除条目需要管理员权限。",
     "setup.hosts.domains": "域名",
     "setup.hosts.failed": "失败：{0}",
     "setup.region.saved": "区域：{0}",
@@ -1525,9 +1529,13 @@ const SETUP_STRINGS = {
     "setup.hosts": "CN hosts 重導向",
     "setup.hosts.on": "已寫入 {0} 條",
     "setup.hosts.off": "未寫入",
+    "setup.hosts.already": "已是最新",
+    "setup.hosts.needsAdmin": "需要系統管理員權限才能修改 hosts：以系統管理員身分重新執行本程式即可自動寫入，或手動編輯 {0}，將下列 7 個網域指向本機位址。",
+    "setup.hosts.removedOk": "已移除 hosts 項目",
+    "setup.hosts.none": "hosts 中沒有 MikuSB 的項目",
     "setup.hosts.apply": "寫入 hosts",
     "setup.hosts.remove": "移除項目",
-    "setup.hosts.note": "需要系統管理員權限，會跳一次 UAC。改完正常啟動遊戲即可，不需注入 DLL。",
+    "setup.hosts.note": "「寫入設定」時會一併寫入 hosts，只有失敗才提示；移除項目需要系統管理員權限。",
     "setup.hosts.domains": "網域",
     "setup.hosts.failed": "失敗：{0}",
     "setup.region.saved": "區域：{0}",
@@ -1569,9 +1577,13 @@ const SETUP_STRINGS = {
     "setup.hosts": "CN hosts リダイレクト",
     "setup.hosts.on": "{0} 件書き込み済み",
     "setup.hosts.off": "未書き込み",
+    "setup.hosts.already": "最新です",
+    "setup.hosts.needsAdmin": "hosts の変更には管理者権限が必要です。管理者として本プログラムを再実行すれば自動で書き込まれます。手動で {0} を編集し、次の 7 つのドメインをこの PC のアドレスに向けてもかまいません。",
+    "setup.hosts.removedOk": "hosts の項目を削除しました",
+    "setup.hosts.none": "hosts に MikuSB の項目はありません",
     "setup.hosts.apply": "hosts を書き込む",
     "setup.hosts.remove": "項目を削除",
-    "setup.hosts.note": "管理者権限が必要で、UAC が一度表示されます。設定後はゲームを通常起動するだけです。",
+    "setup.hosts.note": "「設定を書き込む」と同時に hosts も更新されます（失敗時のみ通知）。項目の削除には管理者権限が必要です。",
     "setup.hosts.domains": "ドメイン",
     "setup.hosts.failed": "失敗：{0}",
     "setup.region.saved": "地域：{0}",
@@ -1613,9 +1625,13 @@ const SETUP_STRINGS = {
     "setup.hosts": "CN hosts 리다이렉트",
     "setup.hosts.on": "{0}개 기록됨",
     "setup.hosts.off": "기록 없음",
+    "setup.hosts.already": "최신 상태입니다",
+    "setup.hosts.needsAdmin": "hosts를 수정하려면 관리자 권한이 필요합니다. 관리자 권한으로 다시 실행하면 자동으로 기록됩니다. 또는 {0}을 직접 편집해 다음 7개 도메인을 이 PC 주소로 지정하세요.",
+    "setup.hosts.removedOk": "hosts 항목을 제거했습니다",
+    "setup.hosts.none": "hosts에 MikuSB 항목이 없습니다",
     "setup.hosts.apply": "hosts 기록",
     "setup.hosts.remove": "항목 제거",
-    "setup.hosts.note": "관리자 권한이 필요하며 UAC가 한 번 뜹니다. 이후에는 게임을 정상 실행하면 됩니다.",
+    "setup.hosts.note": "「설정 저장」시 hosts도 함께 기록되며 실패할 때만 알립니다. 항목 제거에는 관리자 권한이 필요합니다.",
     "setup.hosts.domains": "도메인",
     "setup.hosts.failed": "실패: {0}",
     "setup.region.saved": "지역: {0}",
@@ -1657,9 +1673,13 @@ const SETUP_STRINGS = {
     "setup.hosts": "CN hosts redirect",
     "setup.hosts.on": "{0} entries present",
     "setup.hosts.off": "not written",
+    "setup.hosts.already": "up to date",
+    "setup.hosts.needsAdmin": "Editing hosts needs administrator rights. Run this program as administrator to write the block automatically, or edit {0} by hand and point the 7 domains below at this machine.",
+    "setup.hosts.removedOk": "Removed the hosts entries",
+    "setup.hosts.none": "No MikuSB entries in hosts",
     "setup.hosts.apply": "Write hosts",
     "setup.hosts.remove": "Remove entries",
-    "setup.hosts.note": "Needs administrator rights, so Windows shows one UAC prompt. Afterwards just launch the game normally.",
+    "setup.hosts.note": "The \"write config\" button also maintains hosts and only reports failures. Removing entries needs administrator rights.",
     "setup.hosts.domains": "Domains",
     "setup.hosts.failed": "Failed: {0}",
     "setup.region.saved": "Region: {0}",
@@ -1701,9 +1721,13 @@ const SETUP_STRINGS = {
     "setup.hosts": "Redirection hosts CN",
     "setup.hosts.on": "{0} entrées présentes",
     "setup.hosts.off": "non écrit",
+    "setup.hosts.already": "à jour",
+    "setup.hosts.needsAdmin": "Modifier hosts demande les droits administrateur. Relancez ce programme en tant qu’administrateur pour écrire le bloc automatiquement, ou modifiez {0} à la main en pointant les 7 domaines ci-dessous vers cette machine.",
+    "setup.hosts.removedOk": "Entrées hosts supprimées",
+    "setup.hosts.none": "Aucune entrée MikuSB dans hosts",
     "setup.hosts.apply": "Écrire hosts",
     "setup.hosts.remove": "Supprimer les entrées",
-    "setup.hosts.note": "Nécessite les droits administrateur : une invite UAC apparaît. Ensuite, lancez simplement le jeu.",
+    "setup.hosts.note": "Le bouton « écrire la configuration » met aussi à jour hosts et ne signale que les échecs. La suppression des entrées demande les droits administrateur.",
     "setup.hosts.domains": "Domaines",
     "setup.hosts.failed": "Échec : {0}",
     "setup.region.saved": "Région : {0}",
@@ -1745,9 +1769,13 @@ const SETUP_STRINGS = {
     "setup.hosts": "Redirección hosts CN",
     "setup.hosts.on": "{0} entradas presentes",
     "setup.hosts.off": "sin escribir",
+    "setup.hosts.already": "al día",
+    "setup.hosts.needsAdmin": "Modificar hosts requiere permisos de administrador. Ejecuta este programa como administrador para escribir el bloque automáticamente, o edita {0} a mano y apunta los 7 dominios de abajo a este equipo.",
+    "setup.hosts.removedOk": "Entradas de hosts eliminadas",
+    "setup.hosts.none": "No hay entradas de MikuSB en hosts",
     "setup.hosts.apply": "Escribir hosts",
     "setup.hosts.remove": "Quitar entradas",
-    "setup.hosts.note": "Requiere permisos de administrador: aparecerá un aviso UAC. Después solo hay que iniciar el juego.",
+    "setup.hosts.note": "El botón «escribir configuración» también mantiene hosts y solo avisa de los fallos. Quitar entradas requiere permisos de administrador.",
     "setup.hosts.domains": "Dominios",
     "setup.hosts.failed": "Error: {0}",
     "setup.region.saved": "Región: {0}",
@@ -1789,9 +1817,13 @@ const SETUP_STRINGS = {
     "setup.hosts": "CN-hosts-Umleitung",
     "setup.hosts.on": "{0} Einträge vorhanden",
     "setup.hosts.off": "nicht geschrieben",
+    "setup.hosts.already": "aktuell",
+    "setup.hosts.needsAdmin": "Das Ändern der hosts-Datei erfordert Administratorrechte. Starte das Programm als Administrator, um den Block automatisch zu schreiben, oder bearbeite {0} von Hand und richte die 7 Domains unten auf diesen Rechner.",
+    "setup.hosts.removedOk": "hosts-Einträge entfernt",
+    "setup.hosts.none": "Keine MikuSB-Einträge in hosts",
     "setup.hosts.apply": "hosts schreiben",
     "setup.hosts.remove": "Einträge entfernen",
-    "setup.hosts.note": "Benötigt Administratorrechte, Windows zeigt einmal UAC. Danach das Spiel einfach normal starten.",
+    "setup.hosts.note": "Die Schaltfläche „Konfiguration schreiben“ pflegt auch hosts und meldet nur Fehler. Das Entfernen der Einträge erfordert Administratorrechte.",
     "setup.hosts.domains": "Domains",
     "setup.hosts.failed": "Fehlgeschlagen: {0}",
     "setup.region.saved": "Region: {0}",
@@ -1833,9 +1865,13 @@ const SETUP_STRINGS = {
     "setup.hosts": "เปลี่ยนเส้นทาง hosts (CN)",
     "setup.hosts.on": "มี {0} รายการ",
     "setup.hosts.off": "ยังไม่เขียน",
+    "setup.hosts.already": "เป็นปัจจุบันแล้ว",
+    "setup.hosts.needsAdmin": "การแก้ hosts ต้องใช้สิทธิ์ผู้ดูแลระบบ เรียกโปรแกรมนี้ในฐานะผู้ดูแลระบบเพื่อเขียนให้อัตโนมัติ หรือแก้ {0} ด้วยตนเองโดยชี้ 7 โดเมนด้านล่างมาที่เครื่องนี้",
+    "setup.hosts.removedOk": "ลบรายการ hosts แล้ว",
+    "setup.hosts.none": "ไม่มีรายการ MikuSB ใน hosts",
     "setup.hosts.apply": "เขียน hosts",
     "setup.hosts.remove": "ลบรายการ",
-    "setup.hosts.note": "ต้องใช้สิทธิ์ผู้ดูแลระบบ จะมีหน้าต่าง UAC หนึ่งครั้ง จากนั้นเปิดเกมตามปกติ",
+    "setup.hosts.note": "ปุ่ม \"เขียนการตั้งค่า\" จะอัปเดต hosts ให้ด้วย และแจ้งเฉพาะเมื่อล้มเหลว การลบรายการต้องใช้สิทธิ์ผู้ดูแลระบบ",
     "setup.hosts.domains": "โดเมน",
     "setup.hosts.failed": "ล้มเหลว: {0}",
     "setup.region.saved": "ภูมิภาค: {0}",
@@ -1877,9 +1913,13 @@ const SETUP_STRINGS = {
     "setup.hosts": "Pengalihan hosts CN",
     "setup.hosts.on": "{0} entri ada",
     "setup.hosts.off": "belum ditulis",
+    "setup.hosts.already": "sudah terbaru",
+    "setup.hosts.needsAdmin": "Mengubah hosts memerlukan hak administrator. Jalankan program ini sebagai administrator agar blok ditulis otomatis, atau edit {0} secara manual dan arahkan 7 domain di bawah ke mesin ini.",
+    "setup.hosts.removedOk": "Entri hosts dihapus",
+    "setup.hosts.none": "Tidak ada entri MikuSB di hosts",
     "setup.hosts.apply": "Tulis hosts",
     "setup.hosts.remove": "Hapus entri",
-    "setup.hosts.note": "Perlu hak administrator, muncul satu dialog UAC. Setelah itu jalankan game seperti biasa.",
+    "setup.hosts.note": "Tombol \"tulis konfigurasi\" juga memperbarui hosts dan hanya memberi tahu jika gagal. Menghapus entri memerlukan hak administrator.",
     "setup.hosts.domains": "Domain",
     "setup.hosts.failed": "Gagal: {0}",
     "setup.region.saved": "Wilayah: {0}",
@@ -2747,7 +2787,6 @@ async function renderSetup() {
     </h3>
     <p class="note">${esc(t('setup.hosts.note'))}</p>
     <div class="setup-row">
-      <button id="hosts-apply" class="secondary">${esc(t('setup.hosts.apply'))}</button>
       <button id="hosts-remove" class="secondary">${esc(t('setup.hosts.remove'))}</button>
       <span id="hosts-msg" class="note grow"></span>
     </div>
@@ -2856,7 +2895,12 @@ async function renderSetup() {
       state.setupRegion = result.region;
       await renderSetup();
       const next = document.getElementById('setup-next');
-      if (next) next.innerHTML = (result.next_steps || []).map((step) => esc(step)).join('<br>');
+      if (next) {
+        const steps = (result.next_steps || []).map((step) => esc(step)).join('<br>');
+        // The wizard writes the hosts block as part of this same button. Report it only when something is
+        // off: a success used to be a second button the operator had to find on their own.
+        next.innerHTML = steps + setupHostsReport(result.hosts_sync, data);
+      }
     } catch (error) {
       // invalid_path comes back with the full probe result; show it under the path box instead of
       // leaving the operator with an opaque status code.
@@ -2869,27 +2913,51 @@ async function renderSetup() {
     }
   });
 
-  const hostsApply = document.getElementById('hosts-apply');
-  if (hostsApply) {
-    const runHosts = async (action) => {
+  const hostsRemove = document.getElementById('hosts-remove');
+  if (hostsRemove) {
+    hostsRemove.addEventListener('click', async () => {
       const message = document.getElementById('hosts-msg');
       message.textContent = '…';
       try {
-        const result = await api('/setup/hosts', {
-          method: 'POST',
-          body: { action, target_ip: state.setupAddress || '127.0.0.1' }
-        });
-        toast(result.message);
+        const result = await api('/setup/hosts', { method: 'POST', body: { action: 'remove' } });
         await renderSetup();
         const again = document.getElementById('hosts-msg');
-        if (again) again.textContent = result.message;
+        const text = setupHostsText(result.status, result, data);
+        if (again) again.innerHTML = text;
+        toast(text.replace(/<[^>]+>/g, ' '), result.status === 'needs_admin' || result.status === 'failed');
       } catch (error) {
         message.textContent = t('setup.hosts.failed', error.message);
       }
-    };
-    hostsApply.addEventListener('click', () => runHosts('apply'));
-    document.getElementById('hosts-remove').addEventListener('click', () => runHosts('remove'));
+    });
   }
+}
+
+/// Turns a hosts_sync / setup/hosts answer into a one-line report. Success stays quiet (the pill above already
+/// shows the entry count); only "needs administrator" and real failures are spelled out, because that is the
+/// case where the operator has to do something by hand.
+function setupHostsText(status, payload, data) {
+  const path = (data && data.hosts && data.hosts.path) || 'hosts';
+  switch (status) {
+    case 'applied':
+      return esc(t('setup.hosts.on', (payload.entries || []).length));
+    case 'already':
+      return esc(t('setup.hosts.already'));
+    case 'removed':
+      return esc(t('setup.hosts.removedOk'));
+    case 'clear':
+      return esc(t('setup.hosts.none'));
+    case 'needs_admin':
+      return '<span class="warn-text">' + esc(t('setup.hosts.needsAdmin', path)) + '</span>';
+    default:
+      return '<span class="warn-text">' + esc(t('setup.hosts.failed', (payload && payload.message) || status)) + '</span>';
+  }
+}
+
+function setupHostsReport(sync, data) {
+  if (!sync) return '';
+  const text = setupHostsText(sync.status, sync, data);
+  const quiet = sync.status === 'applied' || sync.status === 'already';
+  return '<br>' + (quiet ? '<span class="note">' + text + '</span>' : text);
 }
 
 function formatDuration(seconds) {

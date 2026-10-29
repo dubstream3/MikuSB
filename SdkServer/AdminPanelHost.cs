@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using MikuSB.SdkServer.Handlers;
 using MikuSB.SdkServer.Utils;
 using MikuSB.Util;
+using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 
@@ -106,11 +107,60 @@ public static class AdminPanelHost
 
             app.Start();
             Instance = app;
-            Logger.Info($"Admin panel listening on http://127.0.0.1:{port} (loopback only, bearer token from Config.json).");
+
+            var token = AdminToken.Current;
+            var url = $"http://127.0.0.1:{port}/?token={token}";
+            Logger.Info($"Admin panel listening on http://127.0.0.1:{port} (loopback only, bearer token required).");
+            AnnounceUrl(url, token);
         }
         catch (Exception ex)
         {
             Logger.Error($"Failed to start the admin panel on 127.0.0.1:{port}.", ex);
         }
     }
+
+    /// <summary>
+    /// A double-clicked build has no other way of telling the operator the token: the console scrolls past the
+    /// log lines and without the token every request is a 401. Print a block that is easy to copy, then open
+    /// the browser with <c>?token=</c> already applied so the first login is a single click.
+    /// </summary>
+    private static void AnnounceUrl(string url, string token)
+    {
+        try
+        {
+            var line = new string('-', 72);
+            Console.WriteLine();
+            Console.WriteLine(line);
+            Console.WriteLine(" MikuSB admin panel / 管理面板");
+            Console.WriteLine($"   URL   : http://127.0.0.1:{new Uri(url).Port}/");
+            Console.WriteLine($"   Token : {token}");
+            Console.WriteLine($"   Login : {url}");
+            Console.WriteLine(line);
+            Console.WriteLine();
+        }
+        catch (IOException)
+        {
+            // No console attached (service host): the log line above carries the same information.
+        }
+
+        if (!ConfigManager.Config.HttpServer.OpenAdminPanel)
+            return;
+
+        if (Environment.GetEnvironmentVariable("MIKUSB_NO_BROWSER") is { Length: > 0 })
+            return;
+
+        if (!Environment.UserInteractive)
+            return;
+
+        try
+        {
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            Logger.Info("Opened the admin panel in the default browser.");
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"Could not open the browser automatically: {ex.Message}. Open the URL above by hand.");
+        }
+    }
 }
+

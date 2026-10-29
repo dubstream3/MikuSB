@@ -454,6 +454,74 @@ public static class SetupService
             : "hosts 中的 MikuSB 条目已移除";
     }
 
+    /// <summary>True when this process can write the hosts file without a UAC prompt.</summary>
+    public static bool IsElevated()
+    {
+        if (!OperatingSystem.IsWindows())
+            return true;
+
+        try
+        {
+            using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+            return new System.Security.Principal.WindowsPrincipal(identity)
+                .IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Outcome of a hosts sync. <c>Status</c> is a code the panel localises (applied / already / removed / clear
+    /// / needs_admin / failed); <c>Message</c> is the detail from <see cref="WriteHosts"/>, also logged.
+    /// </summary>
+    public sealed record HostsSync(string Status, string Message, IReadOnlyList<string> Entries);
+
+    /// <summary>
+    /// Make the hosts block match <paramref name="targetIp"/>. The setup wizard calls this from its "write
+    /// config" step, so the button only reports a problem when the block is still wrong afterwards.
+    /// </summary>
+    public static HostsSync SyncHosts(string targetIp)
+    {
+        targetIp = string.IsNullOrWhiteSpace(targetIp) ? "127.0.0.1" : targetIp.Trim();
+        if (!IPAddress.TryParse(targetIp, out _))
+            return new HostsSync("failed", "无效的地址：" + targetIp, ReadHosts().Entries);
+
+        var before = ReadHosts();
+        if (IsBlockCurrent(before, targetIp))
+            return new HostsSync("already", $"hosts 已是最新（{targetIp}）", before.Entries);
+
+        var message = WriteHosts(true, targetIp);
+        var after = ReadHosts();
+        if (IsBlockCurrent(after, targetIp))
+            return new HostsSync("applied", message, after.Entries);
+
+        return new HostsSync(after.Readable ? "needs_admin" : "failed", message, after.Entries);
+    }
+
+    /// <summary>Drop our hosts block. Same elevation policy as <see cref="SyncHosts"/>.</summary>
+    public static HostsSync ClearHosts()
+    {
+        var before = ReadHosts();
+        if (before.Entries.Count == 0)
+            return new HostsSync("clear", "hosts 里没有 MikuSB 的条目", before.Entries);
+
+        var message = WriteHosts(false, "127.0.0.1");
+        var after = ReadHosts();
+        return after.Entries.Count == 0
+            ? new HostsSync("removed", message, after.Entries)
+            : new HostsSync("needs_admin", message, after.Entries);
+    }
+
+    private static bool IsBlockCurrent(HostsState state, string targetIp)
+    {
+        if (state.Entries.Count != CnDomains.Length)
+            return false;
+
+        return state.Entries.All(line => line.TrimStart().StartsWith(targetIp, StringComparison.OrdinalIgnoreCase));
+    }
+
     private static string BuildHostsScript()
     {
         var domains = string.Join(",\r\n    ", CnDomains.Select(domain => $"'{domain}'"));

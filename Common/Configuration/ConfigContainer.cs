@@ -36,6 +36,12 @@ public class HttpServerConfig
     /// <summary>Folder (relative to the executable) holding the panel's index.html / app.js / style.css.</summary>
     public string AdminWebRoot { get; set; } = "Web";
 
+    /// <summary>
+    /// Open the panel in the default browser once at startup, with the token already filled in. The token is
+    /// also printed to the console, because a fresh install has no way to know it otherwise.
+    /// </summary>
+    public bool OpenAdminPanel { get; set; } = true;
+
     public string GetDisplayAddress()
     {
         return "http" + "://" + PublicAddress + ":" + Port;

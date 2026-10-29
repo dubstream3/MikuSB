@@ -444,7 +444,12 @@ public class AdminApiController : ControllerBase
 
         ConfigManager.SaveConfig();
 
-        ConfigManager.Logger.Info($"[setup] applied region={region} game={probe.Exe} userdir={probe.UserDir} address={config.HttpServer.PublicAddress}");
+        // The wizard's single "write config" button also maintains the CN hosts block: asking the operator to
+        // find a second button for it was the most confusing part of the setup flow. A hosts problem never
+        // fails the request - the config is already on disk - it comes back as a status the panel renders.
+        var hostsSync = region == "cn" ? SetupService.SyncHosts(config.HttpServer.PublicAddress) : null;
+
+        ConfigManager.Logger.Info($"[setup] applied region={region} game={probe.Exe} userdir={probe.UserDir} address={config.HttpServer.PublicAddress} hosts={hostsSync?.Status ?? "n/a"}");
         return Ok(new
         {
             ok = true,
@@ -452,23 +457,36 @@ public class AdminApiController : ControllerBase
             game_path = config.Loader.GamePath,
             arguments = config.Loader.Arguments,
             public_address = config.HttpServer.PublicAddress,
+            elevated = SetupService.IsElevated(),
+            hosts_sync = hostsSync,
             next_steps = region == "cn"
-                ? new[] { "点下面的按钮把 7 个 SDK 域名写进 hosts（需要管理员权限）", "正常启动游戏，用官方登录窗口登录" }
+                ? new[] { "正常启动游戏，用官方登录窗口登录" }
                 : new[] { "把 Patch\\MikuSB-Patch.dll 放到 Config 同级目录（首次会自动下载）", "用 MikuSB.Loader 启动游戏" }
         });
     }
 
     /// <summary>
-    /// Maintain the CN hosts block. Elevation is requested only when the process itself cannot write the file;
-    /// the outcome is always re-read from disk before it is reported.
+    /// Maintain the CN hosts block by hand: <c>remove</c> drops it, anything else syncs it to
+    /// <c>target_ip</c>. Elevation is requested only when this process cannot write the file, and the outcome
+    /// is always re-read from disk before it is reported - a declined UAC prompt is never reported as success.
     /// </summary>
     [HttpPost("setup/hosts")]
     public IActionResult SetupHosts([FromBody] SetupHostsRequest request)
     {
-        var enable = request?.Action?.ToLowerInvariant() != "remove";
-        var message = SetupService.WriteHosts(enable, request?.TargetIp ?? "127.0.0.1");
-        ConfigManager.Logger.Info($"[setup] hosts {(enable ? "add" : "remove")} -> {message}");
-        return Ok(new { ok = true, message, hosts = SetupService.ReadHosts() });
+        var remove = string.Equals(request?.Action, "remove", StringComparison.OrdinalIgnoreCase);
+        var result = remove
+            ? SetupService.ClearHosts()
+            : SetupService.SyncHosts(request?.TargetIp ?? "127.0.0.1");
+        ConfigManager.Logger.Info($"[setup] hosts {(remove ? "remove" : "sync")} -> {result.Status}: {result.Message}");
+        return Ok(new
+        {
+            ok = result.Status is "applied" or "already" or "removed" or "clear",
+            status = result.Status,
+            message = result.Message,
+            entries = result.Entries,
+            elevated = SetupService.IsElevated(),
+            hosts = SetupService.ReadHosts()
+        });
     }
 
     private static DateTime GetStartedAt()
