@@ -17,7 +17,14 @@ public class IConsole
 
     public static void InitConsole()
     {
-        Console.Title = ConfigManager.Config.GameServer.GameServerName;
+        // Console.Title throws when there is no console at all (published app started by a service).
+        try
+        {
+            Console.Title = ConfigManager.Config.GameServer.GameServerName;
+        }
+        catch (IOException)
+        {
+        }
     }
 
     public static int GetWidth(string str)
@@ -35,11 +42,45 @@ public class IConsole
             length += GetWidth(PrefixContent);
         }
 
-        if (Console.GetCursorPosition().Left > 0)
+        // Redirected stdout / no console handle makes every cursor call throw IOException, and this
+        // runs from Logger.Log - an unhandled throw here killed the process on startup. Degrade to a
+        // plain line instead of taking the server down while logging.
+        if (!TryGetLayout(out var left, out var width))
+        {
+            Console.WriteLine(input);
+            return;
+        }
+
+        if (left > 0)
             Console.SetCursorPosition(0, Console.CursorTop);
 
-        Console.Write(input + new string(' ', Console.BufferWidth - length));
-        Console.SetCursorPosition(length, Console.CursorTop);
+        Console.Write(input + new string(' ', Math.Max(0, width - length)));
+        Console.SetCursorPosition(Math.Min(length, Math.Max(0, width - 1)), Console.CursorTop);
+    }
+
+    /// <summary>
+    /// Reads the cursor layout only when the process really owns a console; returns false for
+    /// redirected output, a detached window or a console that rejects the query.
+    /// </summary>
+    private static bool TryGetLayout(out int left, out int width)
+    {
+        left = 0;
+        width = 0;
+        try
+        {
+            if (Console.IsOutputRedirected) return false;
+            left = Console.CursorLeft;
+            width = Console.BufferWidth;
+            return width > 0;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+        catch (PlatformNotSupportedException)
+        {
+            return false;
+        }
     }
 
     #region Handlers

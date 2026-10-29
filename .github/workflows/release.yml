@@ -34,7 +34,7 @@ jobs:
           "tag=v$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Publish server
-        run: dotnet publish .\MikuSB\MikuSB.csproj -c Release -p:PublishProfile=MikuSB-Win64-MultiFile -p:DebugType=none -p:DebugSymbols=false -o .\artifacts\publish\MikuSB
+        run: dotnet publish .\MikuSB\MikuSB.csproj -c Release -p:PublishProfile=MikuSB-Win64-MultiFile -p:SelfContained=true -r win-x64 -p:DebugType=none -p:DebugSymbols=false -o .\artifacts\publish\MikuSB
 
       - name: Assemble release package
         shell: pwsh
@@ -42,6 +42,17 @@ jobs:
           $packageDir = ".\artifacts\package\MikuSB-win-x64"
           New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
           Copy-Item .\artifacts\publish\MikuSB\* $packageDir -Recurse -Force
+
+          # The zip has to run on a machine without .NET installed, so refuse to ship a
+          # framework-dependent output (that is what made 6.1.0 flash-exit on a clean box).
+          $runtimeConfig = Get-Content "$packageDir\MikuSB.runtimeconfig.json" -Raw | ConvertFrom-Json
+          if ($runtimeConfig.runtimeOptions.frameworks) {
+            throw 'Publish output is framework-dependent (runtimeconfig lists "frameworks"); the release must be self-contained.'
+          }
+          foreach ($native in @('coreclr.dll', 'hostfxr.dll', 'hostpolicy.dll')) {
+            if (-not (Test-Path "$packageDir\$native")) { throw "Self-contained publish is missing $native." }
+          }
+
           if (-not (Test-Path "$packageDir\MikuSB.Updater.exe")) { throw 'MikuSB.Updater.exe was not bundled into the publish output.' }
           $straySymbols = Get-ChildItem $packageDir -Filter *.pdb -Recurse
           if ($straySymbols) { throw "Publish output still contains symbols: $($straySymbols.Name -join ', ')" }
