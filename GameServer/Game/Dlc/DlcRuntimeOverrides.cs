@@ -1,4 +1,4 @@
-using MikuSB.Data;
+﻿using MikuSB.Data;
 using MikuSB.Data.Excel;
 using MikuSB.Util;
 using Newtonsoft.Json.Linq;
@@ -49,7 +49,19 @@ public static class DlcRuntimeOverrides
     /// Config.json otherwise. Every pin consumer must read this instead of
     /// <c>ConfigManager.Config.ServerOption.PinDlcActivityId</c>.
     /// </summary>
-    public static uint EffectiveDlcId => runtimePin?.Id ?? ConfigManager.Config.ServerOption.PinDlcActivityId;
+    /// <summary>
+    /// Retired eras (see <see cref="DlcEraPolicy"/>) collapse to 0: the client keeps no assets for them any
+    /// more, so pinning one would seed attributes and windows the UI cannot draw. A Config.json written
+    /// before they were withdrawn therefore degrades to "no pin" instead of a broken DLC page.
+    /// </summary>
+    public static uint EffectiveDlcId
+    {
+        get
+        {
+            var id = runtimePin?.Id ?? ConfigManager.Config.ServerOption.PinDlcActivityId;
+            return DlcEraPolicy.IsRetired(id) ? 0u : id;
+        }
+    }
 
     /// <summary>
     /// True while the server should steer the DLC era at all. False keeps the legacy behaviour of

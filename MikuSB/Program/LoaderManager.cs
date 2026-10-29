@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Components;
 using MikuSB.Data;
 using MikuSB.Database;
+using MikuSB.Enums.Packet;
 using MikuSB.GameServer.Command;
+using MikuSB.GameServer.Game.Dlc;
+using MikuSB.GameServer.Game.Player;
 using MikuSB.GameServer.Server;
 using MikuSB.GameServer.Server.CallGS;
 using MikuSB.GameServer.Server.Packet;
@@ -268,6 +271,53 @@ public class LoaderManager : MikuSB
         CommandExecutor.OnRunCommand += (sender, e) => { _ = CommandManager.HandleCommand(e, sender); };
         InGameConsoleBridge.ExecuteCommandAsync = InGameConsoleCommandService.ExecuteAsync;
 
+        // Admin panel data. Same reason as the line above: SdkServer only references Common, so the panel
+        // cannot touch sockets or the command table directly and goes through these delegates instead.
+        InGameConsoleBridge.GetOnlinePlayers = SnapshotOnlinePlayers;
+        InGameConsoleBridge.GetCommands = DescribeCommands;
+        InGameConsoleBridge.GetCurrencyCatalog = CurrencyService.GetCatalog;
+        // DlcRuntimeOverrides.EffectiveDlcId already folds "runtime pin wins, otherwise Config.json" into one
+        // value, so the panel never has to re-implement that precedence.
+        InGameConsoleBridge.GetServedDlc = () => new ServedDlcInfo(
+            DlcRuntimeOverrides.EffectiveDlcId,
+            DlcRuntimeOverrides.HasRuntimePin,
+            ConfigManager.Config.ServerOption.PinDlcActivityId != 0);
+
         await IConsole.ListenConsole(exitToken);
     }
+
+    /// <summary>
+    /// Player roster for the admin panel. SocketListener.Connections is a SortedList the network threads
+    /// mutate without a lock, so a disconnect can race this enumeration; a partial view beats failing the
+    /// request, and the next call is consistent again.
+    /// </summary>
+    private static IReadOnlyList<OnlinePlayerInfo> SnapshotOnlinePlayers()
+    {
+        var players = new List<OnlinePlayerInfo>();
+        try
+        {
+            foreach (var socket in SocketListener.Connections.Values.ToList())
+            {
+                if (socket is not Connection connection) continue;
+                if (connection.State != SessionStateEnum.ACTIVE) continue;
+                if (connection.Player is not { } player) continue;
+
+                players.Add(new OnlinePlayerInfo(player.Uid, player.Data.Name ?? "",
+                    player.Data.Level, connection.RemoteEndPoint?.ToString() ?? ""));
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            // Collection was modified mid-enumeration: the snapshot collected so far is still correct.
+        }
+
+        return players.OrderBy(info => info.Uid).ToArray();
+    }
+
+    private static IReadOnlyList<CommandDescriptor> DescribeCommands() =>
+        CommandManager.CommandInfo.Values
+            .Select(info => new CommandDescriptor(info.Name, info.Usage, info.Description, info.Alias,
+                info.Perm.Select(perm => perm.ToString()).ToArray()))
+            .OrderBy(descriptor => descriptor.Name, StringComparer.Ordinal)
+            .ToArray();
 }

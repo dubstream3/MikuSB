@@ -1,4 +1,4 @@
-using MikuSB.Database;
+﻿using MikuSB.Database;
 using MikuSB.Database.Player;
 using MikuSB.Data;
 using MikuSB.GameServer.Game.Player;
@@ -129,6 +129,19 @@ public static class CurrencyService
             return cash.Type ?? cash.Name ?? moneyType.ToString();
 
         return moneyType.ToString();
+    }
+
+    /// <summary>
+    /// Currency ids the admin panel offers: the hand-maintained Chinese names plus every cash.json row, so
+    /// ids added by a game update show up without touching this file.
+    /// </summary>
+    public static IReadOnlyList<CurrencyDescriptor> GetCatalog()
+    {
+        var ids = new SortedSet<uint>(ChineseNames.Keys);
+        foreach (var id in GameData.CashData.Keys)
+            ids.Add(id);
+
+        return ids.Select(id => new CurrencyDescriptor(id, NameOrType(id))).ToArray();
     }
 
     /// <summary>Current balance of a moneyType, routed through Vigor when that is the id.</summary>

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore;
+﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -61,6 +61,9 @@ public static class SdkServer
         {
             Logger.Error("Failed to start the SDK/HTTP (dispatch) server.", ex);
         }
+
+        // Separate host on purpose: the panel must survive a certificate/bind failure of the game host above.
+        AdminPanelHost.Start();
     }
 }
 

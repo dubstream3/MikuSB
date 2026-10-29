@@ -1,4 +1,4 @@
-using MikuSB.Configuration;
+﻿using MikuSB.Configuration;
 using MikuSB.Data;
 using MikuSB.Enums.Player;
 using MikuSB.GameServer.Game.Activity;
@@ -51,6 +51,14 @@ public class CommandDlc : ICommands
             if (!uint.TryParse(token, out id))
             {
                 await arg.SendMsg($"'{token}' is not a DLC id. {Describe()}");
+                return;
+            }
+
+            if (DlcEraPolicy.IsRetired(id))
+            {
+                await arg.SendMsg(
+                    $"DLC {id} has been withdrawn: its data is no longer in the resource packs. " +
+                    $"Retired: {DlcEraPolicy.RetiredList}. Available: {AvailableIds()}");
                 return;
             }
 
@@ -123,7 +131,8 @@ public class CommandDlc : ICommands
             : "Config.json";
 
         if (served == 0)
-            return $"DLC era: none ({source}; Config.json PinDlcActivityId={configId}). Available: {AvailableIds()}";
+            return $"DLC era: none ({source}; Config.json PinDlcActivityId={configId}{RetiredNote(configId)}). " +
+                   $"Available: {AvailableIds()}";
 
         var name = GameData.DlcActivityData.TryGetValue(served, out var row) ? row.MainUI : "missing row";
         var floor = DlcRuntimeOverrides.ActivationFloor();
@@ -134,6 +143,15 @@ public class CommandDlc : ICommands
                $"era floor {floorText}. Available: {AvailableIds()}";
     }
 
+    /// <summary>
+    /// Explains a Config.json pin that no longer takes effect. Without this, a pin of a withdrawn era
+    /// reads as "none (... PinDlcActivityId=3)", which looks like the server ignored the config.
+    /// </summary>
+    private static string RetiredNote(uint configId) =>
+        DlcEraPolicy.IsRetired(configId) ? $", retired: DLC {configId} data removed" : "";
+
     private static string AvailableIds() =>
-        string.Join(", ", GameData.DlcActivityData.Keys.OrderBy(id => id));
+        string.Join(", ", GameData.DlcActivityData.Keys
+            .Where(id => !DlcEraPolicy.IsRetired(id))
+            .OrderBy(id => id));
 }

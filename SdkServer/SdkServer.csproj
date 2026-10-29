@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
@@ -14,6 +14,14 @@
     <ItemGroup>
       <ProjectReference Include="..\Common\Common.csproj" />
       <ProjectReference Include="..\Proxy\Proxy.csproj" />
+    </ItemGroup>
+
+    <!-- Admin panel assets. CopyToOutputDirectory (not just CopyToPublishDirectory) because the panel is
+         served from AppContext.BaseDirectory at runtime, including `dotnet run` during development. -->
+    <ItemGroup>
+      <Content Include="Web\**\*">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>

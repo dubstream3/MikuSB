@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="app.title">MikuSB 管理面板</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="dot"></span> MikuSB <small data-i18n="brand.sub">私服管理</small></div>
+    <div class="top-right">
+      <select id="lang" class="lang" title="Language"></select>
+      <div class="status" id="status" data-i18n="status.connecting">连接中…</div>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs"></nav>
+
+  <main id="view" class="view"></main>
+
+  <div class="login hidden" id="login">
+    <form class="login-card" id="login-form">
+      <h1 data-i18n="login.title">需要访问令牌</h1>
+      <p id="login-hint"></p>
+      <input id="login-token" type="password" placeholder="粘贴令牌" autocomplete="off" spellcheck="false">
+      <button type="submit" data-i18n="login.submit">进入</button>
+      <div class="login-error" id="login-error"></div>
+    </form>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

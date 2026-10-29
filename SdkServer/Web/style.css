@@ -1,0 +1,425 @@
+:root {
+  --bg: #0f1116;
+  --panel: #171a21;
+  --panel-2: #1e222b;
+  --line: #2a2f3a;
+  --text: #e6e9ef;
+  --muted: #8b93a3;
+  --accent: #6ea8fe;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --err: #f87171;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.55 "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+code, .mono, pre, input, textarea {
+  font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+.brand { font-weight: 600; letter-spacing: .3px; }
+.brand small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+
+.dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--muted);
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.dot.on { background: var(--ok); }
+.dot.off { background: var(--err); }
+
+.status { color: var(--muted); font-size: 12.5px; }
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 14px 0;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+.tabs a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 7px 14px;
+  border-radius: 7px 7px 0 0;
+  border: 1px solid transparent;
+  border-bottom: none;
+}
+
+.tabs a:hover { color: var(--text); }
+
+.tabs a.active {
+  color: var(--text);
+  background: var(--bg);
+  border-color: var(--line);
+}
+
+.view { padding: 18px; max-width: 1180px; }
+
+h2 { font-size: 16px; margin: 0 0 12px; font-weight: 600; }
+h3 { font-size: 13.5px; margin: 18px 0 8px; color: var(--muted); font-weight: 600; }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.card .k { color: var(--muted); font-size: 12px; }
+.card .v { font-size: 24px; font-weight: 600; margin-top: 4px; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+
+th { color: var(--muted); font-weight: 600; background: var(--panel-2); }
+tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: var(--panel-2); }
+
+.pill {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 99px;
+  font-size: 11.5px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.pill.ok { color: var(--ok); border-color: rgba(74, 222, 128, .35); }
+.pill.warn { color: var(--warn); border-color: rgba(251, 191, 36, .35); }
+.pill.err { color: var(--err); border-color: rgba(248, 113, 113, .35); }
+.pill.muted { color: var(--muted); border-style: dashed; }
+
+/* Eras whose data was removed from the resource packs: kept as a record, not switchable. */
+.era-card.retired { opacity: .62; border-style: dashed; cursor: not-allowed; }
+.era-card.retired:hover { border-color: var(--line); box-shadow: none; }
+.era-card.retired .era-thumb { filter: grayscale(1); }
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+input, textarea, button {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 7px 10px;
+  font-size: 13px;
+}
+
+input:focus, textarea:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+
+button { cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button.primary { background: #1d4ed8; border-color: #1d4ed8; }
+button.danger { color: var(--err); }
+button.small { padding: 3px 9px; font-size: 12px; }
+
+textarea { width: 100%; min-height: 74px; resize: vertical; }
+
+pre.out {
+  background: #0b0d12;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  min-height: 150px;
+  max-height: 460px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12.5px;
+  margin: 0;
+}
+
+.muted { color: var(--muted); }
+.empty { color: var(--muted); padding: 18px 0; }
+.right { text-align: right; }
+.row-actions { display: flex; gap: 6px; }
+
+.login {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 10, 14, .86);
+  backdrop-filter: blur(3px);
+  z-index: 10;
+}
+
+.login.hidden { display: none; }
+
+.login-card {
+  width: min(420px, 92vw);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 22px;
+}
+
+.login-card h1 { font-size: 17px; margin: 0 0 8px; }
+.login-card p { color: var(--muted); font-size: 12.5px; margin: 0 0 14px; }
+.login-card input { width: 100%; margin-bottom: 10px; }
+.login-card button { width: 100%; }
+.login-error { color: var(--err); font-size: 12.5px; min-height: 18px; margin-top: 8px; }
+
+.toast {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 10px 14px;
+  max-width: 420px;
+  font-size: 13px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .45);
+}
+
+.toast.err { border-left-color: var(--err); }
+
+/* Activity replay grid: one card per DLC era. */
+.era-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(214px, 1fr));
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.era-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  padding: 12px 13px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  color: var(--text);
+}
+
+.era-card:hover { border-color: var(--accent); }
+
+.era-card.active {
+  border-color: var(--ok);
+  box-shadow: inset 0 0 0 1px rgba(74, 222, 128, .28);
+}
+
+.era-card .era-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.era-card .era-id { font-weight: 600; }
+.era-card .era-ui { color: var(--text); font-size: 11.5px; opacity: .8; }
+.era-card .era-win { color: var(--muted); font-size: 11.5px; }
+.era-card .era-count { color: var(--muted); font-size: 11.5px; }
+
+/* Topbar right side: language picker + status. */
+.topbar .top-right { display: flex; align-items: center; gap: 12px; }
+.lang { font: inherit; font-size: 12.5px; padding: 4px 6px; border-radius: 7px; }
+
+.era-card .era-name { font-size: 13px; font-weight: 600; }
+.era-card .era-name:empty { display: none; }
+.era-card.selected { box-shadow: inset 0 0 0 2px var(--accent); }
+
+.sub { color: var(--muted); font-size: 12.5px; margin: -4px 0 10px; }
+
+/* Character / outfit chips on the replay detail pane. */
+.cast {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.cast-group {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.cast-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 7px; }
+.cast-name { font-weight: 600; font-size: 13.5px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  font-size: 12px;
+}
+
+.chip-var { color: var(--muted); font-size: 11px; text-transform: lowercase; }
+
+.check { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12.5px; }
+.small { font-size: 12.5px; }
+.muted { color: var(--muted); }
+
+.output .err { color: var(--err); }
+
+/* Variant badge on an outfit chip: the letter maps to the try_girl variant (a/b/c ...). */
+.chip-var {
+  display: inline-block;
+  min-width: 14px;
+  text-align: center;
+  padding: 0 3px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, .07);
+  text-transform: uppercase;
+}
+
+/* Era entry button art: exported offline from the client's cooked textures into Resources/ui/replay/dlc-N.png.
+   The source textures are the lobby's activity-entry buttons (300x200 / 272x204), so 3:2 keeps them uncropped. */
+.era-thumb {
+  display: block;
+  aspect-ratio: 3 / 2;
+  margin: -12px -13px 8px;
+  border-radius: 9px 9px 0 0;
+  background-color: #10141c;
+  background-size: cover;
+  background-position: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.era-thumb.empty {
+  background-image: linear-gradient(135deg, #171c26, #0d1017);
+}
+
+/* Selection bar: a card click only marks a pending choice; this button applies it. */
+.replay-apply {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.replay-apply button { min-width: 104px; }
+
+/* --- setup wizard ------------------------------------------------------------------------- */
+.region-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 6px; }
+.region-card {
+  display: flex; flex-direction: column; gap: 6px; align-items: flex-start;
+  padding: 14px 16px; text-align: left; cursor: pointer;
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px; color: inherit;
+}
+.region-card:hover { border-color: var(--accent); }
+.region-card.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.region-name { font-weight: 600; font-size: 15px; }
+.region-note { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.region-tag { font-size: 11px; color: var(--muted); opacity: .8; }
+.setup-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+.setup-row.end { justify-content: flex-end; }
+.setup-row .grow { flex: 1 1 320px; }
+#setup-path { font-size: 13px; padding: 9px 10px; }
+.checks { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.checks li { display: flex; align-items: baseline; gap: 8px; font-size: 13px; color: var(--muted); }
+.checks li.bad b { color: #ffb3b3; }
+.checks li.ok b { color: #b7e4c7; }
+.checks .mono { font-size: 12px; word-break: break-all; }
+.callout.warn { border-left: 3px solid #d9a13b; background: rgba(217,161,59,.08); padding: 8px 12px; border-radius: 6px; margin: 10px 0; font-size: 13px; }
+.domains { margin: 8px 0; font-size: 12.5px; color: var(--muted); }
+.domains ul { margin: 6px 0 0 18px; }
+button.chip { font-size: 12px; padding: 4px 9px; }
+.note.warn-text { color: #e8c07a; }
+
+/* One-time anti-scam notice: blocking overlay, only the confirm button closes it. */
+.notice-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(4, 6, 10, 0.78);
+  backdrop-filter: blur(2px);
+}
+
+.notice-card {
+  width: min(640px, 100%);
+  max-height: 86vh;
+  overflow: auto;
+  padding: 26px 28px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  background: var(--panel, #14181f);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+}
+
+.notice-card h2 {
+  margin: 0 0 14px;
+  font-size: 20px;
+}
+
+.notice-card .notice-en,
+.notice-card .notice-zh {
+  margin: 0 0 12px;
+  line-height: 1.65;
+  color: #e6edf5;
+}
+
+.notice-card .notice-zh {
+  color: #b9c6d6;
+}
+
+.notice-card .note {
+  margin: 0 0 18px;
+}
+
+.notice-card button {
+  min-width: 132px;
+}

@@ -17,7 +17,24 @@ public class HttpServerConfig
     public string BindAddress { get; set; } = "0.0.0.0";
     public string PublicAddress { get; set; } = "127.0.0.1";
     public int Port { get; set; } = 21500;
+
+    /// <summary>Log every dispatch request. Off by default: the game client is very chatty.</summary>
     public bool EnableLog { get; set; } = false;
+
+    /// <summary>
+    /// Admin panel listener: plain HTTP, loopback interface only, kept off the HTTPS ports the game client
+    /// talks to so the panel never runs into a self-signed certificate prompt. 0 disables the panel.
+    /// </summary>
+    public int AdminPort { get; set; } = 21400;
+
+    /// <summary>
+    /// Bearer token every <c>/api/*</c> call must carry. Empty on first launch means "generate one, log it
+    /// once and persist it into Config.json"; from then on the file is the only copy.
+    /// </summary>
+    public string AdminToken { get; set; } = "";
+
+    /// <summary>Folder (relative to the executable) holding the panel's index.html / app.js / style.css.</summary>
+    public string AdminWebRoot { get; set; } = "Web";
 
     public string GetDisplayAddress()
     {
@@ -224,4 +241,17 @@ public class LoaderOptions
     ///     through a fenced block in the hosts file. The block is removed again on a clean shutdown.
     /// </summary>
     public bool ManageCnHosts { get; set; } = true;
+
+    /// <summary>
+    /// Which client build this server is set up for: "cn" (jinshan channel, redirected with hosts entries)
+    /// or "global" (Seasun/global build, redirected by injecting MikuSB-Patch.dll through the loader).
+    /// Only the setup wizard reads it; launching still works from <see cref="GamePath"/>/<see cref="Arguments"/>.
+    /// </summary>
+    public string Region { get; set; } = "";
+
+    /// <summary>Game root the client is installed in, i.e. the parent of the <c>data\game</c> folder.</summary>
+    public string InstallPath { get; set; } = "";
+
+    /// <summary>Value passed as <c>-userdir</c>; empty means "derive it from the install path".</summary>
+    public string UserDir { get; set; } = "";
 }

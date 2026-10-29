@@ -1,10 +1,38 @@
-namespace MikuSB.Util;
+﻿namespace MikuSB.Util;
 
 public sealed record InGameConsoleCommandResponse(bool Success, IReadOnlyList<string> Messages);
+
+/// <summary>A player currently holding an active game connection, for the admin panel's online view.</summary>
+public sealed record OnlinePlayerInfo(int Uid, string Name, uint Level, string RemoteAddress);
+
+/// <summary>Metadata of one console command, so the panel can list them without calling /help.</summary>
+public sealed record CommandDescriptor(string Name, string Usage, string Description, string[] Aliases, string[] Permissions);
+
+/// <summary>Currency id plus display name, mirrored from CurrencyService.</summary>
+public sealed record CurrencyDescriptor(uint Id, string Name);
+
+/// <summary>
+/// Which DLC era the server is serving right now, and whether the pin came from /dlc at runtime or from
+/// Config.json. The replay page needs all three: the id to highlight a card, the flag to explain why the
+/// highlight will not survive a restart, and the persisted id to say what a restart would fall back to.
+/// </summary>
+public sealed record ServedDlcInfo(uint Id, bool RuntimePin, bool Persisted);
 
 public static class InGameConsoleBridge
 {
     public static Func<string, CancellationToken, Task<InGameConsoleCommandResponse>>? ExecuteCommandAsync { get; set; }
+
+    /// <summary>
+    /// Online roster. Lives here for the same reason <see cref="ExecuteCommandAsync"/> does: SdkServer only
+    /// references Common, so the socket/player types must not leak into it.
+    /// </summary>
+    public static Func<IReadOnlyList<OnlinePlayerInfo>>? GetOnlinePlayers { get; set; }
+
+    public static Func<IReadOnlyList<CommandDescriptor>>? GetCommands { get; set; }
+
+    public static Func<IReadOnlyList<CurrencyDescriptor>>? GetCurrencyCatalog { get; set; }
+
+    public static Func<ServedDlcInfo>? GetServedDlc { get; set; }
 
     private static readonly object PacketLogSync = new();
     private static readonly Dictionary<Guid, Action<string>> PacketLogSubscribers = [];
