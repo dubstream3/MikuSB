@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MikuSB.Configuration;
 using MikuSB.Data;
 using MikuSB.Database;
 using MikuSB.Database.Account;
@@ -368,7 +369,7 @@ public class AdminApiController : ControllerBase
             user_dir = config.Loader.UserDir.Length > 0 ? config.Loader.UserDir : probe.UserDir,
             arguments = config.Loader.Arguments,
             patch_paths = config.Loader.PatchPaths,
-            patch_present = config.Loader.PatchPaths.Any(item => System.IO.File.Exists(Path.Combine(AppContext.BaseDirectory, item))),
+            patch_present = PatchPresent(config),
             proxy = new { enabled = config.Proxy.Enabled, set_all_proxy = config.Loader.SetAllProxy, port = config.Proxy.Port },
             public_address = config.HttpServer.PublicAddress,
             game_public_address = config.GameServer.PublicAddress,
@@ -489,6 +490,72 @@ public class AdminApiController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Starts the game through the upstream loader - the exact path <c>/game</c> takes in the in-game console.
+    /// That is the only place the patch DLL is fetched: <c>GameLaunchService.Launch</c> calls
+    /// <c>PatchDownloadService.EnsurePatchPresent()</c> before injecting, so a fresh install can go from
+    /// "no patch" to a running client with one click. A manually launched Game.exe gets nothing from us.
+    /// </summary>
+    [HttpPost("setup/launch")]
+    public async Task<IActionResult> SetupLaunch([FromBody] SetupLaunchRequest? request)
+    {
+        var config = ConfigManager.Config;
+        if (string.IsNullOrWhiteSpace(config.Loader.GamePath))
+            return BadRequest(new { code = "invalid_path", message = "Loader.GamePath is not configured yet." });
+
+        var extra = (request?.Arguments ?? "").Trim();
+        var arguments = extra.Length == 0
+            ? Array.Empty<string>()
+            : extra.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        // Preferred path: ask the loader itself, so the answer is a pid or the real reason. The console
+        // command remains the fallback for hosts that do not wire the delegate.
+        var launch = InGameConsoleBridge.LaunchGame;
+        if (launch != null)
+        {
+            var outcome = launch(arguments);
+            ConfigManager.Logger.Info($"[setup] launch -> ok={outcome.Ok} pid={outcome.Pid} {outcome.Message}");
+            return Ok(new
+            {
+                accepted = true,
+                success = outcome.Ok,
+                command = "/game",
+                pid = outcome.Pid,
+                messages = new[] { outcome.Ok ? $"pid {outcome.Pid}" : outcome.Message },
+                patch_present = PatchPresent(config),
+                game_path = config.Loader.GamePath
+            });
+        }
+
+        var execute = InGameConsoleBridge.ExecuteCommandAsync;
+        if (execute == null) return ConsoleNotReady();
+
+        var command = arguments.Length == 0 ? "/game" : "/game " + string.Join(' ', arguments);
+        var result = await execute(command, HttpContext.RequestAborted);
+        ConfigManager.Logger.Info($"[setup] launch (console) -> {string.Join(" | ", result.Messages)}");
+
+        return Ok(new
+        {
+            accepted = true,
+            success = result.Success,
+            command,
+            pid = 0,
+            messages = result.Messages,
+            patch_present = PatchPresent(config),
+            game_path = config.Loader.GamePath
+        });
+    }
+
+    /// <summary>
+    /// True when at least one entry of <c>Loader.PatchPaths</c> resolves next to the executable. Kept in one
+    /// place because the setup page shows it, and the launch answer has to be able to say how it changed.
+    /// </summary>
+    private static bool PatchPresent(ConfigContainer config)
+    {
+        return config.Loader.PatchPaths.Any(item =>
+            System.IO.File.Exists(Path.Combine(AppContext.BaseDirectory, item)));
+    }
+
     private static DateTime GetStartedAt()
     {
         try
@@ -548,4 +615,10 @@ public sealed class SetupHostsRequest
 
     /// <summary>Address written for every CN SDK domain; defaults to loopback.</summary>
     public string? TargetIp { get; set; }
+}
+
+public sealed class SetupLaunchRequest
+{
+    /// <summary>Extra arguments appended to the <c>/game</c> command; usually blank.</summary>
+    public string? Arguments { get; set; }
 }

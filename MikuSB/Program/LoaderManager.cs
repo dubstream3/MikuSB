@@ -8,6 +8,7 @@ using MikuSB.GameServer.Game.Player;
 using MikuSB.GameServer.Server;
 using MikuSB.GameServer.Server.CallGS;
 using MikuSB.GameServer.Server.Packet;
+using MikuSB.Loader;
 using MikuSB.Internationalization;
 using MikuSB.MikuSB.Tool;
 using MikuSB.MikuSB.Update;
@@ -282,6 +283,22 @@ public class LoaderManager : MikuSB
             DlcRuntimeOverrides.EffectiveDlcId,
             DlcRuntimeOverrides.HasRuntimePin,
             ConfigManager.Config.ServerOption.PinDlcActivityId != 0);
+        // Starting the client is the one action whose verdict the console cannot express: /game reports success
+        // and puts the real outcome in a localised sentence. The panel calls the loader directly so it can say
+        // "pid N" or the actual reason.
+        InGameConsoleBridge.LaunchGame = arguments =>
+        {
+            try
+            {
+                var pid = GameLaunchService.Launch(arguments);
+                return new GameLaunchResult(true, pid, "");
+            }
+            catch (Exception exception)
+            {
+                Logger.Error("Failed to launch game from the admin panel.", exception);
+                return new GameLaunchResult(false, 0, exception.Message);
+            }
+        };
 
         await IConsole.ListenConsole(exitToken);
     }

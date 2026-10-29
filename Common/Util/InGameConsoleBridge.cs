@@ -1,4 +1,4 @@
-﻿namespace MikuSB.Util;
+namespace MikuSB.Util;
 
 public sealed record InGameConsoleCommandResponse(bool Success, IReadOnlyList<string> Messages);
 
@@ -18,6 +18,14 @@ public sealed record CurrencyDescriptor(uint Id, string Name);
 /// </summary>
 public sealed record ServedDlcInfo(uint Id, bool RuntimePin, bool Persisted);
 
+/// <summary>
+/// Outcome of starting the client through the loader. <paramref name="Pid"/> is the game process id on
+/// success; on failure <paramref name="Message"/> carries the reason (missing exe, patch download failed,
+/// injection failed). It exists because the console path reports success unconditionally and pushes the real
+/// verdict into localised text, which a page cannot distinguish from "it worked".
+/// </summary>
+public sealed record GameLaunchResult(bool Ok, int Pid, string Message);
+
 public static class InGameConsoleBridge
 {
     public static Func<string, CancellationToken, Task<InGameConsoleCommandResponse>>? ExecuteCommandAsync { get; set; }
@@ -33,6 +41,13 @@ public static class InGameConsoleBridge
     public static Func<IReadOnlyList<CurrencyDescriptor>>? GetCurrencyCatalog { get; set; }
 
     public static Func<ServedDlcInfo>? GetServedDlc { get; set; }
+
+    /// <summary>
+    /// Starts the client through the upstream loader (same call <c>/game</c> makes, including the patch
+    /// download). Wired by the host; the panel uses it so it can report a real pid or a real reason instead of
+    /// scraping console text.
+    /// </summary>
+    public static Func<string[], GameLaunchResult>? LaunchGame { get; set; }
 
     private static readonly object PacketLogSync = new();
     private static readonly Dictionary<Guid, Action<string>> PacketLogSubscribers = [];

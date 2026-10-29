@@ -1494,6 +1494,12 @@ const SETUP_STRINGS = {
     "setup.current.region": "区域",
     "setup.current.address": "对外地址",
     "setup.current.proxy": "SOCKS5",
+    "setup.launch": "启动游戏（/game）",
+    "setup.launch.note": "「写入配置」只把路径和参数写进 Config.json，不会下载补丁。点下面的按钮启动游戏，Loader 会在注入前自动下载 Patch\\MikuSB-Patch.dll。",
+    "setup.launch.running": "正在启动…",
+    "setup.launch.done": "已启动：{0}",
+    "setup.launch.failed": "启动失败：{0}",
+    "setup.patch.ready": "已就绪",
     "setup.patch.missing": "还没有 Patch\\MikuSB-Patch.dll，首次用 Loader 启动时会自动下载。",
     "setup.path.required": "先填客户端路径，或点「自动探测」让面板自己找。"
   },
@@ -1542,6 +1548,12 @@ const SETUP_STRINGS = {
     "setup.current.region": "區域",
     "setup.current.address": "對外位址",
     "setup.current.proxy": "SOCKS5",
+    "setup.launch": "啟動遊戲（/game）",
+    "setup.launch.note": "「寫入設定」只把路徑與參數寫進 Config.json，不會下載補丁。點下方按鈕啟動遊戲，Loader 會在注入前自動下載 Patch\\MikuSB-Patch.dll。",
+    "setup.launch.running": "正在啟動…",
+    "setup.launch.done": "已啟動：{0}",
+    "setup.launch.failed": "啟動失敗：{0}",
+    "setup.patch.ready": "已就緒",
     "setup.patch.missing": "尚未有 Patch\\MikuSB-Patch.dll，首次用 Loader 啟動時會自動下載。",
     "setup.path.required": "先填客戶端路徑，或點「自動偵測」讓面板自己找。"
   },
@@ -1590,6 +1602,12 @@ const SETUP_STRINGS = {
     "setup.current.region": "地域",
     "setup.current.address": "公開アドレス",
     "setup.current.proxy": "SOCKS5",
+    "setup.launch": "ゲーム起動（/game）",
+    "setup.launch.note": "「設定を書き込む」はパスと引数を保存するだけで、パッチはダウンロードしません。下のボタンで起動すると、Loader が注入前に Patch\\MikuSB-Patch.dll を自動取得します。",
+    "setup.launch.running": "起動中…",
+    "setup.launch.done": "起動しました：{0}",
+    "setup.launch.failed": "起動に失敗しました：{0}",
+    "setup.patch.ready": "準備完了",
     "setup.patch.missing": "Patch\\MikuSB-Patch.dll がまだありません。初回の Loader 起動時に自動取得します。",
     "setup.path.required": "クライアントのパスを入力するか、「自動検出」で探してください。"
   },
@@ -1638,6 +1656,12 @@ const SETUP_STRINGS = {
     "setup.current.region": "지역",
     "setup.current.address": "공개 주소",
     "setup.current.proxy": "SOCKS5",
+    "setup.launch": "게임 실행(/game)",
+    "setup.launch.note": "\"설정 저장\"은 경로와 인자만 기록하며 패치는 내려받지 않습니다. 아래 버튼으로 실행하면 Loader가 주입 전에 Patch\\MikuSB-Patch.dll 을 자동으로 받습니다.",
+    "setup.launch.running": "실행 중…",
+    "setup.launch.done": "실행됨: {0}",
+    "setup.launch.failed": "실행 실패: {0}",
+    "setup.patch.ready": "준비됨",
     "setup.patch.missing": "Patch\\MikuSB-Patch.dll 이 아직 없습니다. Loader 첫 실행 시 자동으로 내려받습니다.",
     "setup.path.required": "클라이언트 경로를 입력하거나 \"자동 탐지\"를 눌러 주세요."
   },
@@ -1686,6 +1710,12 @@ const SETUP_STRINGS = {
     "setup.current.region": "Region",
     "setup.current.address": "Public address",
     "setup.current.proxy": "SOCKS5",
+    "setup.launch": "Launch game (/game)",
+    "setup.launch.note": "\"Write config\" only stores the path and arguments; it never downloads the patch. Press the button below to start the client - the loader fetches Patch\\MikuSB-Patch.dll before injecting.",
+    "setup.launch.running": "Launching…",
+    "setup.launch.done": "Launched: {0}",
+    "setup.launch.failed": "Launch failed: {0}",
+    "setup.patch.ready": "Ready",
     "setup.patch.missing": "Patch\\MikuSB-Patch.dll is not downloaded yet; the loader fetches it on first start.",
     "setup.path.required": "Enter the client path, or press \"Detect\" to let the panel find it."
   },
@@ -1734,6 +1764,12 @@ const SETUP_STRINGS = {
     "setup.current.region": "Région",
     "setup.current.address": "Adresse publique",
     "setup.current.proxy": "SOCKS5",
+    "setup.launch": "Lancer le jeu (/game)",
+    "setup.launch.note": "« Écrire la configuration » ne fait qu’enregistrer le chemin et les arguments ; aucun téléchargement. Le bouton ci-dessous démarre le client : le loader récupère Patch\\MikuSB-Patch.dll avant l’injection.",
+    "setup.launch.running": "Lancement…",
+    "setup.launch.done": "Lancé : {0}",
+    "setup.launch.failed": "Échec du lancement : {0}",
+    "setup.patch.ready": "Prêt",
     "setup.patch.missing": "Patch\\MikuSB-Patch.dll est absent ; le loader le télécharge au premier démarrage.",
     "setup.path.required": "Saisissez le chemin du client, ou utilisez « Détecter »."
   },
@@ -1782,6 +1818,12 @@ const SETUP_STRINGS = {
     "setup.current.region": "Región",
     "setup.current.address": "Dirección pública",
     "setup.current.proxy": "SOCKS5",
+    "setup.launch": "Iniciar juego (/game)",
+    "setup.launch.note": "«Escribir configuración» solo guarda la ruta y los argumentos; no descarga nada. El botón de abajo inicia el cliente y el loader descarga Patch\\MikuSB-Patch.dll antes de inyectar.",
+    "setup.launch.running": "Iniciando…",
+    "setup.launch.done": "Iniciado: {0}",
+    "setup.launch.failed": "Error al iniciar: {0}",
+    "setup.patch.ready": "Listo",
     "setup.patch.missing": "Falta Patch\\MikuSB-Patch.dll; el loader lo descarga al iniciar.",
     "setup.path.required": "Introduce la ruta del cliente o pulsa «Detectar»."
   },
@@ -1830,6 +1872,12 @@ const SETUP_STRINGS = {
     "setup.current.region": "Region",
     "setup.current.address": "Öffentliche Adresse",
     "setup.current.proxy": "SOCKS5",
+    "setup.launch": "Spiel starten (/game)",
+    "setup.launch.note": "„Konfiguration schreiben“ speichert nur Pfad und Argumente, es lädt nichts herunter. Der Button unten startet den Client; der Loader holt Patch\\MikuSB-Patch.dll vor dem Injizieren.",
+    "setup.launch.running": "Startet…",
+    "setup.launch.done": "Gestartet: {0}",
+    "setup.launch.failed": "Start fehlgeschlagen: {0}",
+    "setup.patch.ready": "Bereit",
     "setup.patch.missing": "Patch\\MikuSB-Patch.dll fehlt noch; der Loader lädt sie beim ersten Start.",
     "setup.path.required": "Client-Pfad eingeben oder „Erkennen“ drücken."
   },
@@ -1878,6 +1926,12 @@ const SETUP_STRINGS = {
     "setup.current.region": "ภูมิภาค",
     "setup.current.address": "ที่อยู่สาธารณะ",
     "setup.current.proxy": "SOCKS5",
+    "setup.launch": "เปิดเกม (/game)",
+    "setup.launch.note": "\"บันทึกการตั้งค่า\" เก็บเฉพาะพาธและพารามิเตอร์ ไม่ได้ดาวน์โหลดแพตช์ ปุ่มด้านล่างจะเปิดไคลเอนต์ และ Loader จะดาวน์โหลด Patch\\MikuSB-Patch.dll ก่อนฉีด",
+    "setup.launch.running": "กำลังเปิด…",
+    "setup.launch.done": "เปิดแล้ว: {0}",
+    "setup.launch.failed": "เปิดไม่สำเร็จ: {0}",
+    "setup.patch.ready": "พร้อม",
     "setup.patch.missing": "ยังไม่มี Patch\\MikuSB-Patch.dll ตัว Loader จะดาวน์โหลดให้เมื่อเริ่มครั้งแรก",
     "setup.path.required": "กรอกพาธของไคลเอนต์ หรือกด \"ตรวจหาอัตโนมัติ\""
   },
@@ -1926,6 +1980,12 @@ const SETUP_STRINGS = {
     "setup.current.region": "Wilayah",
     "setup.current.address": "Alamat publik",
     "setup.current.proxy": "SOCKS5",
+    "setup.launch": "Jalankan game (/game)",
+    "setup.launch.note": "\"Tulis konfigurasi\" hanya menyimpan jalur dan argumen, tidak mengunduh patch. Tombol di bawah menjalankan klien; loader mengunduh Patch\\MikuSB-Patch.dll sebelum menyuntik.",
+    "setup.launch.running": "Menjalankan…",
+    "setup.launch.done": "Dijalankan: {0}",
+    "setup.launch.failed": "Gagal menjalankan: {0}",
+    "setup.patch.ready": "Siap",
     "setup.patch.missing": "Patch\\MikuSB-Patch.dll belum ada; loader akan mengunduhnya saat pertama dijalankan.",
     "setup.path.required": "Isi jalur klien, atau tekan \"Deteksi otomatis\"."
   }
@@ -2795,7 +2855,15 @@ async function renderSetup() {
       <ul class="mono">${(data.cn_domains || []).map((domain) => '<li>' + esc(domain) + '</li>').join('')}</ul>
     </details>
     ` : `
-    ${data.patch_present ? '' : '<p class="note warn-text">' + esc(t('setup.patch.missing')) + '</p>'}
+    <h3 class="section">${esc(t('setup.launch'))}</h3>
+    <p class="note">${esc(t('setup.launch.note'))}</p>
+    ${data.patch_present
+      ? '<p class="note">' + esc(t('setup.patch.ready')) + '</p>'
+      : '<p class="note warn-text">' + esc(t('setup.patch.missing')) + '</p>'}
+    <div class="setup-row">
+      <button id="setup-launch" class="secondary">${esc(t('setup.launch'))}</button>
+      <span id="setup-launch-msg" class="note grow"></span>
+    </div>
     `}
 
     <h3 class="section">${esc(t('setup.current'))}</h3>
@@ -2927,6 +2995,34 @@ async function renderSetup() {
         toast(text.replace(/<[^>]+>/g, ' '), result.status === 'needs_admin' || result.status === 'failed');
       } catch (error) {
         message.textContent = t('setup.hosts.failed', error.message);
+      }
+    });
+  }
+
+  // Global build only: "write config" stores a path, nothing more - the patch DLL is fetched by the loader
+  // right before it injects, so the only way to witness that download is to start the client from here.
+  const launchButton = document.getElementById('setup-launch');
+  if (launchButton) {
+    launchButton.addEventListener('click', async () => {
+      const message = document.getElementById('setup-launch-msg');
+      const label = launchButton.textContent;
+      launchButton.disabled = true;
+      launchButton.textContent = t('setup.launch.running');
+      if (message) message.textContent = '';
+      try {
+        const result = await api('/setup/launch', { method: 'POST', body: {} });
+        const detail = (result.messages || []).join(' ') || result.command;
+        const text = result.success ? t('setup.launch.done', detail) : t('setup.launch.failed', detail);
+        toast(text, !result.success);
+        await renderSetup();
+        const again = document.getElementById('setup-launch-msg');
+        if (again) again.textContent = text;
+      } catch (error) {
+        if (message) message.textContent = t('setup.launch.failed', error.message);
+        reportError(error);
+      } finally {
+        launchButton.disabled = false;
+        launchButton.textContent = label;
       }
     });
   }
