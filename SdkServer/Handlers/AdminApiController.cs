@@ -370,6 +370,7 @@ public class AdminApiController : ControllerBase
             arguments = config.Loader.Arguments,
             patch_paths = config.Loader.PatchPaths,
             patch_present = PatchPresent(config),
+            elevated = SetupService.IsElevated(),
             proxy = new { enabled = config.Proxy.Enabled, set_all_proxy = config.Loader.SetAllProxy, port = config.Proxy.Port },
             public_address = config.HttpServer.PublicAddress,
             game_public_address = config.GameServer.PublicAddress,

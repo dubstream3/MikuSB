@@ -129,8 +129,15 @@ public static class AdminPanelHost
         // Selecting text in a console that keeps logging is fiddly at best, so the token also goes into a
         // file and onto the clipboard: between the ?token= link, the file and the clipboard, a fresh install
         // never has to copy a 32 character hex string out of a scrolling window by hand.
+        //
+        // Running elevated breaks the clipboard in a way that is easy to mistake for a bug: the data is
+        // written with the high integrity label, and the browser (medium integrity) cannot read it, so a
+        // paste comes back empty. In that case skip the clipboard and hand over a .url shortcut instead,
+        // which the shell opens in a normal, non-elevated browser.
+        var elevated = SetupService.IsElevated();
         var tokenFile = WriteTokenFile(token);
-        var clipboard = CopyTokenToClipboard(token);
+        var shortcut = WriteUrlShortcut(url);
+        var clipboard = elevated ? false : CopyTokenToClipboard(token);
 
         try
         {
@@ -142,7 +149,11 @@ public static class AdminPanelHost
             Console.WriteLine($"   Token : {token}{(clipboard ? "   (copied to clipboard)" : "")}");
             if (tokenFile != null)
                 Console.WriteLine($"   File  : {tokenFile}");
+            if (shortcut != null)
+                Console.WriteLine($"   Link  : {shortcut}");
             Console.WriteLine($"   Login : {url}");
+            if (elevated)
+                Console.WriteLine("   Note  : running as administrator - double-click Link (the clipboard is not shared).");
             Console.WriteLine(line);
             Console.WriteLine();
         }
@@ -162,12 +173,41 @@ public static class AdminPanelHost
 
         try
         {
-            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            // explorer.exe is the shell, so the page opens in the browser session of the logged-on user. Launching
+            // the URL directly from an elevated process would start an elevated browser instead, which is both
+            // surprising and a second session without the user's cookies and logins.
+            if (elevated)
+                Process.Start(new ProcessStartInfo("explorer.exe", $"\"{url}\"") { UseShellExecute = true });
+            else
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             Logger.Info("Opened the admin panel in the default browser.");
         }
         catch (Exception ex)
         {
             Logger.Warn($"Could not open the browser automatically: {ex.Message}. Open the URL above by hand.");
+        }
+    }
+
+    /// <summary>
+    /// Writes <c>admin-panel.url</c> next to the token file: a shortcut the shell opens with the default
+    /// browser, token already in the query string. This is the path that still works when the server runs
+    /// elevated, because nothing has to be copied by hand.
+    /// </summary>
+    private static string? WriteUrlShortcut(string url)
+    {
+        try
+        {
+            var directory = Path.GetFullPath(ConfigManager.Config.Path.ConfigPath);
+            Directory.CreateDirectory(directory);
+            var path = Path.Combine(directory, "admin-panel.url");
+            // Internet Shortcut: CRLF matters, and the file has to stay ASCII because the shell reads it as ANSI.
+            File.WriteAllText(path, $"[InternetShortcut]{Environment.NewLine}URL={url}{Environment.NewLine}");
+            return path;
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"Could not write the admin panel shortcut: {ex.Message}");
+            return null;
         }
     }
 

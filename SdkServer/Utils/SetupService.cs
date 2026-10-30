@@ -454,9 +454,23 @@ public static class SetupService
             : "hosts 中的 MikuSB 条目已移除";
     }
 
-    /// <summary>True when this process can write the hosts file without a UAC prompt.</summary>
+    /// <summary>
+    /// True when this process can write the hosts file without a UAC prompt. <c>MIKUSB_ELEVATED=0|1</c> overrides
+    /// the detection: it exists so the panel's "running as administrator" paths can be exercised without a real
+    /// UAC prompt, and as an escape hatch if the check ever lies on an exotic setup.
+    /// </summary>
     public static bool IsElevated()
     {
+        switch (Environment.GetEnvironmentVariable("MIKUSB_ELEVATED"))
+        {
+            case "1":
+            case "true":
+                return true;
+            case "0":
+            case "false":
+                return false;
+        }
+
         if (!OperatingSystem.IsWindows())
             return true;
 
