@@ -35,6 +35,14 @@ public static class UpdateService
         Environment.GetEnvironmentVariable("MIKUSB_UPDATE_OWNER") ?? "dubstream3";
     private static readonly string RepositoryName =
         Environment.GetEnvironmentVariable("MIKUSB_UPDATE_REPO") ?? "MikuSB";
+
+    // Both forms resolve to the same file; raw.githubusercontent.com is the cheap one, the /raw/ path is
+    // the fallback for the rare proxy that only understands github.com URLs.
+    private static readonly string[] VersionFileUrls =
+    [
+        $"https://raw.githubusercontent.com/{RepositoryOwner}/{RepositoryName}/main/version.txt",
+        $"https://github.com/{RepositoryOwner}/{RepositoryName}/raw/main/version.txt"
+    ];
     private static readonly int ReleaseCheckTimeoutSeconds = 10;
     private static readonly int PackageDownloadTimeoutSeconds = 300;
     private static readonly int ResourceDownloadTimeoutSeconds = 300;
@@ -68,10 +76,6 @@ public static class UpdateService
     private static UpdateCheck _lastCheck = new(BuildVersion.Current, null, false, null, 0, null, null);
     private static long _lastCheckTicks;
 
-    // Kept so the apply step downloads exactly the URLs the release advertised (a rebuilt asset or a
-    // renamed tag would otherwise 404 on the hand-built path).
-    private static GitHubRelease? _lastRelease;
-
     /// <summary>
     ///     Set by the host so an update triggered from the panel can shut the server down the same way
     ///     Ctrl+C does, after the updater has been started.
@@ -98,30 +102,23 @@ public static class UpdateService
                 return _lastCheck;
 
             using var client = GitHubApi.CreateClient("MikuSB-Updater");
-            var release = await GitHubApi.GetLatestReleaseAsync(
-                RepositoryOwner,
-                RepositoryName,
-                client,
-                TimeSpan.FromSeconds(ReleaseCheckTimeoutSeconds),
-                (host, status) => Logger.Warn(I18NManager.Translate("Server.ServerInfo.LatestReleaseNotAccessible")),
-                (host, message) => Logger.Debug(I18NManager.Translate("Server.ServerInfo.ReleaseLookupFailed", host, message)),
-                cancellationToken);
+            var published = await ReadPublishedVersionAsync(client, cancellationToken);
+            if (published == null)
+                return Remember(new UpdateCheck(BuildVersion.Current, null, false, null, 0, null, "version_unavailable"));
 
-            if (release == null)
-                return Remember(new UpdateCheck(BuildVersion.Current, null, false, null, 0, null, "release_unavailable"));
-
-            _lastRelease = release;
-            var latest = BuildVersion.Normalize(release.TagName);
-            var asset = PickAsset(release);
-            var available = BuildVersion.IsNewer(latest, BuildVersion.Current) && asset != null;
+            // The published version.txt is the whole answer: same text as the running build means there is
+            // nothing to do, anything else (newer, older, a hand-edited tag) means the two builds differ.
+            var latest = BuildVersion.Normalize(published);
+            var available = !string.Equals(latest, BuildVersion.Current, StringComparison.OrdinalIgnoreCase);
+            var assetName = available ? AssetNameForCurrentPlatform() : null;
 
             return Remember(new UpdateCheck(
                 BuildVersion.Current,
                 latest,
                 available,
-                asset?.Name,
-                asset?.Size ?? 0,
-                Summarize(release.Body),
+                assetName,
+                0,
+                null,
                 null));
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -179,17 +176,13 @@ public static class UpdateService
 
             using var client = GitHubApi.CreateClient("MikuSB-Updater");
 
-            var tempRoot = Path.Combine(Path.GetTempPath(), "MikuSB", "updates", Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(tempRoot);
+            var tempRoot = CreateStagingDirectory();
 
             var assetName = check.AssetName ?? throw new InvalidDataException("Release asset name is unknown.");
             var packagePath = Path.Combine(tempRoot, assetName);
             Logger.Info(I18NManager.Translate("Server.ServerInfo.DownloadingUpdate", check.Latest));
 
-            var release = _lastRelease;
-            var asset = release == null ? null : PickAsset(release);
-            var packageUrl = asset?.DownloadUrl
-                             ?? $"https://github.com/{RepositoryOwner}/{RepositoryName}/releases/download/v{check.Latest}/{assetName}";
+            var packageUrl = PackageUrl(check.Latest, assetName);
             await DownloadAsync(client, packageUrl, packagePath, PackageDownloadTimeoutSeconds);
 
             var resourcePackagePath = Path.Combine(tempRoot, "MikuSB-Resource-main.zip");
@@ -198,20 +191,15 @@ public static class UpdateService
 
             // The checksum is published next to the package; when it is missing the update still
             // proceeds, because a broken sha256 upload should not block a security fix.
-            var checksumAsset = release?.Assets.FirstOrDefault(item =>
-                string.Equals(item.Name, assetName + ".sha256", StringComparison.OrdinalIgnoreCase));
-            if (checksumAsset != null)
+            try
             {
-                var checksumPath = Path.Combine(tempRoot, checksumAsset.Name);
-                try
-                {
-                    await DownloadAsync(client, checksumAsset.DownloadUrl, checksumPath, ChecksumDownloadTimeoutSeconds);
-                    VerifySha256(packagePath, checksumPath);
-                }
-                catch (Exception ex) when (ex is IOException or InvalidDataException)
-                {
-                    Logger.Warn($"Checksum for {assetName} could not be verified: {ex.Message}");
-                }
+                var checksumPath = Path.Combine(tempRoot, assetName + ".sha256");
+                await DownloadAsync(client, packageUrl + ".sha256", checksumPath, ChecksumDownloadTimeoutSeconds);
+                VerifySha256(packagePath, checksumPath);
+            }
+            catch (Exception ex) when (ex is IOException or InvalidDataException or GitHubDownloadException)
+            {
+                Logger.Warn($"Checksum for {assetName} could not be verified: {ex.Message}");
             }
 
             var stagedUpdaterPath = StageUpdaterExecutable();
@@ -260,9 +248,41 @@ public static class UpdateService
     }
 
     /// <summary>
-    ///     The release ships one zip per platform; pick the one this process can actually run.
+    ///     Somewhere writable for the downloaded packages. %TEMP% is the natural home, but locked-down
+    ///     machines (and sandboxes that deny writes under %TEMP%\MikuSB) make it fail, so fall back to a
+    ///     plain temp directory and finally to the install directory itself.
     /// </summary>
-    private static GitHubAsset? PickAsset(GitHubRelease release)
+    private static string CreateStagingDirectory(string leaf = "updates")
+    {
+        var name = Guid.NewGuid().ToString("N");
+        var candidates = new[]
+        {
+            Path.Combine(Path.GetTempPath(), "MikuSB", leaf, name),
+            Path.Combine(Path.GetTempPath(), "mikusb-" + leaf + "-" + name),
+            Path.Combine(AppContext.BaseDirectory, "update-cache", leaf, name)
+        };
+
+        Exception? lastError = null;
+        foreach (var candidate in candidates)
+        {
+            try
+            {
+                Directory.CreateDirectory(candidate);
+                return candidate;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                lastError = ex;
+            }
+        }
+
+        throw new IOException("No writable directory for the update package.", lastError);
+    }
+
+    /// <summary>
+    ///     One zip per platform, named after the RID the release job produced.
+    /// </summary>
+    private static string AssetNameForCurrentPlatform()
     {
         var platform = OperatingSystem.IsWindows()
             ? "win"
@@ -278,30 +298,54 @@ public static class UpdateService
             Architecture.X86 => "x86",
             _ => "x64"
         };
-        var preferred = $"MikuSB-{platform}-{architecture}.zip";
-
-        var exact = release.Assets.FirstOrDefault(asset =>
-            string.Equals(asset.Name, preferred, StringComparison.OrdinalIgnoreCase));
-        if (exact != null)
-            return exact;
-
-        // Second chance: same platform, any architecture. Better than refusing to update because the
-        // build matrix skipped this exact pair.
-        return release.Assets.FirstOrDefault(asset =>
-            asset.Name.StartsWith($"MikuSB-{platform}-", StringComparison.OrdinalIgnoreCase)
-            && asset.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase));
+        return $"MikuSB-{platform}-{architecture}.zip";
     }
 
-    private static string? Summarize(string? body)
-    {
-        if (string.IsNullOrWhiteSpace(body))
-            return null;
+    private static string PackageUrl(string version, string assetName) =>
+        $"https://github.com/{RepositoryOwner}/{RepositoryName}/releases/download/v{version}/{assetName}";
 
-        var lines = body.Split('\n')
-            .Select(line => line.Trim())
-            .Where(line => line.Length > 0)
-            .Take(6);
-        return string.Join('\n', lines);
+    /// <summary>
+    ///     version.txt from the branch the release job builds from. Reading the file (through the mirror
+    ///     list) replaces the release API call: no rate limit, no token, and the answer is exactly the
+    ///     version that package would install.
+    /// </summary>
+    private static async Task<string?> ReadPublishedVersionAsync(HttpClient client, CancellationToken cancellationToken)
+    {
+        foreach (var url in VersionFileUrls)
+        {
+            var text = await GitHubApi.ReadTextAsync(
+                url,
+                new GitHubDownloadOptions { TimeoutSeconds = ReleaseCheckTimeoutSeconds, HeaderTimeoutSeconds = 8 },
+                client,
+                cancellationToken);
+            if (text != null)
+                return ParseVersionText(text);
+        }
+
+        return null;
+    }
+
+    private static string? ParseVersionText(string text)
+    {
+        foreach (var line in text.Split('\n'))
+        {
+            var value = line.Trim();
+            if (value.Length == 0 || value.StartsWith('#'))
+                continue;
+
+            // version.txt holds "v=6.2.0" (the release workflow reads the same line and strips "v="),
+            // but a hand-edited file may hold "v6.2.0" or just "6.2.0".
+            if (value.StartsWith("v=", StringComparison.OrdinalIgnoreCase))
+                value = value[2..];
+            else if (value.StartsWith("v", StringComparison.OrdinalIgnoreCase))
+                value = value[1..];
+
+            value = value.TrimStart('=').Trim();
+
+            return value.Length == 0 ? null : value;
+        }
+
+        return null;
     }
 
     private static UpdateCheck Remember(UpdateCheck check)
@@ -314,8 +358,7 @@ public static class UpdateService
     private static string StageUpdaterExecutable()
     {
         var sourceDirectory = AppContext.BaseDirectory;
-        var stagingDirectory = Path.Combine(Path.GetTempPath(), "MikuSB", "updater", Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(stagingDirectory);
+        var stagingDirectory = CreateStagingDirectory("updater");
 
         foreach (var sourcePath in Directory.EnumerateFiles(sourceDirectory, "MikuSB.Updater*", SearchOption.TopDirectoryOnly))
         {

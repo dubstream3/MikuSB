@@ -44,7 +44,7 @@ const STRINGS = {
     'update.apply': '立即更新',
     'update.checking': '正在检查…',
     'update.upToDate': '已是最新版本（{0}）',
-    'update.available': '发现新版本 {0}（{1}）',
+    'update.available': '发现新版本 {0}',
     'update.applying': '正在下载并切换到新版本，面板会短暂断开…',
     'update.failed': '更新失败：{0}',
     'login.placeholder': '粘贴令牌',
@@ -194,7 +194,7 @@ const STRINGS = {
     'update.apply': 'Update now',
     'update.checking': 'Checking…',
     'update.upToDate': 'Up to date ({0})',
-    'update.available': 'Version {0} is available ({1})',
+    'update.available': 'Version {0} is available',
     'update.applying': 'Downloading and switching to the new build; the panel will reconnect shortly…',
     'update.failed': 'Update failed: {0}',
     'login.placeholder': 'Paste token',
@@ -344,7 +344,7 @@ const STRINGS = {
     'update.apply': '立即更新',
     'update.checking': '正在檢查…',
     'update.upToDate': '已是最新版本（{0}）',
-    'update.available': '發現新版本 {0}（{1}）',
+    'update.available': '發現新版本 {0}',
     'update.applying': '正在下載並切換到新版本，面板會短暫中斷…',
     'update.failed': '更新失敗：{0}',
     'login.placeholder': '貼上權杖',
@@ -494,7 +494,7 @@ const STRINGS = {
     'update.apply': '今すぐ更新',
     'update.checking': '確認中…',
     'update.upToDate': '最新です（{0}）',
-    'update.available': '新しいバージョン {0} があります（{1}）',
+    'update.available': '新しいバージョン {0} があります',
     'update.applying': '新しいビルドをダウンロードして切り替えています。パネルはまもなく再接続します…',
     'update.failed': '更新に失敗しました：{0}',
     'login.placeholder': 'トークンを貼り付け',
@@ -644,7 +644,7 @@ const STRINGS = {
     'update.apply': '지금 업데이트',
     'update.checking': '확인 중…',
     'update.upToDate': '최신 버전입니다 ({0})',
-    'update.available': '새 버전 {0} 사용 가능 ({1})',
+    'update.available': '새 버전 {0} 사용 가능',
     'update.applying': '새 빌드를 내려받아 전환하는 중입니다. 패널이 곧 다시 연결됩니다…',
     'update.failed': '업데이트 실패: {0}',
     'login.placeholder': '토큰 붙여넣기',
@@ -794,7 +794,7 @@ const STRINGS = {
     'update.apply': 'Jetzt aktualisieren',
     'update.checking': 'Wird geprüft…',
     'update.upToDate': 'Aktuell ({0})',
-    'update.available': 'Version {0} ist verfügbar ({1})',
+    'update.available': 'Version {0} ist verfügbar',
     'update.applying': 'Neuer Build wird geladen und gewechselt; das Panel verbindet sich gleich wieder…',
     'update.failed': 'Aktualisierung fehlgeschlagen: {0}',
     'login.placeholder': 'Token einfügen',
@@ -944,7 +944,7 @@ const STRINGS = {
     'update.apply': 'Mettre à jour',
     'update.checking': 'Vérification…',
     'update.upToDate': 'À jour ({0})',
-    'update.available': 'La version {0} est disponible ({1})',
+    'update.available': 'La version {0} est disponible',
     'update.applying': 'Téléchargement et bascule vers la nouvelle version, le panneau se reconnecte dans un instant…',
     'update.failed': 'Échec de la mise à jour : {0}',
     'login.placeholder': 'Coller le jeton',
@@ -1094,7 +1094,7 @@ const STRINGS = {
     'update.apply': 'Actualizar ahora',
     'update.checking': 'Comprobando…',
     'update.upToDate': 'Ya está al día ({0})',
-    'update.available': 'La versión {0} está disponible ({1})',
+    'update.available': 'La versión {0} está disponible',
     'update.applying': 'Descargando y cambiando a la nueva compilación; el panel se reconectará en breve…',
     'update.failed': 'Error de actualización: {0}',
     'login.placeholder': 'Pega el token',
@@ -1244,7 +1244,7 @@ const STRINGS = {
     'update.apply': 'อัปเดตเลย',
     'update.checking': 'กำลังตรวจสอบ…',
     'update.upToDate': 'เป็นเวอร์ชันล่าสุดแล้ว ({0})',
-    'update.available': 'มีเวอร์ชันใหม่ {0} ({1})',
+    'update.available': 'มีเวอร์ชันใหม่ {0}',
     'update.applying': 'กำลังดาวน์โหลดและสลับไปยังบิลด์ใหม่ แผงควบคุมจะเชื่อมต่อใหม่ในอีกสักครู่…',
     'update.failed': 'อัปเดตล้มเหลว: {0}',
     'login.placeholder': 'วางโทเคน',
@@ -1394,7 +1394,7 @@ const STRINGS = {
     'update.apply': 'Perbarui sekarang',
     'update.checking': 'Memeriksa…',
     'update.upToDate': 'Sudah versi terbaru ({0})',
-    'update.available': 'Versi {0} tersedia ({1})',
+    'update.available': 'Versi {0} tersedia',
     'update.applying': 'Mengunduh dan beralih ke build baru; panel akan tersambung lagi sebentar…',
     'update.failed': 'Pembaruan gagal: {0}',
     'login.placeholder': 'Tempel token',
@@ -2357,7 +2357,7 @@ function paintUpdate(status) {
     apply.disabled = true;
     return;
   }
-  latest.textContent = t('update.available', status.latest, formatSize(status.size));
+  latest.textContent = t('update.available', status.latest);
   apply.disabled = false;
 }
 

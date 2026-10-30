@@ -129,22 +129,17 @@ public static class GitHubApi
     public static IReadOnlyList<string> Mirrors => LazyMirrors.Value;
 
     /// <summary>
-    ///     API root. Overridable with <c>MIKUSB_GITHUB_API</c> so a proxy that also fronts
-    ///     <c>api.github.com</c> can be used where the bare host is blocked.
+    ///     api.github.com, unchanged. The release lookup is only a fallback for repositories we do not
+    ///     control (the in-game console bundle); our own update check reads version.txt instead, which
+    ///     needs no API quota and no token.
     /// </summary>
-    public static string ApiBaseUrl =>
-        (Environment.GetEnvironmentVariable("MIKUSB_GITHUB_API") ?? "https://api.github.com").TrimEnd('/');
+    private const string ApiBaseUrl = "https://api.github.com";
 
     public static HttpClient CreateClient(string productName)
     {
         var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
         client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(productName, BuildVersion.Current));
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-        // Unauthenticated api.github.com allows 60 requests per hour per IP, which a busy server burns through
-        // in minutes; a token lifts that to 5000. Never required, only an escape hatch.
-        var token = Environment.GetEnvironmentVariable("MIKUSB_GITHUB_TOKEN");
-        if (!string.IsNullOrWhiteSpace(token))
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Trim());
         return client;
     }
 
@@ -262,6 +257,63 @@ public static class GitHubApi
             }
 
             throw lastError ?? new IOException($"Failed to download {url}.");
+        }
+        finally
+        {
+            if (owned)
+                client.Dispose();
+        }
+    }
+
+    /// <summary>
+    ///     Fetches a small text file (version.txt) through the mirror list. No temp file and no progress
+    ///     plumbing: a version string is a few bytes, so this walks the candidates until one answers.
+    /// </summary>
+    public static async Task<string?> ReadTextAsync(
+        string url,
+        GitHubDownloadOptions? options = null,
+        HttpClient? client = null,
+        CancellationToken cancellationToken = default)
+    {
+        options ??= new GitHubDownloadOptions();
+        var owned = client == null;
+        client ??= CreateClient("MikuSB-Updater");
+
+        try
+        {
+            var timeout = TimeSpan.FromSeconds(Math.Max(1, options.TimeoutSeconds));
+            foreach (var candidate in Candidates(url, options.DirectAttempts))
+            {
+                var host = new Uri(candidate).Host;
+                try
+                {
+                    using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    timeoutCts.CancelAfter(timeout);
+                    using var response = await client.GetAsync(candidate, HttpCompletionOption.ResponseContentRead,
+                        timeoutCts.Token);
+                    if (!response.IsSuccessStatusCode)
+                        throw new GitHubDownloadException(GitHubDownloadFailure.Http, host,
+                            $"{host} answered {(int)response.StatusCode} {response.StatusCode}.");
+
+                    var text = await response.Content.ReadAsStringAsync(timeoutCts.Token);
+                    if (string.IsNullOrWhiteSpace(text))
+                        throw new GitHubDownloadException(GitHubDownloadFailure.Empty, host, $"{host} returned an empty file.");
+
+                    options.OnSucceeded?.Invoke(host, true);
+                    return text;
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    options.OnAttemptFailed?.Invoke(host, ex.Message);
+                    Logger.Debug($"Could not fetch {candidate}: {ex.Message}");
+                }
+            }
+
+            return null;
         }
         finally
         {

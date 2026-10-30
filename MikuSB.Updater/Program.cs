@@ -19,8 +19,7 @@ try
     if (int.TryParse(pidValue, out var pid))
         WaitForExit(pid);
 
-    var stagingDirectory = Path.Combine(Path.GetTempPath(), "MikuSB", "staging", Guid.NewGuid().ToString("N"));
-    Directory.CreateDirectory(stagingDirectory);
+    var stagingDirectory = CreateStagingDirectory("staging");
 
     ZipFile.ExtractToDirectory(packagePath, stagingDirectory, overwriteFiles: true);
     CopyDirectory(stagingDirectory, targetDirectory);
@@ -66,6 +65,36 @@ static void WaitForExit(int pid)
     }
 }
 
+// %TEMP% is where an update wants to unpack, but a locked-down machine (or a sandbox that denies
+// writes under %TEMP%\MikuSB) leaves the server unable to replace itself. Walk a few fallbacks instead
+// of dying with UnauthorizedAccessException before the first file is copied.
+static string CreateStagingDirectory(string leaf)
+{
+    var name = Guid.NewGuid().ToString("N");
+    var candidates = new[]
+    {
+        Path.Combine(Path.GetTempPath(), "MikuSB", leaf, name),
+        Path.Combine(Path.GetTempPath(), "mikusb-" + leaf + "-" + name),
+        Path.Combine(AppContext.BaseDirectory, "update-cache", leaf, name)
+    };
+
+    Exception? lastError = null;
+    foreach (var candidate in candidates)
+    {
+        try
+        {
+            Directory.CreateDirectory(candidate);
+            return candidate;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            lastError = ex;
+        }
+    }
+
+    throw new IOException("No writable staging directory for the update.", lastError);
+}
+
 static void CopyDirectory(string sourceDirectory, string targetDirectory)
 {
     foreach (var directory in Directory.GetDirectories(sourceDirectory, "*", SearchOption.AllDirectories))
@@ -96,8 +125,7 @@ static bool ShouldSkip(string relativePath)
 
 static void UpdateResources(string resourcePackagePath, string resourceTargetDirectory)
 {
-    var resourceStagingDirectory = Path.Combine(Path.GetTempPath(), "MikuSB", "resource-staging", Guid.NewGuid().ToString("N"));
-    Directory.CreateDirectory(resourceStagingDirectory);
+    var resourceStagingDirectory = CreateStagingDirectory("resource-staging");
 
     ZipFile.ExtractToDirectory(resourcePackagePath, resourceStagingDirectory, overwriteFiles: true);
 
