@@ -126,6 +126,12 @@ public static class AdminPanelHost
     /// </summary>
     private static void AnnounceUrl(string url, string token)
     {
+        // Selecting text in a console that keeps logging is fiddly at best, so the token also goes into a
+        // file and onto the clipboard: between the ?token= link, the file and the clipboard, a fresh install
+        // never has to copy a 32 character hex string out of a scrolling window by hand.
+        var tokenFile = WriteTokenFile(token);
+        var clipboard = CopyTokenToClipboard(token);
+
         try
         {
             var line = new string('-', 72);
@@ -133,7 +139,9 @@ public static class AdminPanelHost
             Console.WriteLine(line);
             Console.WriteLine(" MikuSB admin panel / 管理面板");
             Console.WriteLine($"   URL   : http://127.0.0.1:{new Uri(url).Port}/");
-            Console.WriteLine($"   Token : {token}");
+            Console.WriteLine($"   Token : {token}{(clipboard ? "   (copied to clipboard)" : "")}");
+            if (tokenFile != null)
+                Console.WriteLine($"   File  : {tokenFile}");
             Console.WriteLine($"   Login : {url}");
             Console.WriteLine(line);
             Console.WriteLine();
@@ -160,6 +168,61 @@ public static class AdminPanelHost
         catch (Exception ex)
         {
             Logger.Warn($"Could not open the browser automatically: {ex.Message}. Open the URL above by hand.");
+        }
+    }
+
+    /// <summary>
+    /// Drops the token next to Config.json as <c>admin-token.txt</c>. This is the copy that is easy to
+    /// paste from: the file holds the token and nothing else. Returns null when the folder is read-only.
+    /// </summary>
+    private static string? WriteTokenFile(string token)
+    {
+        try
+        {
+            // ConfigManager resolves "Config/Config.json" against the process working directory, so the token
+            // file has to sit next to that copy - AppContext.BaseDirectory is only the same folder for a
+            // plain double-click.
+            var directory = Path.GetFullPath(ConfigManager.Config.Path.ConfigPath);
+            Directory.CreateDirectory(directory);
+            var path = Path.Combine(directory, "admin-token.txt");
+            File.WriteAllText(path, token + Environment.NewLine);
+            Logger.Info($"Admin panel token written to {path}.");
+            return path;
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"Could not write the admin token file: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Puts the token on the clipboard through <c>clip.exe</c>: no WinForms/WPF dependency, no STA thread to
+    /// babysit. Only attempted when a console is attached, and the banner says so, so nothing is silently
+    /// overwritten on a headless run.
+    /// </summary>
+    private static bool CopyTokenToClipboard(string token)
+    {
+        if (!OperatingSystem.IsWindows())
+            return false;
+
+        try
+        {
+            var startInfo = new ProcessStartInfo("cmd.exe", $"/c echo {token}| clip")
+            {
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+            using var process = Process.Start(startInfo);
+            if (process == null)
+                return false;
+            process.WaitForExit(2000);
+            return process.HasExited && process.ExitCode == 0;
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"Could not copy the admin token to the clipboard: {ex.Message}");
+            return false;
         }
     }
 }
