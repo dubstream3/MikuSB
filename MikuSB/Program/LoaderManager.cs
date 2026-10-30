@@ -299,6 +299,32 @@ public class LoaderManager : MikuSB
                 return new GameLaunchResult(false, 0, exception.Message);
             }
         };
+        // The updater lives in this assembly, so the panel reaches it through the bridge as well. It is the same
+        // check the console prompt uses at startup, only the confirmation is the button.
+        InGameConsoleBridge.CheckUpdate = async force =>
+        {
+            var check = await UpdateService.CheckAsync(force);
+            return new InGameConsoleBridge.UpdateStatus(
+                check.Error == null,
+                check.Current,
+                check.Latest,
+                check.Available,
+                check.AssetName,
+                check.AssetSize,
+                check.Notes,
+                check.Error);
+        };
+        InGameConsoleBridge.ApplyUpdate = UpdateService.ApplyFromPanelAsync;
+        // The host owns the process lifetime, so the updater asks it to stop rather than killing itself.
+        UpdateService.ShutdownRequest ??= code =>
+        {
+            Logger.Info($"Update applied from the admin panel; shutting down with exit code {code}.");
+            Task.Run(async () =>
+            {
+                await Task.Delay(500);
+                Environment.Exit(code);
+            });
+        };
 
         await IConsole.ListenConsole(exitToken);
     }

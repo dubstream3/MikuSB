@@ -423,3 +423,8 @@ button.chip { font-size: 12px; padding: 4px 9px; }
 .notice-card button {
   min-width: 132px;
 }
+
+/* update box on the overview page */
+.update-box { display: flex; flex-direction: column; gap: 10px; }
+.update-line { display: flex; flex-wrap: wrap; gap: 14px; align-items: baseline; }
+.update-line b { color: var(--fg); }

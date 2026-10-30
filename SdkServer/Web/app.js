@@ -37,6 +37,16 @@ const STRINGS = {
     'status.error': '接口错误',
     'login.title': '需要访问令牌',
     'login.hint': '令牌在服务端 Config\\admin-token.txt。以管理员运行时剪贴板不与浏览器共享，双击 Config\\admin-panel.url 即可带令牌打开面板；普通权限启动会自动复制令牌并用浏览器打开。',
+    'update.title': '更新',
+    'update.current': '当前版本',
+    'update.idle': '未检查',
+    'update.check': '检查更新',
+    'update.apply': '立即更新',
+    'update.checking': '正在检查…',
+    'update.upToDate': '已是最新版本（{0}）',
+    'update.available': '发现新版本 {0}（{1}）',
+    'update.applying': '正在下载并切换到新版本，面板会短暂断开…',
+    'update.failed': '更新失败：{0}',
     'login.placeholder': '粘贴令牌',
     'login.submit': '进入',
     'login.invalid': '令牌无效或已变更，请重新输入。',
@@ -177,6 +187,16 @@ const STRINGS = {
     'status.error': 'API error',
     'login.title': 'Access token required',
     'login.hint': 'The token lives in Config\\admin-token.txt on the server. When you run as Administrator the clipboard is not shared with the browser, so double-click Config\\admin-panel.url to open the panel with the token; a normal launch copies it and opens the browser for you.',
+    'update.title': 'Update',
+    'update.current': 'Current version',
+    'update.idle': 'Not checked',
+    'update.check': 'Check for updates',
+    'update.apply': 'Update now',
+    'update.checking': 'Checking…',
+    'update.upToDate': 'Up to date ({0})',
+    'update.available': 'Version {0} is available ({1})',
+    'update.applying': 'Downloading and switching to the new build; the panel will reconnect shortly…',
+    'update.failed': 'Update failed: {0}',
     'login.placeholder': 'Paste token',
     'login.submit': 'Enter',
     'login.invalid': 'Token is invalid or has changed. Try again.',
@@ -317,6 +337,16 @@ const STRINGS = {
     'status.error': '介面錯誤',
     'login.title': '需要存取權杖',
     'login.hint': '權杖在伺服端 Config\\admin-token.txt。以系統管理員身分執行時剪貼簿不會與瀏覽器共用，雙擊 Config\\admin-panel.url 就能帶權杖開啟面板；一般權限啟動會自動複製權杖並開啟瀏覽器。',
+    'update.title': '更新',
+    'update.current': '目前版本',
+    'update.idle': '未檢查',
+    'update.check': '檢查更新',
+    'update.apply': '立即更新',
+    'update.checking': '正在檢查…',
+    'update.upToDate': '已是最新版本（{0}）',
+    'update.available': '發現新版本 {0}（{1}）',
+    'update.applying': '正在下載並切換到新版本，面板會短暫中斷…',
+    'update.failed': '更新失敗：{0}',
     'login.placeholder': '貼上權杖',
     'login.submit': '進入',
     'login.invalid': '權杖無效或已變更，請重新輸入。',
@@ -457,6 +487,16 @@ const STRINGS = {
     'status.error': 'API エラー',
     'login.title': 'アクセストークンが必要です',
     'login.hint': 'トークンはサーバー側の Config\\admin-token.txt にあります。管理者として実行するとクリップボードはブラウザーと共有されないため、Config\\admin-panel.url をダブルクリックしてトークン付きで開いてください。通常起動では自動でコピーされブラウザーが開きます。',
+    'update.title': 'アップデート',
+    'update.current': '現在のバージョン',
+    'update.idle': '未確認',
+    'update.check': '更新を確認',
+    'update.apply': '今すぐ更新',
+    'update.checking': '確認中…',
+    'update.upToDate': '最新です（{0}）',
+    'update.available': '新しいバージョン {0} があります（{1}）',
+    'update.applying': '新しいビルドをダウンロードして切り替えています。パネルはまもなく再接続します…',
+    'update.failed': '更新に失敗しました：{0}',
     'login.placeholder': 'トークンを貼り付け',
     'login.submit': '入る',
     'login.invalid': 'トークンが無効か変更されています。もう一度入力してください。',
@@ -597,6 +637,16 @@ const STRINGS = {
     'status.error': 'API 오류',
     'login.title': '액세스 토큰 필요',
     'login.hint': '토큰은 서버의 Config\\admin-token.txt 에 있습니다. 관리자 권한으로 실행하면 클립보드가 브라우저와 공유되지 않으므로 Config\\admin-panel.url 을 두 번 클릭해 토큰과 함께 여십시오. 일반 권한으로 실행하면 자동으로 복사되고 브라우저가 열립니다.',
+    'update.title': '업데이트',
+    'update.current': '현재 버전',
+    'update.idle': '확인 안 함',
+    'update.check': '업데이트 확인',
+    'update.apply': '지금 업데이트',
+    'update.checking': '확인 중…',
+    'update.upToDate': '최신 버전입니다 ({0})',
+    'update.available': '새 버전 {0} 사용 가능 ({1})',
+    'update.applying': '새 빌드를 내려받아 전환하는 중입니다. 패널이 곧 다시 연결됩니다…',
+    'update.failed': '업데이트 실패: {0}',
     'login.placeholder': '토큰 붙여넣기',
     'login.submit': '들어가기',
     'login.invalid': '토큰이 잘못되었거나 변경되었습니다. 다시 입력하세요.',
@@ -737,6 +787,16 @@ const STRINGS = {
     'status.error': 'API-Fehler',
     'login.title': 'Zugriffstoken erforderlich',
     'login.hint': 'Das Token liegt serverseitig in Config\\admin-token.txt. Als Administrator wird die Zwischenablage nicht mit dem Browser geteilt: Doppelklicke Config\\admin-panel.url, um das Panel mit Token zu öffnen; bei normalem Start wird es kopiert und der Browser geöffnet.',
+    'update.title': 'Aktualisierung',
+    'update.current': 'Aktuelle Version',
+    'update.idle': 'Nicht geprüft',
+    'update.check': 'Nach Updates suchen',
+    'update.apply': 'Jetzt aktualisieren',
+    'update.checking': 'Wird geprüft…',
+    'update.upToDate': 'Aktuell ({0})',
+    'update.available': 'Version {0} ist verfügbar ({1})',
+    'update.applying': 'Neuer Build wird geladen und gewechselt; das Panel verbindet sich gleich wieder…',
+    'update.failed': 'Aktualisierung fehlgeschlagen: {0}',
     'login.placeholder': 'Token einfügen',
     'login.submit': 'Anmelden',
     'login.invalid': 'Token ungültig oder geändert – bitte erneut eingeben.',
@@ -877,6 +937,16 @@ const STRINGS = {
     'status.error': 'Erreur d’API',
     'login.title': 'Jeton d’accès requis',
     'login.hint': 'Le jeton se trouve dans Config\\admin-token.txt côté serveur. Lancé en administrateur, le presse-papiers n’est pas partagé avec le navigateur : double-cliquez sur Config\\admin-panel.url pour ouvrir le panneau avec le jeton ; en lancement normal il est copié et le navigateur s’ouvre.',
+    'update.title': 'Mise à jour',
+    'update.current': 'Version actuelle',
+    'update.idle': 'Non vérifié',
+    'update.check': 'Vérifier les mises à jour',
+    'update.apply': 'Mettre à jour',
+    'update.checking': 'Vérification…',
+    'update.upToDate': 'À jour ({0})',
+    'update.available': 'La version {0} est disponible ({1})',
+    'update.applying': 'Téléchargement et bascule vers la nouvelle version, le panneau se reconnecte dans un instant…',
+    'update.failed': 'Échec de la mise à jour : {0}',
     'login.placeholder': 'Coller le jeton',
     'login.submit': 'Entrer',
     'login.invalid': 'Jeton invalide ou modifié, veuillez le saisir à nouveau.',
@@ -1017,6 +1087,16 @@ const STRINGS = {
     'status.error': 'Error de API',
     'login.title': 'Se requiere token de acceso',
     'login.hint': 'El token está en Config\\admin-token.txt en el servidor. Si lo ejecutas como administrador, el portapapeles no se comparte con el navegador: haz doble clic en Config\\admin-panel.url para abrir el panel con el token; con permisos normales se copia y se abre el navegador.',
+    'update.title': 'Actualización',
+    'update.current': 'Versión actual',
+    'update.idle': 'Sin comprobar',
+    'update.check': 'Buscar actualizaciones',
+    'update.apply': 'Actualizar ahora',
+    'update.checking': 'Comprobando…',
+    'update.upToDate': 'Ya está al día ({0})',
+    'update.available': 'La versión {0} está disponible ({1})',
+    'update.applying': 'Descargando y cambiando a la nueva compilación; el panel se reconectará en breve…',
+    'update.failed': 'Error de actualización: {0}',
     'login.placeholder': 'Pega el token',
     'login.submit': 'Entrar',
     'login.invalid': 'Token no válido o modificado, vuelve a introducirlo.',
@@ -1157,6 +1237,16 @@ const STRINGS = {
     'status.error': 'API ผิดพลาด',
     'login.title': 'ต้องใช้โทเคนเข้าถึง',
     'login.hint': 'โทเคนอยู่ใน Config\\admin-token.txt ฝั่งเซิร์ฟเวอร์ เมื่อรันในฐานะผู้ดูแลระบบ คลิปบอร์ดจะไม่ถูกแชร์กับเบราว์เซอร์ ให้ดับเบิลคลิก Config\\admin-panel.url เพื่อเปิดแผงพร้อมโทเคน หากรันแบบปกติจะคัดลอกให้และเปิดเบราว์เซอร์',
+    'update.title': 'อัปเดต',
+    'update.current': 'เวอร์ชันปัจจุบัน',
+    'update.idle': 'ยังไม่ตรวจสอบ',
+    'update.check': 'ตรวจหาการอัปเดต',
+    'update.apply': 'อัปเดตเลย',
+    'update.checking': 'กำลังตรวจสอบ…',
+    'update.upToDate': 'เป็นเวอร์ชันล่าสุดแล้ว ({0})',
+    'update.available': 'มีเวอร์ชันใหม่ {0} ({1})',
+    'update.applying': 'กำลังดาวน์โหลดและสลับไปยังบิลด์ใหม่ แผงควบคุมจะเชื่อมต่อใหม่ในอีกสักครู่…',
+    'update.failed': 'อัปเดตล้มเหลว: {0}',
     'login.placeholder': 'วางโทเคน',
     'login.submit': 'เข้าสู่ระบบ',
     'login.invalid': 'โทเคนไม่ถูกต้องหรือถูกเปลี่ยน กรุณากรอกใหม่',
@@ -1297,6 +1387,16 @@ const STRINGS = {
     'status.error': 'Kesalahan API',
     'login.title': 'Token akses diperlukan',
     'login.hint': 'Token ada di Config\\admin-token.txt di sisi server. Saat dijalankan sebagai Administrator, clipboard tidak dibagikan ke browser, jadi klik dua kali Config\\admin-panel.url untuk membuka panel dengan token; peluncuran normal menyalinnya dan membuka browser.',
+    'update.title': 'Pembaruan',
+    'update.current': 'Versi saat ini',
+    'update.idle': 'Belum dicek',
+    'update.check': 'Periksa pembaruan',
+    'update.apply': 'Perbarui sekarang',
+    'update.checking': 'Memeriksa…',
+    'update.upToDate': 'Sudah versi terbaru ({0})',
+    'update.available': 'Versi {0} tersedia ({1})',
+    'update.applying': 'Mengunduh dan beralih ke build baru; panel akan tersambung lagi sebentar…',
+    'update.failed': 'Pembaruan gagal: {0}',
     'login.placeholder': 'Tempel token',
     'login.submit': 'Masuk',
     'login.invalid': 'Token tidak valid atau berubah, silakan masukkan lagi.',
@@ -2199,8 +2299,102 @@ async function renderOverview() {
         : '<span class="pill warn">' + esc(t('overview.loading')) + '</span>'}</td></tr>
     </table>
     <p class="note">${t('overview.note')}</p>
+    <h3 class="section">${esc(t('update.title'))}</h3>
+    <div id="update-box" class="update-box">
+      <div class="update-line">
+        <span>${esc(t('update.current'))}: <b>${esc(health.version || '?')}</b></span>
+        <span id="update-latest" class="note">${esc(t('update.idle'))}</span>
+      </div>
+      <div class="setup-row">
+        <button id="update-check">${esc(t('update.check'))}</button>
+        <button id="update-apply" class="primary" disabled>${esc(t('update.apply'))}</button>
+        <span id="update-msg" class="note"></span>
+      </div>
+    </div>
   `;
   setStatus(true, t('status.running', health.version || '?', formatDuration(health.uptime_sec || 0)));
+  wireUpdate();
+}
+
+// ---------------------------------------------------------------------------------------------
+// update
+// ---------------------------------------------------------------------------------------------
+
+function updateMessage(text, isError) {
+  const node = document.getElementById('update-msg');
+  if (!node) return;
+  node.className = isError ? 'note warn-text' : 'note';
+  node.textContent = text;
+}
+
+function formatSize(bytes) {
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let value = Number(bytes) || 0;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit += 1;
+  }
+  return (unit === 0 ? value : value.toFixed(1)) + ' ' + units[unit];
+}
+
+function paintUpdate(status) {
+  const latest = document.getElementById('update-latest');
+  const apply = document.getElementById('update-apply');
+  if (!latest || !apply) return;
+  if (!status) {
+    latest.textContent = t('update.idle');
+    apply.disabled = true;
+    return;
+  }
+  if (status.error) {
+    latest.textContent = t('update.failed', status.error);
+    apply.disabled = true;
+    return;
+  }
+  if (!status.available) {
+    latest.textContent = t('update.upToDate', status.latest || status.current);
+    apply.disabled = true;
+    return;
+  }
+  latest.textContent = t('update.available', status.latest, formatSize(status.size));
+  apply.disabled = false;
+}
+
+function wireUpdate() {
+  const check = document.getElementById('update-check');
+  const apply = document.getElementById('update-apply');
+  if (!check || !apply) return;
+
+  const runCheck = async (force) => {
+    check.disabled = true;
+    updateMessage(t('update.checking'));
+    try {
+      const data = await api('/update' + (force ? '?force=true' : ''));
+      paintUpdate(data);
+      updateMessage('');
+    } catch (error) {
+      paintUpdate(null);
+      updateMessage(t('update.failed', (error.body && (error.body.message || error.body.code)) || error.message), true);
+    } finally {
+      check.disabled = false;
+    }
+  };
+
+  check.addEventListener('click', () => runCheck(true));
+
+  apply.addEventListener('click', async () => {
+    apply.disabled = true;
+    updateMessage(t('update.applying'));
+    try {
+      await api('/update', { method: 'POST', body: {} });
+      // The host exits so the updater can swap the binaries; reload once it should be back.
+      setTimeout(() => location.reload(), 25000);
+    } catch (error) {
+      updateMessage(t('update.failed', (error.body && (error.body.message || error.body.code)) || error.message), true);
+      apply.disabled = false;
+    }
+  });
 }
 
 // ---------------------------------------------------------------------------------------------

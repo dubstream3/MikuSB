@@ -49,6 +49,29 @@ public static class InGameConsoleBridge
     /// </summary>
     public static Func<string[], GameLaunchResult>? LaunchGame { get; set; }
 
+    /// <summary>
+    /// Update check the panel renders; <c>SdkServer</c> cannot reference the host assembly, so the
+    /// result travels as a plain record.
+    /// </summary>
+    public sealed record UpdateStatus(
+        bool Ok,
+        string Current,
+        string? Latest,
+        bool Available,
+        string? Asset,
+        long Size,
+        string? Notes,
+        string? Error);
+
+    /// <summary>Asks the updater for the latest release (cached server side for five minutes).</summary>
+    public static Func<bool, Task<UpdateStatus?>>? CheckUpdate { get; set; }
+
+    /// <summary>
+    /// Runs the update the panel asked for: download, stage the updater and hand over. Returns true when the
+    /// updater took control, in which case the host is about to exit.
+    /// </summary>
+    public static Func<Task<bool>>? ApplyUpdate { get; set; }
+
     private static readonly object PacketLogSync = new();
     private static readonly Dictionary<Guid, Action<string>> PacketLogSubscribers = [];
 

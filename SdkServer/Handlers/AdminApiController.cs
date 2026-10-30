@@ -548,6 +548,75 @@ public class AdminApiController : ControllerBase
     }
 
     /// <summary>
+    /// Latest release as the updater sees it. <c>force</c> skips the five minute cache for the refresh button.
+    /// </summary>
+    [HttpGet("update")]
+    public async Task<IActionResult> UpdateInfo([FromQuery] bool force = false)
+    {
+        var check = InGameConsoleBridge.CheckUpdate;
+        if (check is null)
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+            {
+                code = "update_not_ready",
+                message = "The updater is not wired yet."
+            });
+
+        var status = await check(force);
+        if (status is null)
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+            {
+                code = "update_not_ready",
+                message = "The updater did not answer."
+            });
+
+        return Ok(new
+        {
+            ok = status.Ok,
+            current = status.Current,
+            latest = status.Latest,
+            available = status.Available,
+            asset = status.Asset,
+            size = status.Size,
+            notes = status.Notes,
+            error = status.Error
+        });
+    }
+
+    /// <summary>
+    /// Hands control to the updater. It downloads, swaps the files and restarts, so this returns before the work
+    /// finishes and the panel will lose the connection; that is the expected behaviour, not a failure.
+    /// </summary>
+    [HttpPost("update")]
+    public IActionResult ApplyUpdate()
+    {
+        var apply = InGameConsoleBridge.ApplyUpdate;
+        if (apply is null)
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+            {
+                code = "update_not_ready",
+                message = "The updater is not wired yet."
+            });
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await apply();
+            }
+            catch (Exception exception)
+            {
+                ConfigManager.Logger.Error("Update requested from the admin panel failed.", exception);
+            }
+        });
+
+        return Ok(new
+        {
+            accepted = true,
+            message = "The updater is taking over; the panel will disconnect for a moment."
+        });
+    }
+
+    /// <summary>
     /// True when at least one entry of <c>Loader.PatchPaths</c> resolves next to the executable. Kept in one
     /// place because the setup page shows it, and the launch answer has to be able to say how it changed.
     /// </summary>

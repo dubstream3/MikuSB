@@ -1,7 +1,5 @@
 using System.IO.Compression;
-using System.Net.Http.Headers;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using MikuSB.Net;
 using MikuSB.Util;
 
 namespace MikuSB.Loader;
@@ -9,8 +7,8 @@ namespace MikuSB.Loader;
 public static class InGameConsoleDownloadService
 {
     private static readonly Logger Logger = new("InGameConsoleDownloader");
-    private const string Repository = "Kei-Luna/MikuSB-inGame-GUI-Console";
-    private const string ReleaseApiUrl = $"https://api.github.com/repos/{Repository}/releases/latest";
+    private const string RepositoryOwner = "Kei-Luna";
+    private const string RepositoryName = "MikuSB-inGame-GUI-Console";
     private const string ArchiveName = "MikuSB-InGame-GUI-Console.zip";
     private const string LoaderFileName = "MikuSB-InGame-GUI-Console.Loader.dll";
     private const string ReleaseMarkerFileName = "MikuSB-InGame-GUI-Console.release";
@@ -31,9 +29,15 @@ public static class InGameConsoleDownloadService
             ?? throw new InvalidOperationException("Unable to determine the in-game console directory.");
         Directory.CreateDirectory(installDirectory);
 
-        using var client = CreateHttpClient();
+        using var client = GitHubApi.CreateClient("MikuSB-InGameConsoleDownloader");
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(DownloadTimeoutSeconds));
-        var release = GetLatestReleaseAsync(client, timeout.Token).GetAwaiter().GetResult();
+        var release = GitHubApi
+            .GetLatestReleaseAsync(RepositoryOwner, RepositoryName, client,
+                TimeSpan.FromSeconds(DownloadTimeoutSeconds),
+                cancellationToken: timeout.Token)
+            .GetAwaiter().GetResult()
+            ?? throw new InvalidDataException(
+                $"Could not read the latest {RepositoryName} release from GitHub or any mirror.");
         var archive = release.Assets.FirstOrDefault(asset =>
             string.Equals(asset.Name, ArchiveName, StringComparison.OrdinalIgnoreCase));
         if (archive is null)
@@ -50,7 +54,15 @@ public static class InGameConsoleDownloadService
             var stagingDirectory = Path.Combine(temporaryRoot, "staging");
 
             Logger.Info($"Downloading GUI console release {release.TagName}.");
-            DownloadFileAsync(client, archive.DownloadUrl, archivePath, timeout.Token).GetAwaiter().GetResult();
+            GitHubApi.DownloadAsync(archive.DownloadUrl, archivePath, new GitHubDownloadOptions
+            {
+                TimeoutSeconds = DownloadTimeoutSeconds,
+                OnAttempt = (host, isMirror, index, total) => Logger.Info(
+                    isMirror
+                        ? $"GUI console: trying mirror {host} ({index}/{total - 1})."
+                        : $"GUI console: trying {host} (direct)."),
+                OnAttemptFailed = (host, message) => Logger.Warn($"GUI console from {host} failed: {message}")
+            }, client, timeout.Token).GetAwaiter().GetResult();
             ExtractArchive(archivePath, stagingDirectory);
             InstallFiles(stagingDirectory, installDirectory, loaderPath);
             File.WriteAllText(Path.Combine(installDirectory, ReleaseMarkerFileName), release.TagName);
@@ -123,57 +135,5 @@ public static class InGameConsoleDownloadService
                 throw new FileNotFoundException("The GUI console archive is missing a required file.", pair.Key);
             File.Copy(pair.Key, pair.Value, overwrite: true);
         }
-    }
-
-    private static HttpClient CreateHttpClient()
-    {
-        var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
-        client.DefaultRequestHeaders.UserAgent.Add(
-            new ProductInfoHeaderValue("MikuSB-InGameConsoleDownloader", BuildVersion.Current));
-        client.DefaultRequestHeaders.Accept.Add(
-            new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-        return client;
-    }
-
-    private static async Task<GitHubReleaseResponse> GetLatestReleaseAsync(
-        HttpClient client,
-        CancellationToken cancellationToken)
-    {
-        using var response = await client.GetAsync(ReleaseApiUrl, cancellationToken);
-        response.EnsureSuccessStatusCode();
-        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        return await JsonSerializer.DeserializeAsync<GitHubReleaseResponse>(stream, cancellationToken: cancellationToken)
-            ?? throw new InvalidDataException("GitHub returned an empty release response.");
-    }
-
-    private static async Task DownloadFileAsync(
-        HttpClient client,
-        string downloadUrl,
-        string destinationPath,
-        CancellationToken cancellationToken)
-    {
-        using var response = await client.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        response.EnsureSuccessStatusCode();
-        await using var source = await response.Content.ReadAsStreamAsync(cancellationToken);
-        await using var destination = File.Create(destinationPath);
-        await source.CopyToAsync(destination, cancellationToken);
-    }
-
-    private sealed class GitHubReleaseResponse
-    {
-        [JsonPropertyName("tag_name")]
-        public string TagName { get; set; } = "";
-
-        [JsonPropertyName("assets")]
-        public List<GitHubReleaseAssetResponse> Assets { get; set; } = [];
-    }
-
-    private sealed class GitHubReleaseAssetResponse
-    {
-        [JsonPropertyName("name")]
-        public string Name { get; set; } = "";
-
-        [JsonPropertyName("browser_download_url")]
-        public string DownloadUrl { get; set; } = "";
     }
 }
