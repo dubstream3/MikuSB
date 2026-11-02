@@ -165,6 +165,7 @@ public class ServerInfoTextEN
     public string DownloadedThroughMirror => "Downloaded {0} through mirror {1} because the direct GitHub source failed.";
     public string DownloadSourceFailed => "Download source {0} failed ({1}), trying the next source...";
     public string DownloadSourceFailedAll => "Download source {0} failed ({1}), no sources left.";
+    public string SlowSourceFallback => "No source held {0}; keeping {1}, the one that got furthest ({2} in {3} at {4}). The network is slow, so this download will take longer than usual.";
     public string DownloadStalled => "{0} delivered only {2} in {1}s, below the {3} floor";
     public string DownloadNoResponse => "{0} sent no response headers within {1}s";
     public string DownloadTimedOut => "{0} took longer than {1}s to finish";

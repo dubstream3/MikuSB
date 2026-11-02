@@ -56,7 +56,16 @@ public static class SetupService
 
     public sealed record HostsState(bool Readable, string Path, bool Managed, IReadOnlyList<string> Entries, string Error);
 
-    public sealed record RegionOption(string Id, string Loader, string Note);
+    /// <summary>
+    /// One selectable region preset. <paramref name="LauncherUrl" /> is the client launcher build this
+    /// preset was tested against; the wizard shows it as a download link when it is set (CN only today).
+    /// </summary>
+    public sealed record RegionOption(
+        string Id,
+        string Loader,
+        string Note,
+        string? LauncherUrl = null,
+        string? LauncherVersion = null);
 
     // ---------------------------------------------------------------------------------------------
     // Path probing
@@ -595,29 +604,59 @@ exit 0
     public static IReadOnlyList<RegionOption> Regions { get; } =
     [
         new("cn", "hosts",
-            "国服（jinshan）：客户端自己启动，面板只把 7 个 SDK 域名指向本机，不注入 DLL。"),
+            "国服（jinshan）：客户端自己启动，面板只把 7 个 SDK 域名指向本机，不注入 DLL。",
+            "https://cbjq-content.xoyocdn.com/ob202307/launcher/jinshan/updates/3.6.0.exe",
+            "3.6.0"),
         new("global", "loader",
             "国际服：沿用上游 Loader 注入 MikuSB-Patch.dll + 本地 SOCKS5，面板只代填路径与启动参数。")
     ];
 
-    public static string NormalizeRegion(string? region) =>
-        string.Equals(region, "cn", StringComparison.OrdinalIgnoreCase) ? "cn" : "global";
+    /// <summary>Coerce a region name to a known one, defaulting to <c>global</c> when it is not <c>cn</c>.</summary>
+    public static string NormalizeRegion(string? region) => NormalizeRegionOrNull(region) ?? "global";
 
     /// <summary>
-    /// What region the config currently describes. An existing install has no <c>Loader.Region</c> yet, so the
-    /// launch arguments are the only honest source: only the CN build is started with <c>-ChannelID=jinshan</c>.
+    /// Like <see cref="NormalizeRegion" /> but keeps "not chosen yet" as <c>null</c> instead of quietly turning it
+    /// into the global build.
     /// </summary>
-    public static string ResolveRegion(string? stored, IEnumerable<string>? arguments)
+    public static string? NormalizeRegionOrNull(string? region)
     {
-        if (!string.IsNullOrWhiteSpace(stored))
+        if (string.IsNullOrWhiteSpace(region))
         {
-            return NormalizeRegion(stored);
+            return null;
         }
 
-        return (arguments ?? []).Any(arg => arg.Contains("jinshan", StringComparison.OrdinalIgnoreCase))
-            ? "cn"
-            : "global";
+        return string.Equals(region.Trim(), "cn", StringComparison.OrdinalIgnoreCase) ? "cn" : "global";
     }
+
+    /// <summary>
+    /// What region the config currently describes, or <c>null</c> when it describes nothing yet. An install that
+    /// predates <c>Loader.Region</c> only has the launch arguments to go on: the CN build is the one started with
+    /// <c>-ChannelID=jinshan</c>, the global build with <c>-channelid=seasun</c>. No channel argument at all means
+    /// the operator has not finished the wizard, which is a different state from "chose the global build".
+    /// </summary>
+    public static string? ResolveRegion(string? stored, IEnumerable<string>? arguments)
+    {
+        var normalized = NormalizeRegionOrNull(stored);
+        if (normalized != null)
+        {
+            return normalized;
+        }
+
+        var args = arguments ?? [];
+        if (args.Any(arg => arg.Contains("jinshan", StringComparison.OrdinalIgnoreCase)))
+        {
+            return "cn";
+        }
+
+        return args.Any(arg => arg.Contains("seasun", StringComparison.OrdinalIgnoreCase)) ? "global" : null;
+    }
+
+    /// <summary>
+    /// Whether the setup wizard has actually been completed: a region was chosen and a client was located. The panel
+    /// uses this to decide between "open the wizard" and "show the current setup".
+    /// </summary>
+    public static bool IsConfigured(string? region, string? gamePath) =>
+        region != null && !string.IsNullOrWhiteSpace(gamePath);
 
     /// <summary>Launch arguments for a region, with <c>-userdir</c> pinned to the resolved folder.</summary>
     public static string[] BuildArguments(string region, string userDir)

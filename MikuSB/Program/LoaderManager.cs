@@ -14,6 +14,7 @@ using MikuSB.MikuSB.Tool;
 using MikuSB.MikuSB.Update;
 using MikuSB.Proto;
 using MikuSB.SdkServer;
+using MikuSB.SdkServer.Utils;
 using MikuSB.TcpSharp;
 using MikuSB.Util;
 using MikuSB.Util.Security;
@@ -105,11 +106,13 @@ public class LoaderManager : MikuSB
         }
     }
 
-    private static bool IsSpecificChannel()
-    {
-        return (ConfigManager.Config.Loader.Arguments ?? [])
-            .Any(x => x.Contains("jinshan", StringComparison.OrdinalIgnoreCase));
-    }
+    /// <summary>
+    ///     True when the configured build is the CN one, i.e. the build that reaches the SDK through the hosts
+    ///     redirect. The stored region wins; an install that predates <c>Loader.Region</c> falls back to its launch
+    ///     arguments, and an install the wizard has not written yet is not CN.
+    /// </summary>
+    private static bool IsSpecificChannel() =>
+        SetupService.ResolveRegion(ConfigManager.Config.Loader.Region, ConfigManager.Config.Loader.Arguments) == "cn";
 
     /// <summary>
     ///     Points the specific-channel SDK host names at this machine for as long as the server runs.

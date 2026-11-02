@@ -337,6 +337,17 @@ public sealed class LaunchOptions
         var gameArgs = new List<string>(config.Loader.Arguments ?? []);
         if (extraGameArguments is not null)
             gameArgs.AddRange(extraGameArguments.Where(x => !string.IsNullOrWhiteSpace(x)));
+
+        // The client has to be told which channel it is logging into, and that is exactly the answer the setup
+        // wizard collects. A config that never went through the wizard therefore has no honest way to launch:
+        // starting the client with a guessed channel only moves the failure into the login screen.
+        if (!gameArgs.Any(arg => arg.Contains("channelid", StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new InvalidOperationException(
+                "Loader.Arguments 里没有渠道参数（-channelid / -ChannelID）：请先在管理面板完成初始化，或启动时显式传入。 / " +
+                "Loader.Arguments has no channel argument: finish the setup wizard first, or pass one explicitly.");
+        }
+
         gameArgs = EnsureUserDirArgument(gameArgs, serverBaseDirectory);
         PersistResolvedArgumentsIfChanged(config, gameArgs);
 

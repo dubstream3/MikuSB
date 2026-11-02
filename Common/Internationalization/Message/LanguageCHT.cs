@@ -200,6 +200,7 @@ public class ServerInfoTextCHT
     public string DownloadedThroughMirror => "已通過鏡像 {1} 下載 {0} (直連 GitHub 失敗)。";
     public string DownloadSourceFailed => "下載源 {0} 失敗 ({1}), 正在切換下一個源…";
     public string DownloadSourceFailedAll => "下載源 {0} 失敗 ({1}), 已沒有可用的源。";
+    public string SlowSourceFallback => "沒有下載源達到 {0}；改用進度最多的 {1}（{3} 秒內收到 {2}，約 {4}）。網路狀況不佳，本次下載會比平時更久。";
     public string DownloadStalled => "{0} 在 {1} 秒內只收到 {2}, 低於 {3} 的下限";
     public string DownloadNoResponse => "{0} 在 {1} 秒內沒有返回響應頭";
     public string DownloadTimedOut => "{0} 超過 {1} 秒仍未下載完成";

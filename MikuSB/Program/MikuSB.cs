@@ -43,6 +43,19 @@ public class MikuSB
         if (TryCleanHostsFromCommandLine())
             return;
 
+        // Two servers cannot share the seven SDK ports or the admin panel, and the loser used to die later with an
+        // opaque "failed to start the dispatch server". Refuse the second copy up front and say why.
+        if (!SingleInstance.TryAcquire(TimeSpan.FromSeconds(3)))
+        {
+            const string alreadyRunning =
+                "MikuSB 已经在运行，请先关闭那个窗口（或结束 MikuSB.exe 进程）再启动。\n\n" +
+                "MikuSB is already running. Close the other instance first.";
+            Console.Error.WriteLine(alreadyRunning);
+            DesktopNotice.ShowError("MikuSB", alreadyRunning);
+            Environment.ExitCode = 1;
+            return;
+        }
+
         var time = DateTime.Now;
         IConsole.InitConsole();
         LoaderManager.InitConfig();

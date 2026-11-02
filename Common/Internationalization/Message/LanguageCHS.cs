@@ -200,6 +200,7 @@ public class ServerInfoTextCHS
     public string DownloadedThroughMirror => "已通过镜像 {1} 下载 {0} (直连 GitHub 失败)。";
     public string DownloadSourceFailed => "下载源 {0} 失败 ({1}), 正在切换下一个源…";
     public string DownloadSourceFailedAll => "下载源 {0} 失败 ({1}), 已没有可用的源。";
+    public string SlowSourceFallback => "没有下载源达到 {0}；改用进度最多的 {1}（{3} 秒内收到 {2}，约 {4}）。网络状况不佳，本次下载会比平时更久。";
     public string DownloadStalled => "{0} 在 {1} 秒内只收到 {2}, 低于 {3} 的下限";
     public string DownloadNoResponse => "{0} 在 {1} 秒内没有返回响应头";
     public string DownloadTimedOut => "{0} 超过 {1} 秒仍未下载完成";

@@ -86,6 +86,48 @@ public sealed class GitHubDownloadException : Exception
 }
 
 /// <summary>
+///     What one source delivered before it was dropped. The slow-network fallback ranks these by
+///     <see cref="Completion" /> rather than raw speed, because a source that sprints for three seconds
+///     and then dies is worse than one that keeps moving slowly for the whole window.
+/// </summary>
+public sealed class SourceProbe
+{
+    public SourceProbe(string candidate, bool isMirror)
+    {
+        Candidate = candidate;
+        Host = new Uri(candidate).Host;
+        IsMirror = isMirror;
+    }
+
+    public string Candidate { get; }
+    public string Host { get; }
+    public bool IsMirror { get; }
+
+    /// <summary>Bytes on disk when the attempt ended (whole file when <see cref="Succeeded" />).</summary>
+    public long Bytes { get; set; }
+
+    /// <summary>Length announced by the source, 0 when it did not say.</summary>
+    public long TotalBytes { get; set; }
+
+    /// <summary>How long the attempt ran before it was dropped.</summary>
+    public TimeSpan Elapsed { get; set; }
+
+    public bool Succeeded { get; set; }
+
+    /// <summary>Share of the file this source completed, 0 when the length is unknown.</summary>
+    public double Completion => TotalBytes > 0 ? Math.Min(1d, (double)Bytes / TotalBytes) : 0d;
+
+    public double BytesPerSecond
+    {
+        get
+        {
+            var seconds = Elapsed.TotalSeconds;
+            return seconds > 0.05 ? Bytes / seconds : 0d;
+        }
+    }
+}
+
+/// <summary>
 ///     Everything the download loop needs to report back. Callbacks are optional: the caller decides
 ///     how a mirror attempt or a progress tick should be phrased.
 /// </summary>
@@ -96,6 +138,16 @@ public sealed class GitHubDownloadOptions
     public int WindowSeconds { get; init; } = 10;
     public long WindowBytes { get; init; } = 1024 * 1024;
     public int DirectAttempts { get; init; } = 1;
+
+    /// <summary>
+    ///     When every source misses <see cref="WindowBytes" /> inside one window, keep the source that
+    ///     got furthest instead of failing. A 40 KB/s mirror still delivers the file, only later, and
+    ///     the caller can tell the user why. Turn it off for callers that would rather give up than crawl.
+    /// </summary>
+    public bool SlowSourceFallback { get; init; } = true;
+
+    /// <summary>(host, bytes, totalBytes, bytesPerSecond) once the fallback picked a source under the floor.</summary>
+    public Action<string, long, long, double>? OnSlowSource { get; init; }
 
     /// <summary>(host, isMirror, index, total) before an attempt starts.</summary>
     public Action<string, bool, int, int>? OnAttempt { get; init; }
@@ -230,19 +282,20 @@ public static class GitHubApi
         try
         {
             var candidates = Candidates(url, options.DirectAttempts);
+            var probes = new List<SourceProbe>(candidates.Count);
             Exception? lastError = null;
 
             for (var index = 0; index < candidates.Count; index++)
             {
                 var candidate = candidates[index];
-                var host = new Uri(candidate).Host;
-                var isMirror = index >= options.DirectAttempts;
-                options.OnAttempt?.Invoke(host, isMirror, index, candidates.Count);
+                var probe = new SourceProbe(candidate, index >= options.DirectAttempts);
+                probes.Add(probe);
+                options.OnAttempt?.Invoke(probe.Host, probe.IsMirror, index, candidates.Count);
 
                 try
                 {
-                    await DownloadOnceAsync(client, candidate, destinationPath, options, host, cancellationToken);
-                    options.OnSucceeded?.Invoke(host, isMirror);
+                    await DownloadOnceAsync(client, candidate, destinationPath, options, probe, cancellationToken);
+                    options.OnSucceeded?.Invoke(probe.Host, probe.IsMirror);
                     return;
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -252,7 +305,45 @@ public static class GitHubApi
                 catch (Exception ex)
                 {
                     lastError = ex;
-                    options.OnAttemptFailed?.Invoke(host, ex.Message);
+                    options.OnAttemptFailed?.Invoke(probe.Host, ex.Message);
+                }
+            }
+
+            // Every source failed the speed floor or the connection outright. Rather than telling the
+            // user "no update today", retry the source that completed the largest share: a mirror that
+            // crawls still finishes, and the caller can say why it is slow.
+            if (options.SlowSourceFallback)
+            {
+                var best = probes
+                    .Where(probe => probe.Bytes > 0)
+                    .OrderByDescending(probe => probe.Completion)
+                    .ThenByDescending(probe => probe.BytesPerSecond)
+                    .FirstOrDefault();
+
+                if (best != null)
+                {
+                    var relaxed = Relax(options, best);
+                    Logger.Warn(
+                        $"No source reached {FormatSize(options.WindowBytes)} per {options.WindowSeconds}s; "
+                        + $"retrying {best.Host} ({best.Bytes}/{best.TotalBytes} bytes) with a "
+                        + $"{FormatSize(relaxed.WindowBytes)}/{relaxed.WindowSeconds}s floor and a {relaxed.TimeoutSeconds}s deadline.");
+                    options.OnSlowSource?.Invoke(best.Host, best.Bytes, best.TotalBytes, best.BytesPerSecond);
+
+                    try
+                    {
+                        await DownloadOnceAsync(client, best.Candidate, destinationPath, relaxed, best, cancellationToken);
+                        options.OnSucceeded?.Invoke(best.Host, best.IsMirror);
+                        return;
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        lastError = ex;
+                        options.OnAttemptFailed?.Invoke(best.Host, ex.Message);
+                    }
                 }
             }
 
@@ -327,10 +418,12 @@ public static class GitHubApi
         string downloadUrl,
         string destinationPath,
         GitHubDownloadOptions options,
-        string host,
+        SourceProbe probe,
         CancellationToken cancellationToken)
     {
+        var host = probe.Host;
         var timeoutSeconds = Math.Max(1, options.TimeoutSeconds);
+        var stopwatch = Stopwatch.StartNew();
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutCts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
         using var attemptCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token);
@@ -398,6 +491,9 @@ public static class GitHubApi
         }
         finally
         {
+            probe.Bytes = progress.Bytes;
+            probe.TotalBytes = progress.TotalBytes;
+            probe.Elapsed = stopwatch.Elapsed;
             watchdogStop.Cancel();
             ArrayPool<byte>.Shared.Return(buffer);
             if (watchdog != null)
@@ -415,6 +511,37 @@ public static class GitHubApi
 
         if (progress.Bytes == 0)
             throw new GitHubDownloadException(GitHubDownloadFailure.Empty, host, $"{host} returned an empty body.");
+
+        probe.Succeeded = true;
+    }
+
+    /// <summary>
+    ///     The watchdog settings for a second chance at a source that missed the speed floor: the floor
+    ///     drops to half of what it actually delivered, and the deadline stretches to roughly three times
+    ///     the time the whole file needs at that measured speed (capped so a dead transfer does not hang
+    ///     forever).
+    /// </summary>
+    private static GitHubDownloadOptions Relax(GitHubDownloadOptions options, SourceProbe probe)
+    {
+        var speed = Math.Max(1d, probe.BytesPerSecond);
+        var estimate = probe.TotalBytes > 0 ? probe.TotalBytes / speed : options.TimeoutSeconds * 4d;
+        var timeout = (int)Math.Clamp(Math.Max(options.TimeoutSeconds, estimate * 3d), options.TimeoutSeconds,
+            4 * 3600);
+
+        return new GitHubDownloadOptions
+        {
+            TimeoutSeconds = timeout,
+            HeaderTimeoutSeconds = options.HeaderTimeoutSeconds,
+            WindowSeconds = options.WindowSeconds,
+            WindowBytes = Math.Max(8 * 1024, probe.Bytes / 2),
+            DirectAttempts = 0,
+            SlowSourceFallback = false,
+            OnAttempt = options.OnAttempt,
+            OnProgress = options.OnProgress,
+            OnAttemptFailed = options.OnAttemptFailed,
+            OnSucceeded = options.OnSucceeded,
+            OnSlowSource = options.OnSlowSource
+        };
     }
 
     private static async Task WatchAsync(

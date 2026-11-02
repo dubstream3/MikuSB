@@ -1,4 +1,4 @@
-﻿using MikuSB.Data;
+using MikuSB.Data;
 using MikuSB.Data.Excel;
 using MikuSB.Util;
 using Newtonsoft.Json.Linq;
@@ -128,6 +128,18 @@ public static class DlcRuntimeOverrides
     {
         var pinned = GetPinnedActivity();
         return pinned == null ? 0 : ToUnixSeconds(ParseConfigTime(pinned.EnterStartTime));
+    }
+
+    /// <summary>
+    /// Unix second at which the pinned era ended: its own CloseEndTime (DLC 35 -&gt; 2026-03-12 04:00
+    /// local). The gacha roster uses it as the exclusive upper bound, because a banner that only started
+    /// after the era closed was never on display during it. 0 disables that bound (no pinned row, or an
+    /// unparseable window).
+    /// </summary>
+    public static long ActivationEraEnd()
+    {
+        var pinned = GetPinnedActivity();
+        return pinned == null ? 0 : ToUnixSeconds(ParseConfigTime(pinned.CloseEndTime));
     }
 
     /// <summary>

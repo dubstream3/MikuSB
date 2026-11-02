@@ -1557,13 +1557,18 @@ const SETUP_STRINGS = {
     "setup.region.cn": "国服（jinshan）",
     "setup.region.cn.note": "客户端自己启动，面板只把 7 个 SDK 域名指向本机，不需要注入 DLL。",
     "setup.region.global": "国际服",
+    "setup.region.none": "未选择",
+    "setup.region.pick": "请先选择服务器区域：国服和国际服的初始化方式完全不同。",
     "setup.region.global.note": "沿用上游 Loader：注入 MikuSB-Patch.dll 并走本地 SOCKS5，面板只帮你代填路径与参数。",
+    "setup.region.cn.launcher": "国服仅适配官服旧版启动器 {0}，新版启动器无法登录。旧版启动器下载：",
+    "setup.region.cn.download": "点此下载",
     "setup.path": "2 客户端路径",
     "setup.path.placeholder": "例如 D:\\Games\\Snow，或 …\\data\\game\\Game\\Binaries\\Win64\\Game.exe",
     "setup.path.check": "检查路径",
     "setup.path.detect": "自动探测",
     "setup.path.detecting": "正在扫描磁盘…",
     "setup.path.found": "找到 {0} 个候选",
+    "setup.check.input": "客户端路径",
     "setup.check.locate": "定位到 Game.exe",
     "setup.check.exe": "可执行文件存在",
     "setup.check.name": "文件名是 Game.exe",
@@ -1612,13 +1617,18 @@ const SETUP_STRINGS = {
     "setup.region.cn": "國服（jinshan）",
     "setup.region.cn.note": "客戶端自行啟動，面板只把 7 個 SDK 網域指向本機，不需注入 DLL。",
     "setup.region.global": "國際服",
+    "setup.region.none": "未選擇",
+    "setup.region.pick": "請先選擇伺服器區域：國服和國際服的初始化方式完全不同。",
     "setup.region.global.note": "沿用上游 Loader：注入 MikuSB-Patch.dll 並走本機 SOCKS5，面板只幫你代填路徑與參數。",
+    "setup.region.cn.launcher": "國服僅適配官服舊版啟動器 {0}，新版啟動器無法登入。舊版啟動器下載：",
+    "setup.region.cn.download": "點此下載",
     "setup.path": "2 客戶端路徑",
     "setup.path.placeholder": "例如 D:\\Games\\Snow，或 …\\data\\game\\Game\\Binaries\\Win64\\Game.exe",
     "setup.path.check": "檢查路徑",
     "setup.path.detect": "自動偵測",
     "setup.path.detecting": "正在掃描磁碟…",
     "setup.path.found": "找到 {0} 個候選",
+    "setup.check.input": "用戶端路徑",
     "setup.check.locate": "定位到 Game.exe",
     "setup.check.exe": "可執行檔存在",
     "setup.check.name": "檔名為 Game.exe",
@@ -1667,13 +1677,18 @@ const SETUP_STRINGS = {
     "setup.region.cn": "中国版（jinshan）",
     "setup.region.cn.note": "クライアントは通常起動。パネルは 7 つの SDK ドメインをローカルに向けるだけで、DLL は注入しません。",
     "setup.region.global": "グローバル版",
+    "setup.region.none": "未選択",
+    "setup.region.pick": "先にサーバー地域を選択してください。中国版とグローバル版では初期設定の方法がまったく異なります。",
     "setup.region.global.note": "上流の Loader 方式：MikuSB-Patch.dll を注入しローカル SOCKS5 を使用。パネルはパスと引数の入力だけ補助します。",
+    "setup.region.cn.launcher": "CN 版は公式の旧ランチャー {0} のみ対応しています。旧ランチャーのダウンロード：",
+    "setup.region.cn.download": "ダウンロード",
     "setup.path": "2 クライアントのパス",
     "setup.path.placeholder": "例 D:\\Games\\Snow、または …\\data\\game\\Game\\Binaries\\Win64\\Game.exe",
     "setup.path.check": "パスを確認",
     "setup.path.detect": "自動検出",
     "setup.path.detecting": "ディスクを走査中…",
     "setup.path.found": "{0} 件の候補",
+    "setup.check.input": "クライアントのパス",
     "setup.check.locate": "Game.exe の位置",
     "setup.check.exe": "実行ファイルの存在",
     "setup.check.name": "ファイル名が Game.exe",
@@ -1722,13 +1737,18 @@ const SETUP_STRINGS = {
     "setup.region.cn": "중국 서버(jinshan)",
     "setup.region.cn.note": "클라이언트는 직접 실행하며, 패널은 7개 SDK 도메인만 로컬로 돌립니다. DLL 주입은 없습니다.",
     "setup.region.global": "글로벌 서버",
+    "setup.region.none": "선택 안 함",
+    "setup.region.pick": "먼저 서버 지역을 선택하세요. 중국 서버와 글로벌 서버는 초기 설정 방식이 완전히 다릅니다.",
     "setup.region.global.note": "업스트림 Loader 방식: MikuSB-Patch.dll 주입 + 로컬 SOCKS5. 패널은 경로와 인자만 채워 줍니다.",
+    "setup.region.cn.launcher": "CN 서버는 공식 구버전 런처 {0} 에만 대응합니다. 구버전 런처 다운로드:",
+    "setup.region.cn.download": "다운로드",
     "setup.path": "2 클라이언트 경로",
     "setup.path.placeholder": "예: D:\\Games\\Snow 또는 …\\data\\game\\Game\\Binaries\\Win64\\Game.exe",
     "setup.path.check": "경로 확인",
     "setup.path.detect": "자동 탐지",
     "setup.path.detecting": "디스크 검색 중…",
     "setup.path.found": "후보 {0}개",
+    "setup.check.input": "클라이언트 경로",
     "setup.check.locate": "Game.exe 위치",
     "setup.check.exe": "실행 파일 존재",
     "setup.check.name": "파일 이름이 Game.exe",
@@ -1777,13 +1797,18 @@ const SETUP_STRINGS = {
     "setup.region.cn": "China (jinshan)",
     "setup.region.cn.note": "The client launches itself; the panel only points seven SDK domains at this machine, no DLL injection.",
     "setup.region.global": "Global",
+    "setup.region.none": "Not selected",
+    "setup.region.pick": "Pick a server region first: the CN and global builds are set up in completely different ways.",
     "setup.region.global.note": "Upstream loader path: inject MikuSB-Patch.dll and use the local SOCKS5 proxy. The panel just pre-fills the paths and arguments.",
+    "setup.region.cn.launcher": "The CN build only works with the old official launcher {0}. Download it here:",
+    "setup.region.cn.download": "Download",
     "setup.path": "2 Client path",
     "setup.path.placeholder": "e.g. D:\\Games\\Snow, or …\\data\\game\\Game\\Binaries\\Win64\\Game.exe",
     "setup.path.check": "Check path",
     "setup.path.detect": "Auto-detect",
     "setup.path.detecting": "Scanning drives…",
     "setup.path.found": "{0} candidate(s) found",
+    "setup.check.input": "Client path",
     "setup.check.locate": "Game.exe located",
     "setup.check.exe": "Executable exists",
     "setup.check.name": "File name is Game.exe",
@@ -1832,13 +1857,18 @@ const SETUP_STRINGS = {
     "setup.region.cn": "Chine (jinshan)",
     "setup.region.cn.note": "Le client se lance seul ; le panneau ne redirige que sept domaines SDK vers cette machine, sans injection de DLL.",
     "setup.region.global": "International",
+    "setup.region.none": "Non sélectionné",
+    "setup.region.pick": "Choisissez d’abord une région de serveur : les versions CN et internationale ne se configurent pas du tout de la même façon.",
     "setup.region.global.note": "Méthode du loader d’origine : injection de MikuSB-Patch.dll et proxy SOCKS5 local. Le panneau ne fait que pré-remplir les chemins.",
+    "setup.region.cn.launcher": "La version CN ne fonctionne qu'avec l'ancien lanceur officiel {0}. Téléchargement :",
+    "setup.region.cn.download": "Télécharger",
     "setup.path": "2 Chemin du client",
     "setup.path.placeholder": "ex. D:\\Games\\Snow, ou …\\data\\game\\Game\\Binaries\\Win64\\Game.exe",
     "setup.path.check": "Vérifier le chemin",
     "setup.path.detect": "Détection auto",
     "setup.path.detecting": "Analyse des disques…",
     "setup.path.found": "{0} candidat(s)",
+    "setup.check.input": "Chemin du client",
     "setup.check.locate": "Game.exe localisé",
     "setup.check.exe": "Exécutable présent",
     "setup.check.name": "Nom du fichier Game.exe",
@@ -1887,13 +1917,18 @@ const SETUP_STRINGS = {
     "setup.region.cn": "China (jinshan)",
     "setup.region.cn.note": "El cliente se inicia solo; el panel solo redirige siete dominios SDK a este equipo, sin inyectar DLL.",
     "setup.region.global": "Internacional",
+    "setup.region.none": "Sin seleccionar",
+    "setup.region.pick": "Primero elige la región del servidor: las versiones CN e internacional se configuran de forma totalmente distinta.",
     "setup.region.global.note": "Ruta del loader original: inyecta MikuSB-Patch.dll y usa el proxy SOCKS5 local. El panel solo rellena las rutas.",
+    "setup.region.cn.launcher": "La versión CN solo funciona con el lanzador oficial antiguo {0}. Descárgalo aquí:",
+    "setup.region.cn.download": "Descargar",
     "setup.path": "2 Ruta del cliente",
     "setup.path.placeholder": "p. ej. D:\\Games\\Snow, o …\\data\\game\\Game\\Binaries\\Win64\\Game.exe",
     "setup.path.check": "Comprobar ruta",
     "setup.path.detect": "Detección automática",
     "setup.path.detecting": "Analizando discos…",
     "setup.path.found": "{0} candidato(s)",
+    "setup.check.input": "Ruta del cliente",
     "setup.check.locate": "Game.exe localizado",
     "setup.check.exe": "El ejecutable existe",
     "setup.check.name": "El archivo es Game.exe",
@@ -1942,13 +1977,18 @@ const SETUP_STRINGS = {
     "setup.region.cn": "China (jinshan)",
     "setup.region.cn.note": "Der Client startet selbst; das Panel zeigt nur sieben SDK-Domains auf diesen Rechner, ohne DLL-Injektion.",
     "setup.region.global": "International",
+    "setup.region.none": "Nicht ausgewählt",
+    "setup.region.pick": "Wähle zuerst die Serverregion: CN- und internationale Version werden völlig unterschiedlich eingerichtet.",
     "setup.region.global.note": "Upstream-Loader: MikuSB-Patch.dll injizieren und lokalen SOCKS5 nutzen. Das Panel füllt nur Pfade und Argumente vor.",
+    "setup.region.cn.launcher": "Die CN-Version funktioniert nur mit dem alten offiziellen Launcher {0}. Download:",
+    "setup.region.cn.download": "Herunterladen",
     "setup.path": "2 Client-Pfad",
     "setup.path.placeholder": "z. B. D:\\Games\\Snow oder …\\data\\game\\Game\\Binaries\\Win64\\Game.exe",
     "setup.path.check": "Pfad prüfen",
     "setup.path.detect": "Automatisch suchen",
     "setup.path.detecting": "Laufwerke werden durchsucht…",
     "setup.path.found": "{0} Kandidat(en)",
+    "setup.check.input": "Client-Pfad",
     "setup.check.locate": "Game.exe gefunden",
     "setup.check.exe": "Programmdatei vorhanden",
     "setup.check.name": "Dateiname ist Game.exe",
@@ -1997,13 +2037,18 @@ const SETUP_STRINGS = {
     "setup.region.cn": "จีน (jinshan)",
     "setup.region.cn.note": "ไคลเอนต์เปิดเอง แผงเพียงชี้ 7 โดเมน SDK มาที่เครื่องนี้ ไม่มีการฉีด DLL",
     "setup.region.global": "สากล",
+    "setup.region.none": "ยังไม่ได้เลือก",
+    "setup.region.pick": "เลือกภูมิภาคเซิร์ฟเวอร์ก่อน: เวอร์ชัน CN และสากลมีการตั้งค่าเริ่มต้นต่างกันโดยสิ้นเชิง",
     "setup.region.global.note": "ใช้วิธี Loader เดิม: ฉีด MikuSB-Patch.dll และใช้ SOCKS5 ในเครื่อง แผงเพียงกรอกพาธและพารามิเตอร์ให้",
+    "setup.region.cn.launcher": "เวอร์ชัน CN ใช้ได้กับตัวเรียกเกมรุ่นเก่าของทางการ {0} เท่านั้น ดาวน์โหลด:",
+    "setup.region.cn.download": "ดาวน์โหลด",
     "setup.path": "2 ที่อยู่ไคลเอนต์",
     "setup.path.placeholder": "เช่น D:\\Games\\Snow หรือ …\\data\\game\\Game\\Binaries\\Win64\\Game.exe",
     "setup.path.check": "ตรวจสอบพาธ",
     "setup.path.detect": "ค้นหาอัตโนมัติ",
     "setup.path.detecting": "กำลังสแกนดิสก์…",
     "setup.path.found": "พบ {0} รายการ",
+    "setup.check.input": "เส้นทางไคลเอนต์",
     "setup.check.locate": "พบ Game.exe",
     "setup.check.exe": "มีไฟล์โปรแกรม",
     "setup.check.name": "ชื่อไฟล์คือ Game.exe",
@@ -2052,13 +2097,18 @@ const SETUP_STRINGS = {
     "setup.region.cn": "Tiongkok (jinshan)",
     "setup.region.cn.note": "Klien dijalankan sendiri; panel hanya mengarahkan tujuh domain SDK ke mesin ini, tanpa menyuntikkan DLL.",
     "setup.region.global": "Internasional",
+    "setup.region.none": "Belum dipilih",
+    "setup.region.pick": "Pilih wilayah server dulu: versi CN dan internasional disiapkan dengan cara yang sangat berbeda.",
     "setup.region.global.note": "Cara loader asli: suntik MikuSB-Patch.dll dan pakai SOCKS5 lokal. Panel hanya mengisikan lokasi dan argumen.",
+    "setup.region.cn.launcher": "Versi CN hanya cocok dengan launcher resmi versi lama {0}. Unduh di sini:",
+    "setup.region.cn.download": "Unduh",
     "setup.path": "2 Lokasi klien",
     "setup.path.placeholder": "mis. D:\\Games\\Snow, atau …\\data\\game\\Game\\Binaries\\Win64\\Game.exe",
     "setup.path.check": "Periksa lokasi",
     "setup.path.detect": "Deteksi otomatis",
     "setup.path.detecting": "Memindai drive…",
     "setup.path.found": "{0} kandidat ditemukan",
+    "setup.check.input": "Jalur klien",
     "setup.check.locate": "Game.exe ditemukan",
     "setup.check.exe": "Berkas program ada",
     "setup.check.name": "Nama berkas Game.exe",
@@ -2972,6 +3022,7 @@ function setupChecks(probe) {
 }
 
 function setupRegionLabel(id) {
+  if (!id) return t('setup.region.none');
   return id === 'cn' ? t('setup.region.cn') : t('setup.region.global');
 }
 
@@ -2979,7 +3030,9 @@ async function renderSetup() {
   const data = await api('/setup');
   setActiveTab('setup');
   state.setupData = data;
-  if (!state.setupRegion) state.setupRegion = data.region || 'global';
+  // No 'global' fallback: a config the wizard has never written describes no region at all, and silently
+  // preselecting the international build is what made a fresh install look like a deliberate global setup.
+  if (!state.setupRegion) state.setupRegion = data.region || null;
 
   const addresses = (data.addresses && data.addresses.length ? data.addresses : ['127.0.0.1']).slice();
   // The configured address is not necessarily one of the host's own NICs (it can be a public IP the
@@ -2994,11 +3047,23 @@ async function renderSetup() {
   const probe = data.probe || { valid: false, checks: [] };
   const region = state.setupRegion;
   const hosts = data.hosts || { entries: [], managed: false };
+  // The CN route is only tested against the old official launcher, so the wizard says so and links the
+  // exact build instead of leaving people to hunt for it.
+  const cnRegion = (data.regions || []).find((item) => item.id === 'cn');
+  const cnLauncher =
+    cnRegion && cnRegion.launcher_url
+      ? '<p class="note setup-launcher">' +
+        esc(t('setup.region.cn.launcher', cnRegion.launcher_version || '')) +
+        ' <a href="' + esc(cnRegion.launcher_url) + '" target="_blank" rel="noreferrer noopener">' +
+        esc(t('setup.region.cn.download')) +
+        '</a></p>'
+      : '';
 
   view.innerHTML = `
     <h2>${esc(t('setup.title'))}</h2>
     <p class="note">${esc(t('setup.lead'))}</p>
     ${probe.valid ? '' : '<div class="callout warn">' + esc(t('setup.pending')) + '</div>'}
+    ${region ? '' : '<div class="callout warn">' + esc(t('setup.region.pick')) + '</div>'}
 
     <h3 class="section">${esc(t('setup.region'))}</h3>
     <div class="region-row">
@@ -3013,6 +3078,7 @@ async function renderSetup() {
         )
         .join('')}
     </div>
+    ${cnLauncher}
 
     <h3 class="section">${esc(t('setup.path'))}</h3>
     <div class="setup-row">
@@ -3037,7 +3103,7 @@ async function renderSetup() {
     </div>
 
     <div class="setup-row end">
-      <button id="setup-apply" class="primary">${esc(t('setup.apply'))}</button>
+      <button id="setup-apply" class="primary"${region ? '' : ' disabled'}>${esc(t('setup.apply'))}</button>
       <span id="setup-next" class="note"></span>
     </div>
 
@@ -3146,6 +3212,12 @@ async function renderSetup() {
 
   const applyButton = document.getElementById('setup-apply');
   applyButton.addEventListener('click', async () => {
+    // The server rejects an apply without a region (it cannot pick one for the operator), so say it here
+    // rather than letting the button come back with a 400.
+    if (!state.setupRegion) {
+      toast(t('setup.region.pick'), true);
+      return;
+    }
     // An empty box used to go straight to the server and come back as a bare "HTTP 400"; say what is
     // missing instead.
     if (!pathInput.value.trim()) {
@@ -3368,11 +3440,13 @@ window.addEventListener('hashchange', route);
   maybeShowNotice();
   refreshStatus();
   // Nothing configured yet means this is a fresh install: land on the wizard, not an empty overview.
+  // "Configured" is a region plus a client that passes the probe; a stale region left over from an older
+  // install still sends the operator back to the wizard.
   try {
     const setup = await api('/setup');
-    if (!setup.probe || !setup.probe.valid) {
+    if (!setup.configured) {
       if (!location.hash) location.hash = '#/setup';
-      state.setupRegion = setup.region || 'global';
+      state.setupRegion = setup.region || null;
     }
   } catch (error) {
     // A failing probe must not block the panel; the operator can still open Setup manually.

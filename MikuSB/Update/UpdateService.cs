@@ -529,6 +529,12 @@ public static class UpdateService
                     hasNext ? "Server.ServerInfo.DownloadSourceFailed" : "Server.ServerInfo.DownloadSourceFailedAll",
                     host, message));
             },
+            OnSlowSource = (host, bytes, total, speed) =>
+            {
+                // The floor GitHubApi enforces is WindowBytes per WindowSeconds, i.e. 100 KB/s by default.
+                Logger.Warn(I18NManager.Translate("Server.ServerInfo.SlowSourceFallback",
+                    FormatSpeed(1024 * 1024 / 10d), host, FormatSize(bytes), "10", FormatSpeed(speed)));
+            },
             OnSucceeded = (host, isMirror) =>
             {
                 if (isMirror)

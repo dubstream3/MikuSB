@@ -73,7 +73,8 @@ public static class HostsFileService
     {
         get
         {
-            if (!IsSupported)
+            // Direct OS check (not IsSupported): CA1416 only understands guards it can see.
+            if (!OperatingSystem.IsWindows())
                 return false;
 
             try

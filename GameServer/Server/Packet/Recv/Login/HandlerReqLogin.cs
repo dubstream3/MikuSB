@@ -586,11 +586,12 @@ public class HandlerReqLogin : Handler
     /// DonoDuelArenaWindows, SupplyShop) already ran for this session and re-sending them only costs
     /// the client a large download.
     ///
-    /// The three that do depend on the era are the ones that either bake the activation floor into the
-    /// payload (GlobalTimeWindows, GachaTryWindows - both must be able to run a second time for a new
-    /// era, see their era guards) or read the *current* DLC row at execution time (DlcShopWindows walks
-    /// DLC_Logic.GetCurConf().tbShopId). DlcMissionBoard is cheap and rebuilds the mission board windows
-    /// from the shipped table, so it rides along to keep the board in step with the new era.
+    /// The ones that do depend on the era are the ones that either bake the activation floor into the
+    /// payload (GlobalTimeWindows, GachaTryWindows, GachaPoolWindows - all three must be able to run a
+    /// second time for a new era, see their era guards) or read the *current* DLC row at execution time
+    /// (DlcShopWindows walks DLC_Logic.GetCurConf().tbShopId). DlcMissionBoard is cheap and rebuilds the
+    /// mission board windows from the shipped table, so it rides along to keep the board in step with the
+    /// new era.
     /// </summary>
     internal static async Task PushDlcEraPatches(Connection connection)
     {
@@ -608,6 +609,15 @@ public class HandlerReqLogin : Handler
         // so the keys of the NEW era row (DlcFuncConfId) need their tables re-stamped as soon as the era
         // changes, not only at login. The patch reads the era row itself, so there is nothing to bake in.
         await SendClientPatch(connection, nameof(DlcClientPatches.DlcFuncWindowFix), DlcClientPatches.DlcFuncWindowFix);
+
+        // 抽卡池: the one era-bound patch that has to run even when the era has no 先行试用 rows, so it
+        // sits above the early return below. The payload recomputes the whole banner roster from the
+        // client's own shipped windows, so re-sending it is what drops the previous era's banners and
+        // opens the new era's in the running session.
+        await SendClientPatch(
+            connection,
+            nameof(DlcClientPatches.GachaPoolWindows),
+            DlcClientPatches.GachaPoolWindowsFor(floor, DlcRuntimeOverrides.ActivationEraEnd(), era));
         // Before DLC 35 the era main screens (Dlc1Main..Dlc34Main) compare their button windows themselves
         // instead of going through DlcFuncBase/IsInTime, so a pinned DLC 6/7 still answers 已结束 on
         // every entry - see DlcLegacyMainWindows. Era-independent (it only rewrites windows that already
@@ -741,6 +751,21 @@ public class HandlerReqLogin : Handler
                     DlcRuntimeOverrides.ActivationFloor(),
                     DlcRuntimeOverrides.EffectiveDlcId));
         }
+
+        // 抽卡池: independent of 先行试用, so it is pushed outside that block. The banner roster is client
+        // data (gacha/gacha.txt) that no s2c time table reaches, and /dlc has never touched it - on a 2026
+        // clock only the three permanent banners are open, for every era, while GlobalTimeWindows piles
+        // every later era's banners on top. The payload therefore rewrites tbPoolTime itself: banners
+        // whose shipped window overlaps [floor, era end) get a live window, everything else is closed.
+        // At login time the client's Preload has not required Gacha.Gacha yet, so the payload defers
+        // itself through the global require and fires as soon as the module lands.
+        await SendClientPatch(
+            connection,
+            nameof(DlcClientPatches.GachaPoolWindows),
+            DlcClientPatches.GachaPoolWindowsFor(
+                DlcRuntimeOverrides.ActivationFloor(),
+                DlcRuntimeOverrides.ActivationEraEnd(),
+                DlcRuntimeOverrides.EffectiveDlcId));
 
         // 决战哈姆 / 冲关啦: BP_WPZBugRunMgr.lua:11-23 gates the mode's whole client preload block
         // behind "if not self:HasAuthority()", which is always false in this standalone-hosted world, so

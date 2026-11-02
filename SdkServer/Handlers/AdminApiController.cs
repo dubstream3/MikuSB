@@ -361,9 +361,11 @@ public class AdminApiController : ControllerBase
     {
         var config = ConfigManager.Config;
         var probe = SetupService.Probe(config.Loader.GamePath);
+        var region = SetupService.ResolveRegion(config.Loader.Region, config.Loader.Arguments);
         return Ok(new
         {
-            region = SetupService.ResolveRegion(config.Loader.Region, config.Loader.Arguments),
+            region,
+            configured = SetupService.IsConfigured(region, config.Loader.GamePath) && probe.Valid,
             game_path = config.Loader.GamePath,
             install_path = config.Loader.InstallPath.Length > 0 ? config.Loader.InstallPath : probe.Install,
             user_dir = config.Loader.UserDir.Length > 0 ? config.Loader.UserDir : probe.UserDir,
@@ -391,13 +393,11 @@ public class AdminApiController : ControllerBase
     public IActionResult SetupProbe([FromBody] SetupProbeRequest request)
     {
         var probe = SetupService.Probe(request?.Path);
-        return Ok(new
-        {
-            probe,
-            suggested_arguments = SetupService.BuildArguments(
-                SetupService.NormalizeRegion(request?.Region),
-                probe.UserDir)
-        });
+        // No region picked yet means there is nothing to suggest: falling back to the global arguments here is
+        // what made an untouched config look like a deliberate global install.
+        var region = SetupService.NormalizeRegionOrNull(request?.Region);
+        string[]? suggested = region == null ? null : SetupService.BuildArguments(region, probe.UserDir);
+        return Ok(new { probe, suggested_arguments = suggested });
     }
 
     /// <summary>Look for an installed client on the fixed drives (one folder level per drive).</summary>
@@ -417,7 +417,14 @@ public class AdminApiController : ControllerBase
             return BadRequest(new { code = "invalid_path", message = "客户端路径未通过检查", probe });
         }
 
-        var region = SetupService.NormalizeRegion(request?.Region);
+        // The region decides the channel argument and whether hosts get rewritten, so it has to be an explicit
+        // answer from the operator rather than a default we invent here.
+        var region = SetupService.NormalizeRegionOrNull(request?.Region);
+        if (region == null)
+        {
+            return BadRequest(new { code = "region_required", message = "先选择服务器区域（国服或国际服）", probe });
+        }
+
         var config = ConfigManager.Config;
 
         config.Loader.Region = region;

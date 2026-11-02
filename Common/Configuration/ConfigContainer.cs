@@ -239,7 +239,13 @@ public class LoaderOptions
     public bool EnableInGameConsole { get; set; } = true;
     public bool AutoUpdateInGameConsole { get; set; } = true;
     public string InGameConsoleLoaderPath { get; set; } = @"Patch\MikuSB-InGame-GUI-Console.Loader.dll";
-    public string[] Arguments { get; set; } = ["-FeatureLevelES31", "-channelid=seasun", "-NoSplash"];
+    /// <summary>
+    ///     Launch arguments handed to the client. Deliberately free of channel arguments: a fresh install does not
+    ///     know which channel the operator wants, and baking <c>-channelid=seasun</c> in here made an unconfigured
+    ///     server indistinguishable from one that had been set up for the global build. The setup wizard writes the
+    ///     channel argument together with the region.
+    /// </summary>
+    public string[] Arguments { get; set; } = ["-FeatureLevelES31"];
     public bool SetAllProxy { get; set; } = true;
 
     /// <summary>

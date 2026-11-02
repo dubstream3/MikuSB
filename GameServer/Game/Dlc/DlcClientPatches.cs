@@ -856,6 +856,16 @@ public static class DlcClientPatches
     /// 2026-04-09..04-23) all read as closed. The tables are plain globals the client rebuilds inside
     /// FunTimed.Load (:282-336, called at file scope on :337), which is why the wrapper re-stamps after
     /// every reload instead of editing the CSV once.
+    ///
+    /// FORMAT MATTERS: tbOpenTime / tbTimeLimit are raw CSV literals, not unix stamps. Every consumer
+    /// runs them through ParseTime (Misc/Lib.lua:451) which slices the digits by position
+    /// (year=1-4, month=5-6, day=7-8, hour=9-10, min=11-12) and then calls os.time. Writing a ten digit
+    /// unix stamp such as 1792774822 makes ParseTime build year=1792 / month=77 / day=48, mktime
+    /// returns -1 and Lua raises "time result cannot be represented in this installation"
+    /// (ZoneTime.lua:120). That error escapes DlcFuncBase.CheckIsUnlock (:49) and the DLC main UI
+    /// button loop (umg_dlc_common_main.lua:76), so every button rendered after Sevendays keeps a nil
+    /// FunClick and swallows its clicks silently. os.date("%Y%m%d%H%M", t) is the inverse of ParseTime
+    /// (ZoneTime's os.date/os.time wrappers cancel the server-time gap), so stamp with that.
     /// </summary>
     public const string FunTimedWindows = """
         local now = GetTime() local off1 = 3600 local off2 = -2592000
@@ -1443,6 +1453,126 @@ public static class DlcClientPatches
             .Replace(ActivationEraToken, eraId.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
 
     /// <summary>
+    /// 抽卡池 - the one thing <c>/dlc</c> never touched. The roster is client data: Gacha.lua:877-979
+    /// LoadCfg reads gacha/gacha.txt and stamps tbPoolTime from its PoolTime column (:908), and
+    /// umg_gacha.lua:301 plus Gacha.lua:218/235 keep only the banners whose own window is active - so on
+    /// a 2026 clock the page shows the three permanent banners (1/2/3, 2021..2030) whatever era is
+    /// pinned, and GlobalTimeWindows only re-opens the windows that ended at or after the floor (47 of
+    /// 192 for era 35, i.e. every later era piled on top).
+    ///
+    /// The era roster has to be decided from the client's own shipment, not from the server:
+    /// Resources/gacha/gacha.json does not share this timeline (it squashes whole seasons into
+    /// 2026-04-02..2026-04-09 style windows - measured 2026-10-28, era 35 intersects 3 of its 192 rows
+    /// and all three are the permanent ones, while the client's own table holds the 24 banners that
+    /// actually ran inside era 35). A banner belongs to the pinned era when its window overlaps
+    /// [floor, era stop): it started before the era ended and it ends strictly after the era began.
+    /// Both bounds are strict on purpose - the batch that closed exactly at the floor is the previous
+    /// era's.
+    ///
+    /// Members are stamped now-1h .. now+30d, because GlobalTimeWindows only re-opens windows that have
+    /// already ended and never a future one; every other banner gets tbPoolTime = nil, which
+    /// Gacha:IsInTime (Gacha.lua:754-757) reads as "not open". The shipped pairs are snapshotted before
+    /// the first rewrite and restored when the pin goes away (floor 0) or Gacha.LoadCfg rebuilds the
+    /// table on a relogin, so the patch is idempotent and reversible.
+    ///
+    /// Ordering: the login push happens before Preload.lua:75 requires Gacha.Gacha, so the payload runs
+    /// immediately when the module is in and otherwise wraps the global require - Preload resolves it on
+    /// every call - to retry on the next one. No s2c round trip is involved: the era is baked in (floor,
+    /// era stop, era id) and the guard carries all three, so a runtime switch recomputes.
+    ///
+    /// Containment: the require hook runs this pass inside another module's load, so the entry point is
+    /// pcall-guarded and each row parses its window through pcall too - a broken PoolTime cell drops that
+    /// banner instead of raising through require, which would abort the rest of the client bootstrap.
+    /// </summary>
+    public const string GachaPoolWindows = """
+        local function gpools()
+        if not Gacha or not Gacha.tbGacha then return false end
+        local floor = MIKU_ACT_FLOOR
+        local stop = MIKU_ACT_STOPAT
+        local era = MIKU_ACT_ERA
+        if MikuPoolFloor == floor and MikuPoolEra == era and MikuPoolStop == stop then return true end
+        if not MikuPoolRaw then
+        MikuPoolRaw = {}
+        for id, info in pairs(Gacha.tbGacha) do
+        local w = info.tbPoolTime
+        if w and w[1] and w[2] then MikuPoolRaw[id] = { w[1], w[2] } end
+        end
+        end
+        local now = GetTime() local off1 = 3600 local off2 = -2592000
+        local lo = os.date([[%Y%m%d%H%M]], now - off1)
+        local hi = os.date([[%Y%m%d%H%M]], now - off2)
+        local stopon = stop and stop ~= 0
+        for id, info in pairs(Gacha.tbGacha) do
+        local w = MikuPoolRaw[id]
+        local keep = false
+        if floor == 0 then
+        keep = true
+        elseif w then
+        local okp, s = pcall(ParseTime, w[1])
+        local okq, e = false, nil
+        if okp then okq, e = pcall(ParseTime, w[2]) end
+        if okp and okq and s and e and math.max(e, floor) == e and e ~= floor then
+        if stopon then keep = math.min(s, stop) == s and s ~= stop else keep = true end
+        end
+        end
+        if floor == 0 then
+        info.tbPoolTime = w and { w[1], w[2] } or nil
+        elseif keep then
+        info.tbPoolTime = { lo, hi }
+        else
+        info.tbPoolTime = nil
+        end
+        end
+        MikuPoolFloor = floor
+        MikuPoolEra = era
+        MikuPoolStop = stop
+        if not MikuPoolHooked then
+        MikuPoolHooked = true
+        if Gacha.LoadCfg then
+        local oldload = Gacha.LoadCfg
+        Gacha.LoadCfg = function(...)
+        MikuPoolFloor = nil
+        local r = oldload(...)
+        if MikuPoolApply then MikuPoolApply() end
+        return r
+        end
+        end
+        end
+        return true
+        end
+        MikuPoolApply = function()
+        local ok, r = pcall(gpools)
+        return ok and r
+        end
+        if not MikuPoolApply() then
+        if not MikuPoolHook then
+        MikuPoolHook = true
+        local rawreq = require
+        require = function(sName)
+        local r = rawreq(sName)
+        if MikuPoolApply and MikuPoolApply() then require = rawreq end
+        return r
+        end
+        end
+        end
+        """;
+
+    /// <summary>Replaced by the pinned era's end (unix seconds) in <see cref="GachaPoolWindowsFor"/>.</summary>
+    public const string GachaStopToken = "MIKU_ACT_STOPAT";
+
+    /// <summary>
+    /// Binds the pinned era into <see cref="GachaPoolWindows"/>: the floor is the era's beginning and
+    /// the stop its end (DlcRuntimeOverrides.ActivationEraEnd), both unix seconds and 0 when no era is
+    /// pinned. The era id makes a runtime switch recompute for the same reason it does in
+    /// GachaTryWindows - the previous era has already rewritten tbPoolTime in the running session.
+    /// </summary>
+    public static string GachaPoolWindowsFor(long floor, long eraStop, uint eraId = 0) =>
+        GachaPoolWindows
+            .Replace(GachaTryFloorToken, floor.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+            .Replace(GachaStopToken, eraStop.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+            .Replace(ActivationEraToken, eraId.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
+
+    /// <summary>
     /// Error isolation for the Lua event bus. Misc/EventSystem.lua dispatches every listener of an
     /// event in a bare loop with no pcall and no per-listener guard:
     ///
@@ -1460,6 +1590,8 @@ public static class DlcClientPatches
     ///
     /// The patch replaces both dispatchers with pcall-per-listener copies that keep the original
     /// semantics (bOnce removal, the Logined -&gt; ZoneTime.DoLogin() priority, TriggerTarget's
+    /// false/true result) and only add MIKU_EVT_ERR logging. Verified live through /lua first
+    /// (.temp/evtfix.lua printed MIKU_EVT_PATCHED and the game kept running).
     /// </summary>
     public const string EventSystemGuard = """
         if not MikuEvtSafe then
@@ -1605,6 +1737,7 @@ public static class DlcClientPatches
     ///     longer abort BP_WP_Item.PlayerCollision_MultiCast and ItemMgr:FreeItem(self) still runs.
     /// The scan runs from the PartyGo_ level hook every 2s for 400s (a match is 300s) instead of
     /// stopping at the first hit, because the module is only required when the item point blueprint
+    /// is first created. MIKU_ITEM_TBL/MIKU_ITEM_INST/MIKU_ITEM_SR_ERR lines report what was found.
     /// </summary>
     public const string ZBugItemFix = """
         if not MikuItemFix then
@@ -1715,6 +1848,7 @@ public static class DlcClientPatches
     /// monster scaling is fed a zero strength level.
     ///
     /// Evidence (live listen match on 2026-10-07 03:22, A = uid 4 host, B = uid 5 guest joined):
+    ///   MIKU_DBG gm alloc=true realmax=0 maxp=3 single=false pvp=nil state=4 str=nil cd=70
     /// i.e. gameMode.isAllocWeapon is already true (WPSGameModeWaterPark001.lua:1133-1165
     /// ZBugChallengePreReadyCDOver did run) but RealMaxPlayerCount - the value that same function
     /// passes to ZBugMgr:SetMonsterStrengthLevel(self.RealMaxPlayerCount) - is still 0, while the
@@ -1731,6 +1865,7 @@ public static class DlcClientPatches
     /// .RealMaxPlayerCount, so the value is correct before the 7s pre-ready countdown
     /// (WPSWaterPark001.lua:219-221 sets GamePreReadyCD_ZBugRun = 7) ends. If the property turns out
     /// not to be writable from Lua, the same tick calls ZBugMgr:SetMonsterStrengthLevel(n) directly
+    /// once the state reaches Progress(4). MIKU_HOST lines report both the write and the fallback.
     /// </summary>
     public const string ZBugHostFix = """
         if not MikuHostFixV2 then
@@ -1860,6 +1995,7 @@ public static class DlcClientPatches
     /// InitZBugChar() on the ones that are authoritative, locally controlled (the host's own pawn -
     /// BP_WPCharacter.lua:126 uses the same predicate) and not monsters, in ZBugChallenge levels only.
     /// Each pawn is initialised at most once (MikuCharDone), and the sweep starts at level load, well
+    /// before the 7s pre-ready countdown ends. MIKU_CHAR lines report every initialisation.
     /// </summary>
     public const string ZBugCharFix = """
         if not MikuCharFixV2 then
@@ -1975,6 +2111,7 @@ public static class DlcClientPatches
     /// during a live sortie, so the ready packet did not travel through that wrapper (or the wrapper
     /// ran with a different flag value). This version is defensive on three fronts:
     ///   1. it wraps Online.UpdatePlayerState, Online.ReadyRoom and Online.CraeteRoom, and each wrapper
+    ///      prints "MIKU_TEAMFIX call &lt;name&gt; &lt;arg&gt;" so the log shows which Lua entry point the
     ///      sortie actually used (uw_formation_online.lua:636/643 goes through ReadyRoom);
     ///   2. every wrapper pushes the lineup through UE4.UUMGLibrary.SetTeamCharacters before calling
     ///      the original, so the native team array is filled on room creation and on ready alike;
@@ -1983,6 +2120,7 @@ public static class DlcClientPatches
     ///      send ReqOnlineRoomStart(305) on its own).
     /// Online is a startup global (Preload.lua:102) but the hook still retries for 300s in case the
     /// patch lands before the module is required. All pushes are pcall-guarded and print either
+    /// "MIKU_TEAMFIX pushed/no lineup/err" so a single log grep tells whether the team ever reached
     /// the engine.
     ///
     /// UnLua note: a function value cannot carry fields - marking the wrapper with
@@ -2117,6 +2255,8 @@ public static class DlcClientPatches
     /// guard is safe here (unlike the OnlineTeamFix wrappers), and the 5s tick re-hooks the wrapper
     /// after a script reload.
     ///
+    /// Evidence lines: MIKU_MAPFIX run v1 / MIKU_MAPFIX hooked / MIKU_MAPFIX reenter &lt;stale&gt; to
+    /// &lt;want&gt; / MIKU_MAPFIX reopen &lt;want&gt; / MIKU_MAPFIX rehooked.
     /// </summary>
     public const string OnlineMapFix = """
         if MikuOnlineMapFixVer ~= 1 then
@@ -2209,6 +2349,9 @@ public static class DlcClientPatches
     /// manager is missing), so no server payload is needed; its 退出 button calls Launch.End(), which is
     /// what actually returns the player to the lobby once OnlineMapFix has repaired the map id.
     ///
+    /// The 5s tick re-applies the hook after a script reload. Evidence lines: MIKU_SETTLEFIX run v1 /
+    /// MIKU_SETTLEFIX hooked / MIKU_SETTLEFIX onSettlement &lt;result&gt; / &lt;time&gt; / &lt;reason&gt; /
+    /// MIKU_SETTLEFIX open &lt;ui&gt;.
     /// </summary>
     public const string OnlineSettleFix = """
         if MikuOnlineSettleFixVer ~= 1 then
@@ -2272,6 +2415,8 @@ public static class DlcClientPatches
     /// UE4.UKismetSystemLibrary.IsStandalone/IsServer/IsDedicatedServer DIRECTLY and are NOT covered
     /// by this wrapper.
     ///
+    /// Evidence lines: MIKU_SA run v1 / MIKU_SA wrapped / MIKU_SA stat n=&lt;flips&gt; every 15s /
+    /// MIKU_SA pawn=... bar=... fin=... at 5s after a PartyGo_ load.
     /// </summary>
     public const string ZBugStandaloneFix = """
         if MikuStandaloneFixVer ~= 1 then
@@ -2358,6 +2503,7 @@ public static class DlcClientPatches
     ///    by construction.
     ///
     /// Measured symptom that matches: the host probe reports
+    /// "MIKU_HOST reload ok=true err=nil bar=0" with wp.BulletNum stuck at 0, and the earlier
     /// 2026-10-07 probe found that granting bullets to the host directly made it shoot again.
     ///
     /// The patch replays, on the listen host only, the exact calls the client makes: one
@@ -2366,6 +2512,7 @@ public static class DlcClientPatches
     /// fix costs the host a single StopAttack/ForceFinishReload hiccup at match start. Standalone
     /// worlds, pure guests and real dedicated servers are all no-ops.
     ///
+    /// Evidence lines: MIKU_HI run v2 / boot ok / found bar= fin= / onrep ok= / after1 / after2 /
     /// chk n= ok= r= bar= fin= / ok1 ok2 ok3 / done / nomgr / err.
     ///
     /// v1 shipped at 10:16 and immediately exposed two probe bugs, both fixed in v2:
@@ -2380,14 +2527,18 @@ public static class DlcClientPatches
     /// drives its own chain through a fresh name, MikuHIV2Tick.
     ///
     /// v3 result (2026-10-08 10:43:42, the first listen match with a guest in the room): the single
+    /// OnRep_PlayerWeapon call DID land - "MIKU_HI found bar=0 fin=true" then "MIKU_HI after1
+    /// bar=45 fin=true" / "MIKU_HI ok1", i.e. the host weapon went from 0 rounds to a full magazine
     /// for the first time on a listen host, and UWaterParkQAnimIns stopped reporting isInitFinish? 0
     /// for the local player. But v3 stopped watching after that ("done"), so it cannot tell a
     /// working weapon from one that merely has ammo, and it cannot tell whether the state decays.
     ///
     /// v4 therefore never finishes: it samples once a second for the whole match and prints a
+    /// MIKU_HI4 state line on every change of BulletNum/isClientInitFinish. A decreasing BulletNum
     /// is the direct proof that the host can actually fire, which no earlier probe could show.
     /// It also self-heals: three consecutive seconds at BulletNum == 0 (never one, so a normal
     /// reload is left alone - OnRep_PlayerWeapon calls StopAttack and ForceFinishReload) triggers
+    /// another OnRep_PlayerWeapon and logs MIKU_HI4 refix.
     ///
     /// v5 (the actual root cause, found on 2026-10-08 with the live /lua channel): every block that
     /// initialises the local player and refreshes its UI sits behind
@@ -3111,6 +3262,7 @@ public static class DlcClientPatches
     /// v9 keeps the whole stage host-only, restores the real WorldIIsStandalone value on non-host
     /// clients, and paces the buff prompt to one attempt every 8s with a cap of six per pawn, each one
     /// followed by a state read so the log shows whether the list actually took
+    /// (MIKU_H9 buffstate csl= vis=).
     ///
     /// Crash note (2026-10-08 21:21:42, minidump 2832258d-9b60-4847-8d0e-e8ad564b8859): the dump's
     /// Game.log ends in DXGI_ERROR_DEVICE_REMOVED on RenderThread 1
@@ -3508,6 +3660,7 @@ public static class DlcClientPatches
 
     /// <summary>
     /// Host-only, v11. Root cause of "host cannot pick buffs", found by v10's own instrumentation:
+    /// the log printed "MIKU_HB prompt bf=3 try=1 cilc=false ok=true e=nil" - i.e. calling
     /// c:OnRep_CacheLevelUpBuffs() raised no error but returned immediately, because its gate is
     /// "if self:CheckIsLocallyControlled() and self.CacheLevelUpBuffs:Num() > 0 then". The host's own
     /// pawn reported CheckIsLocallyControlled() == false.
@@ -4073,6 +4226,7 @@ public static class DlcClientPatches
     ///   4. HP / SkillPower / ammunition HUD feeds move to the same 0.1s timer, which also fixes the
     ///      chunky skill bar drain that v12's 2s sampling introduced.
     ///
+    /// Success is verifiable from the log alone: MIKU_FX shot ok=true plus the server side
     /// Server_ShootEntityBullet line, then monster damage and ChallengeScore starting to move.
     /// </summary>
     public const string ZBugHostFireFix = """
@@ -4255,6 +4409,7 @@ public static class DlcClientPatches
     /// PreloadOtherAsset(), once per ZBugRunMgr instance (i.e. once per level), and then a single
     /// sweep that calls InitZBugWeaponAsset() / InitZBugRunInfo() on every character and monster anim
     /// instance so the already-spawned actors pick the assets up. Every call prints its result
+    /// (MIKU_A preload ok=.. / MIKU_A anim <name> weap=.. info=..), so the next log shows both whether
     /// the calls are accepted and whether the NoResPath / isInitFinish? 0 rate collapses.
     /// Monsters only get the animation entry points here - never InitZBugChar(), which is the gameplay
     /// init whose earlier repeated invocation made both machines damage-immune.
@@ -4370,6 +4525,7 @@ public static class DlcClientPatches
     /// ZBugHostClarityFix v15 - three independent, low-risk items found while chasing the host's
     /// remaining visual symptoms.
     ///
+    /// 1) MIKU_CB (diagnostic, read only). The game's own CheckIsLocallyControlled() is the function
     ///    whose value started this whole saga, and 034 measured it returning false for the listen
     ///    host's own pawn while engine IsLocallyControlled() said true. The suspicion now is that it
     ///    is inverted in the other direction too: on the host it may return true for monsters and for
@@ -4377,19 +4533,24 @@ public static class DlcClientPatches
     ///    Once per character per level this prints name / class / engine value / original UFunction
     ///    value / hooked value / whether it is the local pawn, so the next log settles it.
     ///
+    /// 2) MIKU_DM. LuaImpl_DamageOther (BP_WPCharacter.lua:2869-2881) is what feeds the local hit
     ///    marker, the damage number and the red enemy HP bar over the victim - gated on
     ///    "launchPawn:CheckIsLocallyControlled()", i.e. on the suspicious function above. If that
     ///    function is true for monsters on the host, every monster hit on the guest lights up the
     ///    host's own crosshair and paints the guest with the enemy bar, which is exactly what the
     ///    host reported. The wrapper only forwards to the original when the launcher really is the
+    ///    engine-local pawn (lp:IsLocallyControlled()), and logs the suppressions as MIKU_DM skip.
     ///
+    /// 3) MIKU_RB. LuaImpl_ZBugStartReborn (BP_WPCharacter.lua:2999-3004) hides self.Mesh and the
     ///    weapon's SkeletalMesh for every mode, but only the ZBugRun branch of the reborn flow ever
     ///    restores them (BP_WPCharacter.lua:784-795, a 1.2s timer inside ReStart_MultCast). The
     ///    ZBugChallenge branch of LuaImpl_ZBugRebornFinish (BP_WPCharacter.lua:2973-2995) never
     ///    restores visibility, so a reborn character stays invisible - the vanished model the host
+    ///    reported. The wrapper calls the original, then restores the meshes and logs MIKU_RB show;
     ///    a 2s poll does the same for any character whose IsReborningFinish flips true without the
     ///    hook being routed to Lua.
     ///
+    /// Also read only: MIKU_SP prints the local pawn's BaseMaxMoveSpeed / movement GetMaxSpeed() /
     /// ExMaxMoveSpeed whenever BaseMaxMoveSpeed changes, so a stuck speed modifier shows up in the
     /// log rather than only in the user's description.
     /// Guard variable MikuCBVer is new.
@@ -4595,6 +4756,9 @@ public static class DlcClientPatches
     ///     or the game state changes, then keeps the values flowing.
     ///
     /// (b) v13's fire injection never fired a single shot. EventSystem allows any number of handlers,
+    ///     so the FIRST v13 handler (whose print was the bare "MIKU_FX fire=") is still registered and
+    ///     resets MikuFXFire right after the fixed handler sets it. Log proof: "MIKU_FX key5 p=1
+    ///     fire=true" immediately followed by "MIKU_FX fire=false" on the same frame, every heartbeat
     ///     "shots=0 bar=45". This patch uses its own MikuCVDown variable that no old handler writes,
     ///     plus a dedicated 0.1s fire pump that calls TryAttack / CacheFireInput / Server_ShootEntityBullet.
     ///
@@ -4602,6 +4766,7 @@ public static class DlcClientPatches
     ///     IsLocallyControlled() was true - which on a listen server is true for AI monsters (and for
     ///     the host's own player controller). That made monsters take the local-player branches on the
     ///     host, which is what painted the red enemy bar and the hit marker over the guest. Proof:
+    ///     "MIKU_DM skip ... lch=BP_WPMon810_q_Challenge_*" - monster launchers passed the old gate.
     ///     The new wrapper is identity based (local PC / player state / pawn / owner) and otherwise
     ///     returns the game's own value unchanged.
     ///
@@ -4986,6 +5151,7 @@ public static class DlcClientPatches
         /// at 0 for every hold. Proven live with /lua: `CVM loc ok=false e=...attempt to call a
         /// nil value (method GetActorLocation)` versus `CVM k2 ok=true e=X=1028.039 Y=1756.039
         /// Z=551.118`, and after repointing the global on the fly the first real call went
+        /// through: `MIKU_CV shot n=1 ok=true e=nil`.
         /// This patch redefines MikuCVMuzzle/MikuCVAim (K2_GetActorLocation, plus the weapon
         /// muzzle socket when it resolves) and repoints the globals ZBugHostCoreFix looks up at
         /// call time, so the already deployed pump starts shooting for real. It also adds a

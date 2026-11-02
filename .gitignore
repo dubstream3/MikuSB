@@ -381,3 +381,9 @@ FodyWeavers.xsd
 [Oo]bj/
 /build/
 /artifacts/
+
+# Runtime-generated admin panel bits and config backups (never commit)
+/Config/admin-token.txt
+/Config/admin-panel.url
+/Config/Config.json.bak-*
+/.temp_*
