@@ -102,8 +102,9 @@ public class PlayerInstance(PlayerGameData data)
     /// <summary>
     /// The three starters every new account keeps. Handing out the whole roster here made the client
     /// replay one "character obtained" presentation per card before the lobby became usable, so the
-    /// roster now starts small: three starters plus the characters of the pinned DLC era. Everything
-    /// else comes from the shops, /giveall and GirlCard_UnLockCharacter.
+    /// roster now starts small: three starters only. Everything else comes from the shops, /giveall,
+    /// GirlCard_UnLockCharacter. Gacha-try levels need no grant at all: the level carries its own fixed
+    /// character (try_girl.Girl) and the client builds the formation from that row.
     /// </summary>
     private static readonly (uint Detail, uint Particular)[] StarterCards =
     [
@@ -116,8 +117,6 @@ public class PlayerInstance(PlayerGameData data)
     {
         foreach (var (detail, particular) in StarterCards)
             await CharacterManager.AddCharacter(ItemTypeEnum.TYPE_CARD, detail, particular, 1, sendPacket: false);
-
-        await GachaTryService.GrantEraCharactersAsync(this, notify: false);
     }
 
     private async ValueTask InitialPlayerManager()

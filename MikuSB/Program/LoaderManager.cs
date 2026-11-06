@@ -129,7 +129,11 @@ public class LoaderManager : MikuSB
             return;
         }
 
-        if (!IsSpecificChannel())
+        // The shipped Arguments name the CN channel, so ResolveRegion() calls an untouched config CN. Writing
+        // hosts from that inference rewrote a global player's hosts file before they had chosen anything.
+        // GamePath is only ever set by the wizard (or by hand), so an empty one means "nobody has picked a
+        // client yet" - leave hosts alone and keep the old installs, which do have it, working.
+        if (!IsSpecificChannel() || string.IsNullOrWhiteSpace(ConfigManager.Config.Loader.GamePath))
         {
             Logger.Info(I18NManager.Translate("Server.ServerInfo.HostsSkipped"));
             return;
@@ -328,6 +332,15 @@ public class LoaderManager : MikuSB
                 Environment.Exit(code);
             });
         };
+
+        // Last step of the boot sequence: everything the admin panel offers (commands, launch, update,
+        // online roster) is wired above, and the database plus the resource pack are already loaded. The
+        // panel uses this flag to decide whether "启动游戏" may appear at all.
+        ServerRuntime.MarkInitialized();
+
+        // Fail loudly at startup if a rendered era payload cannot survive the client's JSON shim.
+        foreach (var problem in DlcClientPatches.AuditEraPayloads())
+            Logger.GetByClassName().Error($"Era payload self-check failed: {problem}");
 
         await IConsole.ListenConsole(exitToken);
     }

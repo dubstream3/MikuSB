@@ -6,6 +6,7 @@ using MikuSB.Database;
 using MikuSB.Database.Account;
 using MikuSB.Database.Inventory;
 using MikuSB.Database.Player;
+using MikuSB.Internationalization;
 using MikuSB.SdkServer.Utils;
 using MikuSB.Util;
 using System.Diagnostics;
@@ -68,7 +69,13 @@ public class AdminApiController : ControllerBase
         ok = true,
         db_loaded = DatabaseHelper.LoadAllData,
         uptime_sec = (int)(DateTime.UtcNow - StartedAt).TotalSeconds,
-        version = BuildVersion.Current
+        version = BuildVersion.Current,
+        // What the host is busy with right now. The panel is served before the database and the resource
+        // pack exist (Program order), so this is the only way the page can tell "downloading the resource
+        // pack" from "running" during a first start.
+        phase = ServerRuntime.Phase,
+        phase_detail = ServerRuntime.Detail,
+        initialized = ServerRuntime.Initialized
     });
 
     [HttpGet("overview")]
@@ -253,24 +260,48 @@ public class AdminApiController : ControllerBase
         return Ok(new { items = catalog.Select(entry => new { id = entry.Id, name = entry.Name }).ToArray() });
     }
 
+    /// <summary>
+    /// The console command table. Command attributes double as the in-game prompt text, so most of them store
+    /// an I18N key (<c>Game.Command.GiveAll.Desc</c>) instead of a sentence; the panel asks for a language and
+    /// the keys are resolved here, otherwise the console page would print the raw keys. The server only ships
+    /// Chinese (simplified/traditional) and English tables, so every other panel language falls back to EN.
+    /// </summary>
     [HttpGet("commands")]
-    public IActionResult Commands()
+    public IActionResult Commands([FromQuery] string? lang = null)
     {
         var commands = InGameConsoleBridge.GetCommands?.Invoke();
         if (commands == null) return ConsoleNotReady();
 
+        var language = PanelLanguage(lang);
         return Ok(new
         {
             items = commands.Select(command => new
             {
                 name = command.Name,
-                usage = command.Usage,
-                description = command.Description,
+                usage = TranslateCommandText(command.Usage, language),
+                description = TranslateCommandText(command.Description, language),
                 aliases = command.Aliases,
                 permissions = command.Permissions
             }).ToArray()
         });
     }
+
+    /// <summary>Maps a panel language id (<c>zh_CN</c>, <c>en_US</c>, …) onto a shipped text table.</summary>
+    private static string PanelLanguage(string? lang) => (lang ?? string.Empty).Trim().ToLowerInvariant() switch
+    {
+        "zh_cn" or "zh_hans" or "zh" => "CHS",
+        "zh_tw" or "zh_hant" or "zh_hk" => "CHT",
+        _ => "EN"
+    };
+
+    /// <summary>
+    /// Resolves I18N keys, leaves literal text alone. Attributes that were never keyed keep working, so a new
+    /// command only has to switch to a key if it wants to show up localized.
+    /// </summary>
+    private static string TranslateCommandText(string text, string language) =>
+        text.StartsWith("Game.Command.", StringComparison.Ordinal)
+            ? I18NManager.TranslateAsCertainLang(language, text)
+            : text;
 
     /// <summary>
     /// Runs one console command as the server console. The command layer reports failure as localized text
@@ -372,6 +403,9 @@ public class AdminApiController : ControllerBase
             arguments = config.Loader.Arguments,
             patch_paths = config.Loader.PatchPaths,
             patch_present = PatchPresent(config),
+            cn_launch_mode = NormalizeCnLaunchMode(config.Loader.CnLaunchMode) ?? "hosts",
+            cn_patch_path = config.Loader.CnPatchPath,
+            cn_patch_present = CnPatchPresent(config),
             elevated = SetupService.IsElevated(),
             proxy = new { enabled = config.Proxy.Enabled, set_all_proxy = config.Loader.SetAllProxy, port = config.Proxy.Port },
             public_address = config.HttpServer.PublicAddress,
@@ -398,6 +432,72 @@ public class AdminApiController : ControllerBase
         var region = SetupService.NormalizeRegionOrNull(request?.Region);
         string[]? suggested = region == null ? null : SetupService.BuildArguments(region, probe.UserDir);
         return Ok(new { probe, suggested_arguments = suggested });
+    }
+
+    /// <summary>
+    /// Step one of the wizard: pin the channel and make sure that channel's own patch DLL is on disk. The
+    /// global build pulls it from the release feed, the CN build ships it inside the package, so this only
+    /// has to check the file survived the copy.
+    ///
+    /// It runs synchronously on purpose: the panel unlocks the path step only after this answers, and a
+    /// download that finishes minutes later would leave the wizard in a state where "启动游戏" fails with a
+    /// far less obvious message than a missing DLL.
+    /// </summary>
+    [HttpPost("setup/channel")]
+    public IActionResult SetupChannel([FromBody] SetupChannelRequest request)
+    {
+        var region = SetupService.NormalizeRegionOrNull(request?.Region);
+        if (region == null)
+        {
+            return BadRequest(new { code = "region_required", message = "先选择服务器区域（国服或国际服）" });
+        }
+
+        var config = ConfigManager.Config;
+
+        if (region == "cn")
+        {
+            var ready = CnPatchPresent(config);
+            return Ok(new
+            {
+                ok = ready,
+                region,
+                patch_ready = ready,
+                patch_path = config.Loader.CnPatchPath,
+                // The panel localises this row from the code; detail stays as the raw fallback.
+                code = ready ? "cn_ready" : "cn_missing",
+                detail = ready
+                    ? $"国服补丁 DLL 已就位：{config.Loader.CnPatchPath}"
+                    : $"国服补丁 DLL 不在 {config.Loader.CnPatchPath}：把 CN 版 MikuSB-Patch.dll 放到该路径后再继续。"
+            });
+        }
+
+        try
+        {
+            PatchDownloadService.EnsurePatchPresent();
+        }
+        catch (Exception ex)
+        {
+            return Ok(new
+            {
+                ok = false,
+                region,
+                patch_ready = false,
+                patch_path = config.Loader.PatchPaths.Length > 0 ? config.Loader.PatchPaths[0] : "",
+                code = "download_failed",
+                detail = $"下载国际服补丁 DLL 失败：{ex.Message}"
+            });
+        }
+
+        var present = PatchPresent(config);
+        return Ok(new
+        {
+            ok = present,
+            region,
+            patch_ready = present,
+            patch_path = config.Loader.PatchPaths.Length > 0 ? config.Loader.PatchPaths[0] : "",
+            code = present ? "ready" : "missing",
+            detail = present ? "国际服补丁 DLL 已就位。" : "国际服补丁 DLL 仍未下载成功，检查网络后重试。"
+        });
     }
 
     /// <summary>Look for an installed client on the fixed drives (one folder level per drive).</summary>
@@ -451,14 +551,34 @@ public class AdminApiController : ControllerBase
             config.Loader.PatchPaths = [@"Patch\MikuSB-Patch.dll"];
         }
 
+        // The wizard asks for the CN launch method before it writes the config, because the method decides
+        // what happens to the hosts block: hosts mode points the client's SDK domains at this machine, while
+        // DLL mode must leave hosts untouched and inject Patch\MikuSB-Patch-cn.dll instead.
+        var mode = NormalizeCnLaunchMode(request?.Mode);
+        if (region == "cn" && mode != null)
+        {
+            config.Loader.CnLaunchMode = mode;
+        }
+
+        var cnMode = NormalizeCnLaunchMode(config.Loader.CnLaunchMode) ?? "hosts";
+        if (region == "cn")
+        {
+            // The CN client is pulled to this machine by the DLL or the hosts block, never by the SOCKS
+            // proxy: exporting ALL_PROXY makes the SDK resolve the name inside the proxy and talk to the
+            // real server, which is what "the redirect stopped working" looks like from the panel.
+            config.Loader.SetAllProxy = false;
+            config.Loader.ManageCnHosts = cnMode == "hosts";
+        }
+
         ConfigManager.SaveConfig();
 
-        // The wizard's single "write config" button also maintains the CN hosts block: asking the operator to
-        // find a second button for it was the most confusing part of the setup flow. A hosts problem never
-        // fails the request - the config is already on disk - it comes back as a status the panel renders.
-        var hostsSync = region == "cn" ? SetupService.SyncHosts(config.HttpServer.PublicAddress) : null;
+        var hostsSync = region != "cn"
+            ? null
+            : cnMode == "dll"
+                ? SetupService.ClearHosts()
+                : SetupService.SyncHosts(config.HttpServer.PublicAddress);
 
-        ConfigManager.Logger.Info($"[setup] applied region={region} game={probe.Exe} userdir={probe.UserDir} address={config.HttpServer.PublicAddress} hosts={hostsSync?.Status ?? "n/a"}");
+        ConfigManager.Logger.Info($"[setup] applied region={region} game={probe.Exe} userdir={probe.UserDir} address={config.HttpServer.PublicAddress} mode={cnMode} hosts={hostsSync?.Status ?? "n/a"}");
         return Ok(new
         {
             ok = true,
@@ -467,10 +587,20 @@ public class AdminApiController : ControllerBase
             arguments = config.Loader.Arguments,
             public_address = config.HttpServer.PublicAddress,
             elevated = SetupService.IsElevated(),
+            cn_launch_mode = cnMode,
             hosts_sync = hostsSync,
+            // Codes first: the panel translates them, so the wizard stops pasting Chinese sentences into the
+            // other nine locales. next_steps keeps the prose for anyone reading the API by hand.
+            next_step_codes = region == "cn"
+                ? cnMode == "dll"
+                    ? new[] { "cn_dll" }
+                    : new[] { "cn_hosts" }
+                : new[] { "patch_dir", "launch" },
             next_steps = region == "cn"
-                ? new[] { "正常启动游戏，用官方登录窗口登录" }
-                : new[] { "把 Patch\\MikuSB-Patch.dll 放到 Config 同级目录（首次会自动下载）", "用 MikuSB.Loader 启动游戏" }
+                ? cnMode == "dll"
+                    ? new[] { "国服：DLL 注入模式；用「启动游戏」按钮启动" }
+                    : new[] { "国服：hosts 模式，直接用官方启动器/游戏 exe 启动" }
+                : new[] { "把 Patch\\MikuSB-Patch.dll 放到 Config 同级目录（首次会自动下载）", "用「启动游戏」按钮启动" }
         });
     }
 
@@ -499,10 +629,13 @@ public class AdminApiController : ControllerBase
     }
 
     /// <summary>
-    /// Starts the game through the upstream loader - the exact path <c>/game</c> takes in the in-game console.
-    /// That is the only place the patch DLL is fetched: <c>GameLaunchService.Launch</c> calls
-    /// <c>PatchDownloadService.EnsurePatchPresent()</c> before injecting, so a fresh install can go from
-    /// "no patch" to a running client with one click. A manually launched Game.exe gets nothing from us.
+    /// Starts the client from the panel. The command depends on the region: the global build goes through
+    /// the upstream loader (<c>/game</c>), which is the only place the patch DLL is fetched -
+    /// <c>GameLaunchService.Launch</c> calls <c>PatchDownloadService.EnsurePatchPresent()</c> before
+    /// injecting, so a fresh install can go from "no patch" to a running client with one click. The CN build
+    /// is started either way the operator picked: <c>/game-cn</c> writes the hosts block and starts the
+    /// untouched client, <c>/game-cn -dll</c> injects the CN-channel patch and leaves hosts alone. Neither goes
+    /// through the loader, so this request can only report the console command's own answer.
     /// </summary>
     [HttpPost("setup/launch")]
     public async Task<IActionResult> SetupLaunch([FromBody] SetupLaunchRequest? request)
@@ -516,9 +649,26 @@ public class AdminApiController : ControllerBase
             ? Array.Empty<string>()
             : extra.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        // Preferred path: ask the loader itself, so the answer is a pid or the real reason. The console
-        // command remains the fallback for hosts that do not wire the delegate.
-        var launch = InGameConsoleBridge.LaunchGame;
+        var region = SetupService.ResolveRegion(config.Loader.Region, config.Loader.Arguments);
+
+        // The CN build has two routes to the same server, so the panel's buttons say which one they mean. Sending
+        // the mode also stores it, which keeps the overview's launch button on whatever the operator last chose.
+        var cnMode = NormalizeCnLaunchMode(request?.Mode) ?? NormalizeCnLaunchMode(config.Loader.CnLaunchMode) ?? "hosts";
+        if (NormalizeCnLaunchMode(request?.Mode) is { } requestedMode && requestedMode != config.Loader.CnLaunchMode)
+        {
+            config.Loader.CnLaunchMode = requestedMode;
+            ConfigManager.SaveConfig();
+        }
+
+        var command = region == "cn"
+            ? (cnMode == "dll" ? "/game-cn -dll" : "/game-cn")
+            : "/game";
+        if (arguments.Length > 0)
+            command += " " + string.Join(' ', arguments);
+
+        // Preferred path: ask the loader itself, so the answer is a pid or the real reason. The CN build has
+        // no loader in front of it, so it goes straight to the console command.
+        var launch = region == "cn" ? null : InGameConsoleBridge.LaunchGame;
         if (launch != null)
         {
             var outcome = launch(arguments);
@@ -527,9 +677,10 @@ public class AdminApiController : ControllerBase
             {
                 accepted = true,
                 success = outcome.Ok,
-                command = "/game",
+                command,
                 pid = outcome.Pid,
                 messages = new[] { outcome.Ok ? $"pid {outcome.Pid}" : outcome.Message },
+                mode = "loader",
                 patch_present = PatchPresent(config),
                 game_path = config.Loader.GamePath
             });
@@ -538,7 +689,6 @@ public class AdminApiController : ControllerBase
         var execute = InGameConsoleBridge.ExecuteCommandAsync;
         if (execute == null) return ConsoleNotReady();
 
-        var command = arguments.Length == 0 ? "/game" : "/game " + string.Join(' ', arguments);
         var result = await execute(command, HttpContext.RequestAborted);
         ConfigManager.Logger.Info($"[setup] launch (console) -> {string.Join(" | ", result.Messages)}");
 
@@ -549,6 +699,8 @@ public class AdminApiController : ControllerBase
             command,
             pid = 0,
             messages = result.Messages,
+            mode = region == "cn" ? cnMode : "loader",
+            cn_patch_present = CnPatchPresent(config),
             patch_present = PatchPresent(config),
             game_path = config.Loader.GamePath
         });
@@ -633,6 +785,36 @@ public class AdminApiController : ControllerBase
             System.IO.File.Exists(Path.Combine(AppContext.BaseDirectory, item)));
     }
 
+    /// <summary>
+    /// True when the CN-channel patch DLL that <c>/game-cn -dll</c> injects is in place. Its own check because
+    /// it is not part of <c>Loader.PatchPaths</c>: nothing downloads it, the operator copies it in.
+    /// </summary>
+    private static bool CnPatchPresent(ConfigContainer config)
+    {
+        return !string.IsNullOrWhiteSpace(config.Loader.CnPatchPath)
+               && System.IO.File.Exists(Path.Combine(AppContext.BaseDirectory, config.Loader.CnPatchPath));
+    }
+
+    /// <summary>
+    /// The CN launch route as one of the two known values, or <c>null</c> when the stored value says neither.
+    /// Serialised configs are edited by hand often enough that an unknown string must not silently become
+    /// "dll" and turn every launch into an injection the operator never asked for.
+    /// </summary>
+    private static string? NormalizeCnLaunchMode(string? mode)
+    {
+        if (string.IsNullOrWhiteSpace(mode))
+        {
+            return null;
+        }
+
+        return mode.Trim().ToLowerInvariant() switch
+        {
+            "dll" => "dll",
+            "hosts" => "hosts",
+            _ => null
+        };
+    }
+
     private static DateTime GetStartedAt()
     {
         try
@@ -683,6 +865,18 @@ public sealed class SetupApplyRequest
 
     /// <summary>Address clients should use; blank keeps the configured value.</summary>
     public string? PublicAddress { get; set; }
+
+    /// <summary>
+    /// CN only: <c>hosts</c> or <c>dll</c>. Picking it here is what decides whether the hosts block gets
+    /// written, so the wizard asks before the config is saved rather than after.
+    /// </summary>
+    public string? Mode { get; set; }
+}
+
+public sealed class SetupChannelRequest
+{
+    /// <summary><c>cn</c> or <c>global</c>; anything else is rejected.</summary>
+    public string? Region { get; set; }
 }
 
 public sealed class SetupHostsRequest
@@ -698,4 +892,10 @@ public sealed class SetupLaunchRequest
 {
     /// <summary>Extra arguments appended to the <c>/game</c> command; usually blank.</summary>
     public string? Arguments { get; set; }
+
+    /// <summary>
+    /// CN only: <c>hosts</c> (rewrite the hosts block, start the untouched client) or <c>dll</c> (inject the
+    /// CN-channel patch). Also stored, so the overview button keeps using the same route.
+    /// </summary>
+    public string? Mode { get; set; }
 }

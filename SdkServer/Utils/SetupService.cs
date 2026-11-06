@@ -42,7 +42,13 @@ public static class SetupService
         "cbjq-serverlist.xoyocdn.com"
     ];
 
-    public sealed record PathCheck(string Key, bool Ok, string Detail);
+    /// <summary>
+    ///     One row of the wizard's path checklist. <paramref name="Code" /> is the language-neutral reason a
+    ///     check failed (<c>empty</c>, <c>missing</c>, <c>mismatch</c>, <c>no_paks</c>): the web UI turns it into
+    ///     a translated sentence, so a Chinese build no longer leaks its prose into the other nine locales.
+    ///     <paramref name="Detail" /> only ever carries a path or a count, never a sentence.
+    /// </summary>
+    public sealed record PathCheck(string Key, bool Ok, string Detail, string? Code = null);
 
     /// <summary>Result of looking at whatever the operator typed into the client-path box.</summary>
     public sealed record PathProbe(
@@ -83,7 +89,7 @@ public static class SetupService
 
         if (raw.Length == 0)
         {
-            checks.Add(new PathCheck("input", false, "客户端路径为空"));
+            checks.Add(new PathCheck("input", false, "", "empty"));
             return new PathProbe(false, raw, "", "", "", "", checks);
         }
 
@@ -100,50 +106,55 @@ public static class SetupService
         var exe = ResolveExe(expanded);
         checks.Add(exe.Length > 0
             ? new PathCheck("locate", true, exe)
-            : new PathCheck("locate", false, "这个路径下找不到 Game.exe（Binaries\\Win64\\Game.exe）"));
+            : new PathCheck("locate", false, Path.Combine("Game", "Binaries", "Win64", "Game.exe"), "missing"));
 
         var userDir = exe.Length > 0 ? ResolveUserDir(exe) : "";
         var install = exe.Length > 0 ? ResolveInstall(userDir) : "";
 
         checks.Add(exe.Length > 0 && File.Exists(exe)
             ? new PathCheck("exe", true, Path.GetFileName(exe))
-            : new PathCheck("exe", false, "Game.exe 不存在"));
+            : new PathCheck("exe", false, "Game.exe", "missing"));
 
         var nameOk = exe.Length > 0 && string.Equals(Path.GetFileName(exe), "Game.exe", StringComparison.OrdinalIgnoreCase);
         checks.Add(nameOk
             ? new PathCheck("name", true, "Game.exe")
-            : new PathCheck("name", false, "可执行文件名不是 Game.exe，游戏可能不是尘白禁区"));
+            : new PathCheck("name", false, exe.Length > 0 ? Path.GetFileName(exe) : "", "mismatch"));
 
         var userOk = userDir.Length > 0 && Directory.Exists(userDir);
         checks.Add(userOk
             ? new PathCheck("userdir", true, userDir)
-            : new PathCheck("userdir", false, "找不到 data\\game 目录（-userdir 需要它）"));
+            : new PathCheck("userdir", false, "Game\\Content", "missing"));
 
         var paks = userOk ? Path.Combine(userDir, "Game", "Content", "Paks") : "";
-        var paksOk = paks.Length > 0 && Directory.Exists(paks);
-        checks.Add(paksOk
-            ? new PathCheck("paks", true, CountPaks(paks))
-            : new PathCheck("paks", false, "缺少 Game\\Content\\Paks（游戏资源未安装或路径不对）"));
+        var pakCount = paks.Length > 0 ? CountPaks(paks) : 0;
+        checks.Add(paks.Length > 0 && Directory.Exists(paks)
+            ? pakCount > 0
+                ? new PathCheck("paks", true, $"{paks} ({pakCount} pak)")
+                : new PathCheck("paks", false, paks, "no_paks")
+            : new PathCheck("paks", false, "Game\\Content\\Paks", "missing"));
 
-        var installOk = install.Length > 0 && Directory.Exists(Path.Combine(install, "data", "game"));
+        var installOk = install.Length > 0
+            && (Directory.Exists(Path.Combine(install, "data", "game"))
+                || Directory.Exists(Path.Combine(install, "Game")));
         checks.Add(installOk
             ? new PathCheck("install", true, install)
-            : new PathCheck("install", false, "找不到安装根目录下的 data\\game"));
+            : new PathCheck("install", false, install, "missing"));
 
-        var valid = File.Exists(exe) && nameOk && paksOk;
+        // An existing but empty Paks folder is reported as a warning row, not as a blocker: the player may
+        // still be installing (or use a separate resource pack), and apply must keep working.
+        var valid = File.Exists(exe) && nameOk && Directory.Exists(paks);
         return new PathProbe(valid, raw, exe, install, userDir, paks, checks);
     }
 
-    private static string CountPaks(string paks)
+    private static int CountPaks(string paks)
     {
         try
         {
-            var count = Directory.EnumerateFiles(paks, "*.pak", SearchOption.AllDirectories).Take(2).Count();
-            return count > 0 ? $"已安装 pak（{paks}）" : $"目录存在但没有 .pak（{paks}）";
+            return Directory.EnumerateFiles(paks, "*.pak", SearchOption.AllDirectories).Take(2).Count();
         }
         catch (Exception)
         {
-            return paks;
+            return 0;
         }
     }
 
@@ -202,7 +213,10 @@ public static class SetupService
         return "";
     }
 
-    /// <summary><c>-userdir</c> must be the folder that contains <c>Game\Content</c> — i.e. <c>data\game</c>.</summary>
+    /// <summary>
+    ///     <c>-userdir</c> must be the folder that contains <c>Game\Content</c>: it is <c>data\game</c> in the CN
+    ///     layout and the install root itself in the Steam/global one.
+    /// </summary>
     private static string ResolveUserDir(string exe)
     {
         try
@@ -231,14 +245,26 @@ public static class SetupService
         return "";
     }
 
+    /// <summary>
+    ///     The install root, derived from the layout instead of assumed. The CN launcher keeps the game one
+    ///     level down (<c>&lt;install&gt;\data\game\Game\...</c>), while the Steam/global build puts <c>Game</c>
+    ///     directly under the install root. "Always two levels up" was only right for the first layout, which
+    ///     is why every international client failed the install row with "找不到安装根目录下的 data\game".
+    /// </summary>
     private static string ResolveInstall(string userDir)
     {
         try
         {
-            // userDir is <install>\data\game, so the install root is two levels up.
+            if (userDir.Length == 0)
+                return "";
+
             var dir = new DirectoryInfo(userDir);
-            var install = dir.Parent?.Parent;
-            return install?.FullName ?? "";
+            var parent = dir.Parent;
+            var isDataGame = string.Equals(dir.Name, "game", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(parent?.Name, "data", StringComparison.OrdinalIgnoreCase);
+            return isDataGame
+                ? parent?.Parent?.FullName ?? ""
+                : dir.FullName;
         }
         catch (Exception)
         {
@@ -246,10 +272,17 @@ public static class SetupService
         }
     }
 
-    /// <summary>Cheap auto-detect: one level of folders on each fixed drive, looking for the client layout.</summary>
+    /// <summary>
+    /// Auto-detect for the wizard. Walks each ready fixed/removable drive two folders deep (and the usual
+    /// install roots) because a copy of the client normally sits at <c><game root>\data\game\...</c> — the
+    /// old one-level walk only ever found installs that happened to be <c>&lt;drive&gt;\&lt;folder&gt;\Game.exe</c>.
+    /// </summary>
     public static IReadOnlyList<string> Suggest()
     {
         var found = new List<string>();
+        // Bounded walk: a machine with a deep, crowded drive must not turn this into a minute-long request.
+        var budget = 8000;
+
         foreach (var drive in DriveInfo.GetDrives())
         {
             try
@@ -259,14 +292,7 @@ public static class SetupService
                     continue;
                 }
 
-                foreach (var dir in Directory.EnumerateDirectories(drive.RootDirectory.FullName))
-                {
-                    var exe = ResolveExe(dir);
-                    if (exe.Length > 0 && File.Exists(exe))
-                    {
-                        found.Add(exe);
-                    }
-                }
+                Collect(drive.RootDirectory.FullName, 2, found, ref budget);
             }
             catch (Exception)
             {
@@ -274,7 +300,129 @@ public static class SetupService
             }
         }
 
-        return found.Distinct(StringComparer.OrdinalIgnoreCase).Take(8).ToList();
+        foreach (var root in UserInstallRoots())
+        {
+            Collect(root, 2, found, ref budget);
+        }
+
+        return found.Distinct(StringComparer.OrdinalIgnoreCase).Take(16).ToList();
+    }
+
+    // Folders that never hold a game install and are expensive (or noisy) to walk.
+    private static readonly string[] SkippedFolders =
+    [
+        "windows", "program files", "program files (x86)", "programdata", "$recycle.bin",
+        "system volume information", "recovery", "perflogs", "config.msi", "msocache"
+    ];
+
+    private static IEnumerable<string> UserInstallRoots()
+    {
+        Environment.SpecialFolder[] folders =
+        [
+            Environment.SpecialFolder.LocalApplicationData,
+            Environment.SpecialFolder.ProgramFiles,
+            Environment.SpecialFolder.ProgramFilesX86,
+            Environment.SpecialFolder.UserProfile
+        ];
+
+        foreach (var folder in folders)
+        {
+            string path;
+            try
+            {
+                path = Environment.GetFolderPath(folder);
+            }
+            catch (Exception)
+            {
+                continue;
+            }
+
+            if (path.Length > 0 && Directory.Exists(path))
+            {
+                yield return path;
+            }
+        }
+    }
+
+    /// <summary>
+    /// <paramref name="depth" /> counts sub-folder levels below <paramref name="path" />. Every folder is fed
+    /// to <see cref="ResolveExe" /> first (it already accepts a root, <c>data\game</c>, <c>Win64</c> or the exe
+    /// itself), and matching folders are still descended into: two clients installed side by side
+    /// (<c>&lt;game root&gt;\Snow</c> and <c>&lt;game root&gt;\snowtest</c>) both match <c>&lt;game root&gt;</c> through the
+    /// one-level fallback, so stopping at the first hit reported whichever copy the enumerator reached first.
+    /// </summary>
+    private static void Collect(string path, int depth, List<string> found, ref int budget)
+    {
+        if (found.Count >= 16 || depth < 0 || budget <= 0)
+        {
+            return;
+        }
+
+        budget--;
+
+        try
+        {
+            var exe = ResolveExe(path);
+            if (exe.Length > 0 && File.Exists(exe) && !found.Contains(exe, StringComparer.OrdinalIgnoreCase))
+            {
+                found.Add(exe);
+            }
+        }
+        catch (Exception)
+        {
+            return;
+        }
+
+        if (depth == 0)
+        {
+            return;
+        }
+
+        foreach (var child in Children(path))
+        {
+            Collect(child, depth - 1, found, ref budget);
+        }
+    }
+
+    private static IEnumerable<string> Children(string path)
+    {
+        IEnumerable<string> children;
+        try
+        {
+            children = Directory.EnumerateDirectories(path);
+        }
+        catch (Exception)
+        {
+            yield break;
+        }
+
+        using var enumerator = children.GetEnumerator();
+        while (true)
+        {
+            string current;
+            try
+            {
+                if (!enumerator.MoveNext())
+                {
+                    yield break;
+                }
+
+                current = enumerator.Current;
+            }
+            catch (Exception)
+            {
+                // A sub-folder we may not read ends the walk of that branch, not of the whole drive.
+                yield break;
+            }
+
+            var name = Path.GetFileName(current);
+            if (SkippedFolders.Contains(name, StringComparer.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            yield return current;
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -441,7 +589,12 @@ public static class SetupService
                 return "无法启动提权进程";
             }
 
-            process.WaitForExit();
+            // The UAC prompt sits in front of a caller that is waiting on this thread; an ignored prompt used to
+            // block the whole request (and whoever else wanted the hosts file) forever.
+            if (!process.WaitForExit(120_000))
+            {
+                return "等待管理员授权超时（120 秒），hosts 未修改";
+            }
         }
         catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
         {

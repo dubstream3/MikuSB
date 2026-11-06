@@ -5,7 +5,7 @@ namespace MikuSB.GameServer.Command.Commands;
 
 // Direct lever for debugging client-side state that is driven by a single attribute, e.g.
 // the DLC entry point reads (gid 15, sid 1) -> /attr set 15 1 35 @4
-[CommandInfo("attr", "Read or write a player attribute.", "Usage: /attr set <gid> <sid> <value> [@uid] | /attr get <gid> <sid> [@uid]", ["a"], [PermEnum.Admin, PermEnum.Support])]
+[CommandInfo("attr", "Game.Command.Attr.Desc", "Game.Command.Attr.Usage", ["a"], [PermEnum.Admin, PermEnum.Support])]
 public class CommandAttr : ICommands
 {
     [CommandMethod("set")]

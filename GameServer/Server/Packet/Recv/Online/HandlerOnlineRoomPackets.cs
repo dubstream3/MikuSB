@@ -118,6 +118,7 @@ public class HandlerReqOnlineRoomStart : Handler
 
         Logger.Info($"Online room start: {data.Length} byte(s) [{Convert.ToHexString(data)}] " +
                     $"state={state} onlineId={connection.OnlineRoomId}");
+        connection.OnlineRoomStarted = true;
         await connection.SendPacket(CmdIds.RspOnlineRoomStart);
 
         if (state is not (PlayerStatePreReady or PlayerStateReady))

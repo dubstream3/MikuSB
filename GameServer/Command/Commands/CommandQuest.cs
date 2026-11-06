@@ -3,7 +3,7 @@ using MikuSB.Proto;
 
 namespace MikuSB.GameServer.Command.Commands;
 
-[CommandInfo("quest", "Complete all quest levels for testing.", "Usage: /quest complete_all <1|0|on|off>", ["q"], [PermEnum.Admin, PermEnum.Support])]
+[CommandInfo("quest", "Game.Command.Quest.Desc", "Game.Command.Quest.Usage", ["q"], [PermEnum.Admin, PermEnum.Support])]
 public class CommandQuest : ICommands
 {
     [CommandMethod("complete_all")]

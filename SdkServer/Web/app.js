@@ -28,7 +28,6 @@ const STRINGS = {
     'brand.sub': '私服管理',
     'nav.overview': '总览',
     'nav.accounts': '账号',
-    'nav.online': '在线',
     'nav.replay': '活动复刻',
     'nav.console': '控制台',
     'status.connecting': '连接中…',
@@ -77,11 +76,8 @@ const STRINGS = {
     'accounts.create': '创建',
     'accounts.th.uid': 'UID',
     'accounts.th.user': '用户名',
-    'accounts.th.status': '状态',
     'accounts.th.ban': '封禁',
     'accounts.th.perms': '权限',
-    'accounts.online': '在线',
-    'accounts.offline': '离线',
     'accounts.normal': '正常',
     'accounts.empty': '没有匹配的账号',
     'accounts.prev': '上一页',
@@ -93,14 +89,6 @@ const STRINGS = {
     'accounts.created': '已创建 {0}（UID {1}）',
     'accounts.deleted': '已删除 UID {0}',
     'accounts.nameRequired': '用户名不能为空',
-    'online.title': '在线',
-    'online.count': '{0} 人在线',
-    'online.refresh': '刷新',
-    'online.th.name': '角色名',
-    'online.th.level': '等级',
-    'online.th.remote': '来源地址',
-    'online.empty': '当前没有玩家在线',
-    'online.unnamed': '（未命名）',
     'player.charName': '角色名',
     'player.level': '等级',
     'player.vigor': '体力',
@@ -111,7 +99,6 @@ const STRINGS = {
     'player.query': '查询',
     'player.add': '增加',
     'player.set': '设为',
-    'player.offlineHint': '玩家离线：货币指令要求目标在线',
     'player.th.id': 'ID',
     'player.th.name': '名称',
     'player.th.balance': '余额',
@@ -166,6 +153,7 @@ const STRINGS = {
     'console.clear': '清空输出',
     'console.identity': '命令以服务端控制台身份执行，拥有全部权限。',
     'console.commands': '可用指令（{0}）',
+    'console.aliases': '别名',
     'console.th.cmd': '指令',
     'console.th.usage': '用法',
     'console.th.desc': '说明',
@@ -178,7 +166,6 @@ const STRINGS = {
     'brand.sub': 'Server admin',
     'nav.overview': 'Overview',
     'nav.accounts': 'Accounts',
-    'nav.online': 'Online',
     'nav.replay': 'Era replay',
     'nav.console': 'Console',
     'status.connecting': 'Connecting…',
@@ -227,11 +214,8 @@ const STRINGS = {
     'accounts.create': 'Create',
     'accounts.th.uid': 'UID',
     'accounts.th.user': 'Username',
-    'accounts.th.status': 'Status',
     'accounts.th.ban': 'Ban',
     'accounts.th.perms': 'Permissions',
-    'accounts.online': 'online',
-    'accounts.offline': 'offline',
     'accounts.normal': 'normal',
     'accounts.empty': 'No account matches',
     'accounts.prev': 'Prev',
@@ -243,14 +227,6 @@ const STRINGS = {
     'accounts.created': 'Created {0} (UID {1})',
     'accounts.deleted': 'Deleted UID {0}',
     'accounts.nameRequired': 'Username is required',
-    'online.title': 'Online',
-    'online.count': '{0} online',
-    'online.refresh': 'Refresh',
-    'online.th.name': 'Character',
-    'online.th.level': 'Level',
-    'online.th.remote': 'Remote',
-    'online.empty': 'No player is online',
-    'online.unnamed': '(unnamed)',
     'player.charName': 'Character',
     'player.level': 'Level',
     'player.vigor': 'Vigor',
@@ -261,7 +237,6 @@ const STRINGS = {
     'player.query': 'Get',
     'player.add': 'Add',
     'player.set': 'Set',
-    'player.offlineHint': 'Player is offline: the money commands need a live session',
     'player.th.id': 'ID',
     'player.th.name': 'Name',
     'player.th.balance': 'Balance',
@@ -316,6 +291,7 @@ const STRINGS = {
     'console.clear': 'Clear output',
     'console.identity': 'Commands run as the server console, i.e. with every permission.',
     'console.commands': 'Commands ({0})',
+    'console.aliases': 'Aliases',
     'console.th.cmd': 'Command',
     'console.th.usage': 'Usage',
     'console.th.desc': 'Description',
@@ -328,7 +304,6 @@ const STRINGS = {
     'brand.sub': '私服管理',
     'nav.overview': '總覽',
     'nav.accounts': '帳號',
-    'nav.online': '線上',
     'nav.replay': '活動復刻',
     'nav.console': '控制台',
     'status.connecting': '連線中…',
@@ -377,11 +352,8 @@ const STRINGS = {
     'accounts.create': '建立',
     'accounts.th.uid': 'UID',
     'accounts.th.user': '使用者名稱',
-    'accounts.th.status': '狀態',
     'accounts.th.ban': '封禁',
     'accounts.th.perms': '權限',
-    'accounts.online': '線上',
-    'accounts.offline': '離線',
     'accounts.normal': '正常',
     'accounts.empty': '沒有符合的帳號',
     'accounts.prev': '上一頁',
@@ -393,14 +365,6 @@ const STRINGS = {
     'accounts.created': '已建立 {0}（UID {1}）',
     'accounts.deleted': '已刪除 UID {0}',
     'accounts.nameRequired': '使用者名稱不能為空',
-    'online.title': '線上',
-    'online.count': '{0} 人在線',
-    'online.refresh': '重新整理',
-    'online.th.name': '角色名稱',
-    'online.th.level': '等級',
-    'online.th.remote': '來源位址',
-    'online.empty': '目前沒有玩家在線',
-    'online.unnamed': '（未命名）',
     'player.charName': '角色名稱',
     'player.level': '等級',
     'player.vigor': '體力',
@@ -411,7 +375,6 @@ const STRINGS = {
     'player.query': '查詢',
     'player.add': '增加',
     'player.set': '設為',
-    'player.offlineHint': '玩家離線：貨幣指令要求目標在線',
     'player.th.id': 'ID',
     'player.th.name': '名稱',
     'player.th.balance': '餘額',
@@ -466,6 +429,7 @@ const STRINGS = {
     'console.clear': '清空輸出',
     'console.identity': '指令以伺服端控制台身分執行，擁有全部權限。',
     'console.commands': '可用指令（{0}）',
+    'console.aliases': '別名',
     'console.th.cmd': '指令',
     'console.th.usage': '用法',
     'console.th.desc': '說明',
@@ -478,7 +442,6 @@ const STRINGS = {
     'brand.sub': 'サーバー管理',
     'nav.overview': '概要',
     'nav.accounts': 'アカウント',
-    'nav.online': 'オンライン',
     'nav.replay': 'イベント復刻',
     'nav.console': 'コンソール',
     'status.connecting': '接続中…',
@@ -527,11 +490,8 @@ const STRINGS = {
     'accounts.create': '作成',
     'accounts.th.uid': 'UID',
     'accounts.th.user': 'ユーザー名',
-    'accounts.th.status': '状態',
     'accounts.th.ban': 'BAN',
     'accounts.th.perms': '権限',
-    'accounts.online': 'オンライン',
-    'accounts.offline': 'オフライン',
     'accounts.normal': '正常',
     'accounts.empty': '一致するアカウントがありません',
     'accounts.prev': '前へ',
@@ -543,14 +503,6 @@ const STRINGS = {
     'accounts.created': '{0}（UID {1}）を作成しました',
     'accounts.deleted': 'UID {0} を削除しました',
     'accounts.nameRequired': 'ユーザー名は必須です',
-    'online.title': 'オンライン',
-    'online.count': '{0} 人がオンライン',
-    'online.refresh': '更新',
-    'online.th.name': 'キャラクター名',
-    'online.th.level': 'レベル',
-    'online.th.remote': '接続元',
-    'online.empty': '現在オンラインのプレイヤーはいません',
-    'online.unnamed': '（名前なし）',
     'player.charName': 'キャラクター名',
     'player.level': 'レベル',
     'player.vigor': 'スタミナ',
@@ -561,7 +513,6 @@ const STRINGS = {
     'player.query': '照会',
     'player.add': '加算',
     'player.set': '設定',
-    'player.offlineHint': 'プレイヤーはオフラインです: 通貨コマンドはオンラインの対象が必要です',
     'player.th.id': 'ID',
     'player.th.name': '名称',
     'player.th.balance': '残高',
@@ -616,6 +567,7 @@ const STRINGS = {
     'console.clear': '出力を消す',
     'console.identity': 'コマンドはサーバーコンソールとして実行され、すべての権限を持ちます。',
     'console.commands': '利用可能なコマンド（{0}）',
+    'console.aliases': '別名',
     'console.th.cmd': 'コマンド',
     'console.th.usage': '使い方',
     'console.th.desc': '説明',
@@ -628,7 +580,6 @@ const STRINGS = {
     'brand.sub': '사설 서버 관리',
     'nav.overview': '개요',
     'nav.accounts': '계정',
-    'nav.online': '온라인',
     'nav.replay': '활동 복각',
     'nav.console': '콘솔',
     'status.connecting': '연결 중…',
@@ -677,11 +628,8 @@ const STRINGS = {
     'accounts.create': '만들기',
     'accounts.th.uid': 'UID',
     'accounts.th.user': '사용자 이름',
-    'accounts.th.status': '상태',
     'accounts.th.ban': '차단',
     'accounts.th.perms': '권한',
-    'accounts.online': '온라인',
-    'accounts.offline': '오프라인',
     'accounts.normal': '정상',
     'accounts.empty': '일치하는 계정이 없습니다',
     'accounts.prev': '이전',
@@ -693,14 +641,6 @@ const STRINGS = {
     'accounts.created': '{0}(UID {1}) 생성됨',
     'accounts.deleted': 'UID {0} 삭제됨',
     'accounts.nameRequired': '사용자 이름은 비워 둘 수 없습니다',
-    'online.title': '온라인',
-    'online.count': '{0}명 온라인',
-    'online.refresh': '새로 고침',
-    'online.th.name': '캐릭터 이름',
-    'online.th.level': '레벨',
-    'online.th.remote': '원격 주소',
-    'online.empty': '지금은 접속 중인 플레이어가 없습니다',
-    'online.unnamed': '(이름 없음)',
     'player.charName': '캐릭터 이름',
     'player.level': '레벨',
     'player.vigor': '기력',
@@ -711,7 +651,6 @@ const STRINGS = {
     'player.query': '조회',
     'player.add': '추가',
     'player.set': '설정',
-    'player.offlineHint': '플레이어 오프라인: 재화 명령은 대상이 접속 중이어야 합니다',
     'player.th.id': 'ID',
     'player.th.name': '이름',
     'player.th.balance': '잔액',
@@ -766,6 +705,7 @@ const STRINGS = {
     'console.clear': '출력 지우기',
     'console.identity': '명령은 서버 콘솔 권한으로 실행되며 모든 권한을 가집니다.',
     'console.commands': '사용 가능한 명령 ({0})',
+    'console.aliases': '별칭',
     'console.th.cmd': '명령',
     'console.th.usage': '사용법',
     'console.th.desc': '설명',
@@ -778,7 +718,6 @@ const STRINGS = {
     'brand.sub': 'Serververwaltung',
     'nav.overview': 'Übersicht',
     'nav.accounts': 'Konten',
-    'nav.online': 'Online',
     'nav.replay': 'Era-Replay',
     'nav.console': 'Konsole',
     'status.connecting': 'Verbinde…',
@@ -827,11 +766,8 @@ const STRINGS = {
     'accounts.create': 'Anlegen',
     'accounts.th.uid': 'UID',
     'accounts.th.user': 'Benutzername',
-    'accounts.th.status': 'Status',
     'accounts.th.ban': 'Sperre',
     'accounts.th.perms': 'Rechte',
-    'accounts.online': 'online',
-    'accounts.offline': 'offline',
     'accounts.normal': 'normal',
     'accounts.empty': 'Keine passenden Konten',
     'accounts.prev': 'Zurück',
@@ -843,14 +779,6 @@ const STRINGS = {
     'accounts.created': '{0} angelegt (UID {1})',
     'accounts.deleted': 'UID {0} gelöscht',
     'accounts.nameRequired': 'Benutzername darf nicht leer sein',
-    'online.title': 'Online',
-    'online.count': '{0} online',
-    'online.refresh': 'Aktualisieren',
-    'online.th.name': 'Charaktername',
-    'online.th.level': 'Stufe',
-    'online.th.remote': 'Adresse',
-    'online.empty': 'Zurzeit ist niemand online',
-    'online.unnamed': '(ohne Namen)',
     'player.charName': 'Charaktername',
     'player.level': 'Stufe',
     'player.vigor': 'Ausdauer',
@@ -861,7 +789,6 @@ const STRINGS = {
     'player.query': 'Abfragen',
     'player.add': 'Hinzufügen',
     'player.set': 'Setzen',
-    'player.offlineHint': 'Spieler offline: Währungsbefehle verlangen ein Online-Ziel',
     'player.th.id': 'ID',
     'player.th.name': 'Name',
     'player.th.balance': 'Stand',
@@ -916,6 +843,7 @@ const STRINGS = {
     'console.clear': 'Ausgabe leeren',
     'console.identity': 'Befehle laufen als Serverkonsole und haben alle Rechte.',
     'console.commands': 'Verfügbare Befehle ({0})',
+    'console.aliases': 'Aliasse',
     'console.th.cmd': 'Befehl',
     'console.th.usage': 'Nutzung',
     'console.th.desc': 'Beschreibung',
@@ -928,7 +856,6 @@ const STRINGS = {
     'brand.sub': 'gestion du serveur',
     'nav.overview': 'Vue d’ensemble',
     'nav.accounts': 'Comptes',
-    'nav.online': 'En ligne',
     'nav.replay': 'Rejeu d’ère',
     'nav.console': 'Console',
     'status.connecting': 'Connexion…',
@@ -977,11 +904,8 @@ const STRINGS = {
     'accounts.create': 'Créer',
     'accounts.th.uid': 'UID',
     'accounts.th.user': 'Nom d’utilisateur',
-    'accounts.th.status': 'État',
     'accounts.th.ban': 'Bannissement',
     'accounts.th.perms': 'Droits',
-    'accounts.online': 'en ligne',
-    'accounts.offline': 'hors ligne',
     'accounts.normal': 'normal',
     'accounts.empty': 'Aucun compte correspondant',
     'accounts.prev': 'Précédent',
@@ -993,14 +917,6 @@ const STRINGS = {
     'accounts.created': '{0} créé (UID {1})',
     'accounts.deleted': 'UID {0} supprimé',
     'accounts.nameRequired': 'Le nom d’utilisateur ne peut pas être vide',
-    'online.title': 'En ligne',
-    'online.count': '{0} en ligne',
-    'online.refresh': 'Actualiser',
-    'online.th.name': 'Nom du personnage',
-    'online.th.level': 'Niveau',
-    'online.th.remote': 'Adresse',
-    'online.empty': 'Aucun joueur en ligne actuellement',
-    'online.unnamed': '(sans nom)',
     'player.charName': 'Nom du personnage',
     'player.level': 'Niveau',
     'player.vigor': 'Vigueur',
@@ -1011,7 +927,6 @@ const STRINGS = {
     'player.query': 'Consulter',
     'player.add': 'Ajouter',
     'player.set': 'Définir',
-    'player.offlineHint': 'Joueur hors ligne : les commandes de monnaie exigent une cible en ligne',
     'player.th.id': 'ID',
     'player.th.name': 'Nom',
     'player.th.balance': 'Solde',
@@ -1066,6 +981,7 @@ const STRINGS = {
     'console.clear': 'Effacer la sortie',
     'console.identity': 'Les commandes s’exécutent en tant que console du serveur, avec tous les droits.',
     'console.commands': 'Commandes disponibles ({0})',
+    'console.aliases': 'Alias',
     'console.th.cmd': 'Commande',
     'console.th.usage': 'Usage',
     'console.th.desc': 'Description',
@@ -1078,7 +994,6 @@ const STRINGS = {
     'brand.sub': 'administración del servidor',
     'nav.overview': 'Resumen',
     'nav.accounts': 'Cuentas',
-    'nav.online': 'En línea',
     'nav.replay': 'Repetición de era',
     'nav.console': 'Consola',
     'status.connecting': 'Conectando…',
@@ -1127,11 +1042,8 @@ const STRINGS = {
     'accounts.create': 'Crear',
     'accounts.th.uid': 'UID',
     'accounts.th.user': 'Nombre de usuario',
-    'accounts.th.status': 'Estado',
     'accounts.th.ban': 'Bloqueo',
     'accounts.th.perms': 'Permisos',
-    'accounts.online': 'en línea',
-    'accounts.offline': 'desconectado',
     'accounts.normal': 'normal',
     'accounts.empty': 'No hay cuentas coincidentes',
     'accounts.prev': 'Anterior',
@@ -1143,14 +1055,6 @@ const STRINGS = {
     'accounts.created': '{0} creada (UID {1})',
     'accounts.deleted': 'UID {0} eliminada',
     'accounts.nameRequired': 'El nombre de usuario no puede estar vacío',
-    'online.title': 'En línea',
-    'online.count': '{0} en línea',
-    'online.refresh': 'Actualizar',
-    'online.th.name': 'Nombre del personaje',
-    'online.th.level': 'Nivel',
-    'online.th.remote': 'Dirección',
-    'online.empty': 'No hay jugadores en línea ahora mismo',
-    'online.unnamed': '(sin nombre)',
     'player.charName': 'Nombre del personaje',
     'player.level': 'Nivel',
     'player.vigor': 'Vigor',
@@ -1161,7 +1065,6 @@ const STRINGS = {
     'player.query': 'Consultar',
     'player.add': 'Añadir',
     'player.set': 'Fijar',
-    'player.offlineHint': 'Jugador desconectado: los comandos de moneda exigen un objetivo en línea',
     'player.th.id': 'ID',
     'player.th.name': 'Nombre',
     'player.th.balance': 'Saldo',
@@ -1216,6 +1119,7 @@ const STRINGS = {
     'console.clear': 'Borrar salida',
     'console.identity': 'Los comandos se ejecutan como consola del servidor, con todos los permisos.',
     'console.commands': 'Comandos disponibles ({0})',
+    'console.aliases': 'Alias',
     'console.th.cmd': 'Comando',
     'console.th.usage': 'Uso',
     'console.th.desc': 'Descripción',
@@ -1228,7 +1132,6 @@ const STRINGS = {
     'brand.sub': 'จัดการเซิร์ฟเวอร์',
     'nav.overview': 'ภาพรวม',
     'nav.accounts': 'บัญชี',
-    'nav.online': 'ออนไลน์',
     'nav.replay': 'ย้อนยุคกิจกรรม',
     'nav.console': 'คอนโซล',
     'status.connecting': 'กำลังเชื่อมต่อ…',
@@ -1277,11 +1180,8 @@ const STRINGS = {
     'accounts.create': 'สร้าง',
     'accounts.th.uid': 'UID',
     'accounts.th.user': 'ชื่อผู้ใช้',
-    'accounts.th.status': 'สถานะ',
     'accounts.th.ban': 'แบน',
     'accounts.th.perms': 'สิทธิ์',
-    'accounts.online': 'ออนไลน์',
-    'accounts.offline': 'ออฟไลน์',
     'accounts.normal': 'ปกติ',
     'accounts.empty': 'ไม่พบบัญชีที่ตรงกัน',
     'accounts.prev': 'ก่อนหน้า',
@@ -1293,14 +1193,6 @@ const STRINGS = {
     'accounts.created': 'สร้าง {0} แล้ว (UID {1})',
     'accounts.deleted': 'ลบ UID {0} แล้ว',
     'accounts.nameRequired': 'ชื่อผู้ใช้ห้ามว่าง',
-    'online.title': 'ออนไลน์',
-    'online.count': 'ออนไลน์ {0} คน',
-    'online.refresh': 'รีเฟรช',
-    'online.th.name': 'ชื่อตัวละคร',
-    'online.th.level': 'เลเวล',
-    'online.th.remote': 'ที่อยู่',
-    'online.empty': 'ตอนนี้ไม่มีผู้เล่นออนไลน์',
-    'online.unnamed': '(ไม่มีชื่อ)',
     'player.charName': 'ชื่อตัวละคร',
     'player.level': 'เลเวล',
     'player.vigor': 'พลัง',
@@ -1311,7 +1203,6 @@ const STRINGS = {
     'player.query': 'สอบถาม',
     'player.add': 'เพิ่ม',
     'player.set': 'ตั้งค่า',
-    'player.offlineHint': 'ผู้เล่นออฟไลน์: คำสั่งสกุลเงินต้องมีเป้าหมายออนไลน์',
     'player.th.id': 'ID',
     'player.th.name': 'ชื่อ',
     'player.th.balance': 'คงเหลือ',
@@ -1366,6 +1257,7 @@ const STRINGS = {
     'console.clear': 'ล้างผลลัพธ์',
     'console.identity': 'คำสั่งทำงานในฐานะคอนโซลเซิร์ฟเวอร์ จึงมีสิทธิ์ทั้งหมด',
     'console.commands': 'คำสั่งที่ใช้ได้ ({0})',
+    'console.aliases': 'ชื่อเรียกอื่น',
     'console.th.cmd': 'คำสั่ง',
     'console.th.usage': 'วิธีใช้',
     'console.th.desc': 'คำอธิบาย',
@@ -1378,7 +1270,6 @@ const STRINGS = {
     'brand.sub': 'manajemen server',
     'nav.overview': 'Ringkasan',
     'nav.accounts': 'Akun',
-    'nav.online': 'Daring',
     'nav.replay': 'Ulang era',
     'nav.console': 'Konsol',
     'status.connecting': 'Menghubungkan…',
@@ -1427,11 +1318,8 @@ const STRINGS = {
     'accounts.create': 'Buat',
     'accounts.th.uid': 'UID',
     'accounts.th.user': 'Nama pengguna',
-    'accounts.th.status': 'Status',
     'accounts.th.ban': 'Blokir',
     'accounts.th.perms': 'Izin',
-    'accounts.online': 'daring',
-    'accounts.offline': 'luring',
     'accounts.normal': 'normal',
     'accounts.empty': 'Tidak ada akun yang cocok',
     'accounts.prev': 'Sebelumnya',
@@ -1443,14 +1331,6 @@ const STRINGS = {
     'accounts.created': '{0} dibuat (UID {1})',
     'accounts.deleted': 'UID {0} dihapus',
     'accounts.nameRequired': 'Nama pengguna tidak boleh kosong',
-    'online.title': 'Daring',
-    'online.count': '{0} daring',
-    'online.refresh': 'Muat ulang',
-    'online.th.name': 'Nama karakter',
-    'online.th.level': 'Level',
-    'online.th.remote': 'Alamat',
-    'online.empty': 'Saat ini tidak ada pemain daring',
-    'online.unnamed': '(tanpa nama)',
     'player.charName': 'Nama karakter',
     'player.level': 'Level',
     'player.vigor': 'Vigor',
@@ -1461,7 +1341,6 @@ const STRINGS = {
     'player.query': 'Tanyakan',
     'player.add': 'Tambah',
     'player.set': 'Setel',
-    'player.offlineHint': 'Pemain luring: perintah mata uang memerlukan target yang daring',
     'player.th.id': 'ID',
     'player.th.name': 'Nama',
     'player.th.balance': 'Saldo',
@@ -1516,6 +1395,7 @@ const STRINGS = {
     'console.clear': 'Bersihkan keluaran',
     'console.identity': 'Perintah berjalan sebagai konsol server sehingga memiliki semua izin.',
     'console.commands': 'Perintah tersedia ({0})',
+    'console.aliases': 'Alias',
     'console.th.cmd': 'Perintah',
     'console.th.usage': 'Penggunaan',
     'console.th.desc': 'Keterangan',
@@ -1555,7 +1435,10 @@ const SETUP_STRINGS = {
     "setup.lead": "三步完成：选服务器区域 → 填客户端路径 → 写入配置。面板会先读出现有配置，只改你在这里确认的项。",
     "setup.region": "1 服务器区域",
     "setup.region.cn": "国服（jinshan）",
-    "setup.region.cn.note": "客户端自己启动，面板只把 7 个 SDK 域名指向本机，不需要注入 DLL。",
+    "setup.hosts.dllmode": "DLL 注入模式不使用 hosts：写入配置时会清空 MikuSB 写的 hosts 段。",
+    "setup.launch.dll.note": "点下面的按钮启动游戏：面板把国服补丁 DLL 注入游戏进程，由 DLL 把 SDK 请求引到本机。",
+    "setup.launch.hosts.note": "点下面的按钮启动游戏：面板先把 7 个 SDK 域名写进 hosts，客户端自己连到本机。",
+    "setup.region.cn.note": "面板要把国服的 SDK 请求引到本机；用 hosts 还是 DLL 注入，在第 1 步下面选。",
     "setup.region.global": "国际服",
     "setup.region.none": "未选择",
     "setup.region.pick": "请先选择服务器区域：国服和国际服的初始化方式完全不同。",
@@ -1607,7 +1490,7 @@ const SETUP_STRINGS = {
     "setup.launch.failed": "启动失败：{0}",
     "setup.patch.ready": "已就绪",
     "setup.patch.missing": "还没有 Patch\\MikuSB-Patch.dll，首次用 Loader 启动时会自动下载。",
-    "setup.path.required": "先填客户端路径，或点「自动探测」让面板自己找。"
+    "setup.path.hint": "还没检查过这个路径：填好后点「检查路径」，或直接点「自动探测」。","setup.path.required": "先填客户端路径，或点「自动探测」让面板自己找。"
   },
   "zh_TW": {
     "nav.setup": "初始化",
@@ -1615,7 +1498,10 @@ const SETUP_STRINGS = {
     "setup.lead": "三步完成：選伺服器區域 → 填客戶端路徑 → 寫入設定。面板會先讀出現有設定，只改你在這裡確認的項目。",
     "setup.region": "1 伺服器區域",
     "setup.region.cn": "國服（jinshan）",
-    "setup.region.cn.note": "客戶端自行啟動，面板只把 7 個 SDK 網域指向本機，不需注入 DLL。",
+    "setup.hosts.dllmode": "DLL 注入模式不使用 hosts：寫入設定時會清空 MikuSB 寫的 hosts 段落。",
+    "setup.launch.dll.note": "點下面的按鈕啟動遊戲：面板把國服補丁 DLL 注入遊戲進程，由 DLL 把 SDK 請求導到本機。",
+    "setup.launch.hosts.note": "點下面的按鈕啟動遊戲：面板先把 7 個 SDK 網域寫進 hosts，用戶端自行連到本機。",
+    "setup.region.cn.note": "面板要把國服的 SDK 請求導到本機；用 hosts 還是 DLL 注入，在第 1 步下面選。",
     "setup.region.global": "國際服",
     "setup.region.none": "未選擇",
     "setup.region.pick": "請先選擇伺服器區域：國服和國際服的初始化方式完全不同。",
@@ -1667,7 +1553,7 @@ const SETUP_STRINGS = {
     "setup.launch.failed": "啟動失敗：{0}",
     "setup.patch.ready": "已就緒",
     "setup.patch.missing": "尚未有 Patch\\MikuSB-Patch.dll，首次用 Loader 啟動時會自動下載。",
-    "setup.path.required": "先填客戶端路徑，或點「自動偵測」讓面板自己找。"
+    "setup.path.hint": "還沒檢查過這個路徑：填好後點「檢查路徑」，或直接點「自動偵測」。","setup.path.required": "先填客戶端路徑，或點「自動偵測」讓面板自己找。"
   },
   "ja_JP": {
     "nav.setup": "初期設定",
@@ -1675,7 +1561,10 @@ const SETUP_STRINGS = {
     "setup.lead": "3 ステップ：サーバー地域 → クライアントのパス → 設定の書き込み。既存の設定を読み出し、確認した項目だけを書き換えます。",
     "setup.region": "1 サーバー地域",
     "setup.region.cn": "中国版（jinshan）",
-    "setup.region.cn.note": "クライアントは通常起動。パネルは 7 つの SDK ドメインをローカルに向けるだけで、DLL は注入しません。",
+    "setup.hosts.dllmode": "DLL 注入モードでは hosts を使いません。設定を書き込むと MikuSB の hosts 行は消去されます。",
+    "setup.launch.dll.note": "下のボタンで起動します。パネルが CN パッチ DLL をゲームに注入し、その DLL が SDK 通信をこの PC に振り向けます。",
+    "setup.launch.hosts.note": "下のボタンで起動します。パネルが 7 つの SDK ドメインを hosts に書き込み、クライアントが自分からこの PC に接続します。",
+    "setup.region.cn.note": "パネルは CN の SDK 通信をこの PC に向ける必要があります。hosts か DLL 注入かは手順 1 で選びます。",
     "setup.region.global": "グローバル版",
     "setup.region.none": "未選択",
     "setup.region.pick": "先にサーバー地域を選択してください。中国版とグローバル版では初期設定の方法がまったく異なります。",
@@ -1727,7 +1616,7 @@ const SETUP_STRINGS = {
     "setup.launch.failed": "起動に失敗しました：{0}",
     "setup.patch.ready": "準備完了",
     "setup.patch.missing": "Patch\\MikuSB-Patch.dll がまだありません。初回の Loader 起動時に自動取得します。",
-    "setup.path.required": "クライアントのパスを入力するか、「自動検出」で探してください。"
+    "setup.path.hint": "このパスはまだ確認していません。「パスを確認」か「自動検出」を使ってください。","setup.path.required": "クライアントのパスを入力するか、「自動検出」で探してください。"
   },
   "ko_KR": {
     "nav.setup": "초기 설정",
@@ -1735,7 +1624,10 @@ const SETUP_STRINGS = {
     "setup.lead": "세 단계: 서버 지역 선택 → 클라이언트 경로 입력 → 설정 저장. 기존 설정을 먼저 읽고 확인한 항목만 바꿉니다.",
     "setup.region": "1 서버 지역",
     "setup.region.cn": "중국 서버(jinshan)",
-    "setup.region.cn.note": "클라이언트는 직접 실행하며, 패널은 7개 SDK 도메인만 로컬로 돌립니다. DLL 주입은 없습니다.",
+    "setup.hosts.dllmode": "DLL 주입 모드에서는 hosts 를 쓰지 않습니다. 설정을 저장하면 MikuSB 가 쓴 hosts 줄이 지워집니다.",
+    "setup.launch.dll.note": "아래 버튼으로 실행합니다. 패널이 CN 패치 DLL 을 게임에 주입하고, 그 DLL 이 SDK 요청을 이 PC 로 돌립니다.",
+    "setup.launch.hosts.note": "아래 버튼으로 실행합니다. 패널이 7개 SDK 도메인을 hosts 에 쓰고, 클라이언트가 스스로 이 PC 로 접속합니다.",
+    "setup.region.cn.note": "패널이 CN SDK 요청을 이 PC 로 돌려야 합니다. hosts 인지 DLL 주입인지는 1단계에서 고릅니다.",
     "setup.region.global": "글로벌 서버",
     "setup.region.none": "선택 안 함",
     "setup.region.pick": "먼저 서버 지역을 선택하세요. 중국 서버와 글로벌 서버는 초기 설정 방식이 완전히 다릅니다.",
@@ -1787,7 +1679,7 @@ const SETUP_STRINGS = {
     "setup.launch.failed": "실행 실패: {0}",
     "setup.patch.ready": "준비됨",
     "setup.patch.missing": "Patch\\MikuSB-Patch.dll 이 아직 없습니다. Loader 첫 실행 시 자동으로 내려받습니다.",
-    "setup.path.required": "클라이언트 경로를 입력하거나 \"자동 탐지\"를 눌러 주세요."
+    "setup.path.hint": "아직 이 경로를 확인하지 않았습니다. 위의 확인 또는 자동 탐지를 사용하세요.","setup.path.required": "클라이언트 경로를 입력하거나 \"자동 탐지\"를 눌러 주세요."
   },
   "en_US": {
     "nav.setup": "Setup",
@@ -1795,7 +1687,10 @@ const SETUP_STRINGS = {
     "setup.lead": "Three steps: pick the server region, point at the client, write the config. The panel reads your current config first and only rewrites what you confirm here.",
     "setup.region": "1 Server region",
     "setup.region.cn": "China (jinshan)",
-    "setup.region.cn.note": "The client launches itself; the panel only points seven SDK domains at this machine, no DLL injection.",
+    "setup.hosts.dllmode": "DLL injection does not use hosts: writing the config clears the MikuSB block from the hosts file.",
+    "setup.launch.dll.note": "Press the button below: the panel injects the CN patch DLL into the game, and the DLL points the SDK calls at this machine.",
+    "setup.launch.hosts.note": "Press the button below: the panel writes the seven SDK domains into hosts, and the client connects here by itself.",
+    "setup.region.cn.note": "The panel has to point the CN SDK traffic at this machine; pick hosts or DLL injection in step 1.",
     "setup.region.global": "Global",
     "setup.region.none": "Not selected",
     "setup.region.pick": "Pick a server region first: the CN and global builds are set up in completely different ways.",
@@ -1847,7 +1742,7 @@ const SETUP_STRINGS = {
     "setup.launch.failed": "Launch failed: {0}",
     "setup.patch.ready": "Ready",
     "setup.patch.missing": "Patch\\MikuSB-Patch.dll is not downloaded yet; the loader fetches it on first start.",
-    "setup.path.required": "Enter the client path, or press \"Detect\" to let the panel find it."
+    "setup.path.hint": "This path has not been checked yet; use the check or detect button above.","setup.path.required": "Enter the client path, or press \"Detect\" to let the panel find it."
   },
   "fr_FR": {
     "nav.setup": "Installation",
@@ -1855,7 +1750,10 @@ const SETUP_STRINGS = {
     "setup.lead": "Trois étapes : région du serveur, chemin du client, écriture de la configuration. Le panneau lit d’abord la configuration existante et ne réécrit que ce que vous validez.",
     "setup.region": "1 Région du serveur",
     "setup.region.cn": "Chine (jinshan)",
-    "setup.region.cn.note": "Le client se lance seul ; le panneau ne redirige que sept domaines SDK vers cette machine, sans injection de DLL.",
+    "setup.hosts.dllmode": "L'injection DLL n'utilise pas hosts : écrire la configuration efface le bloc MikuSB du fichier hosts.",
+    "setup.launch.dll.note": "Cliquez sur le bouton ci-dessous : le panneau injecte la DLL de patch CN dans le jeu, et la DLL renvoie les appels SDK vers cette machine.",
+    "setup.launch.hosts.note": "Cliquez sur le bouton ci-dessous : le panneau écrit les sept domaines SDK dans hosts, et le client se connecte ici de lui-même.",
+    "setup.region.cn.note": "Le panneau doit diriger le trafic SDK CN vers cette machine ; choisissez hosts ou injection DLL à l'étape 1.",
     "setup.region.global": "International",
     "setup.region.none": "Non sélectionné",
     "setup.region.pick": "Choisissez d’abord une région de serveur : les versions CN et internationale ne se configurent pas du tout de la même façon.",
@@ -1907,7 +1805,7 @@ const SETUP_STRINGS = {
     "setup.launch.failed": "Échec du lancement : {0}",
     "setup.patch.ready": "Prêt",
     "setup.patch.missing": "Patch\\MikuSB-Patch.dll est absent ; le loader le télécharge au premier démarrage.",
-    "setup.path.required": "Saisissez le chemin du client, ou utilisez « Détecter »."
+    "setup.path.hint": "Ce chemin n'a pas encore été vérifié : utilisez le bouton de vérification ou de détection ci-dessus.","setup.path.required": "Saisissez le chemin du client, ou utilisez « Détecter »."
   },
   "es_ES": {
     "nav.setup": "Configuración",
@@ -1915,7 +1813,10 @@ const SETUP_STRINGS = {
     "setup.lead": "Tres pasos: región del servidor, ruta del cliente y escritura de la configuración. El panel lee primero tu configuración y solo reescribe lo que confirmes.",
     "setup.region": "1 Región del servidor",
     "setup.region.cn": "China (jinshan)",
-    "setup.region.cn.note": "El cliente se inicia solo; el panel solo redirige siete dominios SDK a este equipo, sin inyectar DLL.",
+    "setup.hosts.dllmode": "La inyección de DLL no usa hosts: al escribir la configuración se borra el bloque de MikuSB del archivo hosts.",
+    "setup.launch.dll.note": "Pulsa el botón de abajo: el panel inyecta la DLL de parche CN en el juego y la DLL redirige las llamadas SDK a este equipo.",
+    "setup.launch.hosts.note": "Pulsa el botón de abajo: el panel escribe los siete dominios SDK en hosts y el cliente se conecta aquí por su cuenta.",
+    "setup.region.cn.note": "El panel debe dirigir el tráfico SDK de CN a este equipo; elige hosts o inyección de DLL en el paso 1.",
     "setup.region.global": "Internacional",
     "setup.region.none": "Sin seleccionar",
     "setup.region.pick": "Primero elige la región del servidor: las versiones CN e internacional se configuran de forma totalmente distinta.",
@@ -1967,7 +1868,7 @@ const SETUP_STRINGS = {
     "setup.launch.failed": "Error al iniciar: {0}",
     "setup.patch.ready": "Listo",
     "setup.patch.missing": "Falta Patch\\MikuSB-Patch.dll; el loader lo descarga al iniciar.",
-    "setup.path.required": "Introduce la ruta del cliente o pulsa «Detectar»."
+    "setup.path.hint": "Esta ruta aún no se ha comprobado; usa el botón de comprobar o de detectar.","setup.path.required": "Introduce la ruta del cliente o pulsa «Detectar»."
   },
   "de_DE": {
     "nav.setup": "Einrichtung",
@@ -1975,7 +1876,10 @@ const SETUP_STRINGS = {
     "setup.lead": "Drei Schritte: Serverregion, Client-Pfad, Konfiguration schreiben. Das Panel liest die bestehende Konfiguration und ändert nur, was du hier bestätigst.",
     "setup.region": "1 Serverregion",
     "setup.region.cn": "China (jinshan)",
-    "setup.region.cn.note": "Der Client startet selbst; das Panel zeigt nur sieben SDK-Domains auf diesen Rechner, ohne DLL-Injektion.",
+    "setup.hosts.dllmode": "DLL-Injektion nutzt kein hosts: beim Schreiben der Konfiguration wird der MikuSB-Block aus der hosts-Datei entfernt.",
+    "setup.launch.dll.note": "Knopf unten drücken: das Panel injiziert die CN-Patch-DLL ins Spiel, und die DLL leitet die SDK-Aufrufe auf diesen Rechner.",
+    "setup.launch.hosts.note": "Knopf unten drücken: das Panel schreibt die sieben SDK-Domains in hosts, und der Client verbindet sich selbst hierher.",
+    "setup.region.cn.note": "Das Panel muss den CN-SDK-Verkehr auf diesen Rechner lenken; hosts oder DLL-Injektion wird in Schritt 1 gewählt.",
     "setup.region.global": "International",
     "setup.region.none": "Nicht ausgewählt",
     "setup.region.pick": "Wähle zuerst die Serverregion: CN- und internationale Version werden völlig unterschiedlich eingerichtet.",
@@ -2027,7 +1931,7 @@ const SETUP_STRINGS = {
     "setup.launch.failed": "Start fehlgeschlagen: {0}",
     "setup.patch.ready": "Bereit",
     "setup.patch.missing": "Patch\\MikuSB-Patch.dll fehlt noch; der Loader lädt sie beim ersten Start.",
-    "setup.path.required": "Client-Pfad eingeben oder „Erkennen“ drücken."
+    "setup.path.hint": "Dieser Pfad wurde noch nicht geprüft; nutze oben „Prüfen“ oder „Erkennen“.","setup.path.required": "Client-Pfad eingeben oder „Erkennen“ drücken."
   },
   "th_TH": {
     "nav.setup": "ตั้งค่าเริ่มต้น",
@@ -2035,7 +1939,10 @@ const SETUP_STRINGS = {
     "setup.lead": "สามขั้นตอน: เลือกภูมิภาคเซิร์ฟเวอร์ → ระบุที่อยู่ไคลเอนต์ → บันทึกการตั้งค่า แผงจะอ่านค่าที่มีอยู่ก่อนและแก้เฉพาะรายการที่คุณยืนยัน",
     "setup.region": "1 ภูมิภาคเซิร์ฟเวอร์",
     "setup.region.cn": "จีน (jinshan)",
-    "setup.region.cn.note": "ไคลเอนต์เปิดเอง แผงเพียงชี้ 7 โดเมน SDK มาที่เครื่องนี้ ไม่มีการฉีด DLL",
+    "setup.hosts.dllmode": "โหมดฉีด DLL ไม่ใช้ hosts: เมื่อเขียนค่าตั้ง ระบบจะลบบล็อก MikuSB ในไฟล์ hosts",
+    "setup.launch.dll.note": "กดปุ่มด้านล่าง: แผงจะฉีด DLL แพตช์ CN เข้าไปในเกม และ DLL จะพาการเรียก SDK มาที่เครื่องนี้",
+    "setup.launch.hosts.note": "กดปุ่มด้านล่าง: แผงจะเขียน 7 โดเมน SDK ลง hosts แล้วไคลเอนต์จะเชื่อมต่อมาที่เครื่องนี้เอง",
+    "setup.region.cn.note": "แผงต้องพาทราฟฟิก SDK ของ CN มาที่เครื่องนี้ จะใช้ hosts หรือฉีด DLL เลือกในขั้นตอนที่ 1",
     "setup.region.global": "สากล",
     "setup.region.none": "ยังไม่ได้เลือก",
     "setup.region.pick": "เลือกภูมิภาคเซิร์ฟเวอร์ก่อน: เวอร์ชัน CN และสากลมีการตั้งค่าเริ่มต้นต่างกันโดยสิ้นเชิง",
@@ -2087,7 +1994,7 @@ const SETUP_STRINGS = {
     "setup.launch.failed": "เปิดไม่สำเร็จ: {0}",
     "setup.patch.ready": "พร้อม",
     "setup.patch.missing": "ยังไม่มี Patch\\MikuSB-Patch.dll ตัว Loader จะดาวน์โหลดให้เมื่อเริ่มครั้งแรก",
-    "setup.path.required": "กรอกพาธของไคลเอนต์ หรือกด \"ตรวจหาอัตโนมัติ\""
+    "setup.path.hint": "ยังไม่ได้ตรวจสอบพาธนี้ ใช้ปุ่มตรวจสอบหรือตรวจหาอัตโนมัติด้านบน","setup.path.required": "กรอกพาธของไคลเอนต์ หรือกด \"ตรวจหาอัตโนมัติ\""
   },
   "id_ID": {
     "nav.setup": "Penyiapan",
@@ -2095,7 +2002,10 @@ const SETUP_STRINGS = {
     "setup.lead": "Tiga langkah: pilih wilayah server, isi lokasi klien, tulis konfigurasi. Panel membaca konfigurasi yang ada lebih dulu dan hanya mengubah yang Anda konfirmasi.",
     "setup.region": "1 Wilayah server",
     "setup.region.cn": "Tiongkok (jinshan)",
-    "setup.region.cn.note": "Klien dijalankan sendiri; panel hanya mengarahkan tujuh domain SDK ke mesin ini, tanpa menyuntikkan DLL.",
+    "setup.hosts.dllmode": "Mode suntik DLL tidak memakai hosts: saat konfigurasi ditulis, blok MikuSB di berkas hosts dihapus.",
+    "setup.launch.dll.note": "Tekan tombol di bawah: panel menyuntikkan DLL patch CN ke dalam game, dan DLL mengarahkan panggilan SDK ke mesin ini.",
+    "setup.launch.hosts.note": "Tekan tombol di bawah: panel menulis tujuh domain SDK ke hosts, dan klien tersambung ke sini dengan sendirinya.",
+    "setup.region.cn.note": "Panel harus mengarahkan lalu lintas SDK CN ke mesin ini; pilih hosts atau suntik DLL di langkah 1.",
     "setup.region.global": "Internasional",
     "setup.region.none": "Belum dipilih",
     "setup.region.pick": "Pilih wilayah server dulu: versi CN dan internasional disiapkan dengan cara yang sangat berbeda.",
@@ -2147,11 +2057,498 @@ const SETUP_STRINGS = {
     "setup.launch.failed": "Gagal menjalankan: {0}",
     "setup.patch.ready": "Siap",
     "setup.patch.missing": "Patch\\MikuSB-Patch.dll belum ada; loader akan mengunduhnya saat pertama dijalankan.",
-    "setup.path.required": "Isi jalur klien, atau tekan \"Deteksi otomatis\"."
+    "setup.path.hint": "Jalur ini belum diperiksa; gunakan tombol periksa atau deteksi di atas.","setup.path.required": "Isi jalur klien, atau tekan \"Deteksi otomatis\"."
   }
 };
 Object.keys(SETUP_STRINGS).forEach((lang) => {
   STRINGS[lang] = Object.assign(STRINGS[lang] || {}, SETUP_STRINGS[lang]);
+});
+
+// The overview's runtime row: the host phase (downloading an update / downloading the resource pack /
+// running) plus the launch button that only shows up once startup has finished. Kept out of the big
+// tables above so this row can grow without editing ten of them.
+const RUNTIME_STRINGS = {
+  zh_CN: {
+    'overview.runtime': '当前服务器状态',
+    'overview.runtime.note': '下载更新或资源包时这里会跟着变；初始化完成后可以直接从这里启动游戏。',
+    'overview.phase.starting': '初始化中',
+    'overview.phase.update': '下载更新',
+    'overview.phase.resources': '下载资源',
+    'overview.phase.running': '正常运行',
+    'overview.launch': '启动游戏'
+  },
+  en_US: {
+    'overview.runtime': 'Server status',
+    'overview.runtime.note': 'Follows the host while it downloads an update or the resource pack; once startup has finished the client can be launched from here.',
+    'overview.phase.starting': 'Starting up',
+    'overview.phase.update': 'Downloading update',
+    'overview.phase.resources': 'Downloading resources',
+    'overview.phase.running': 'Running',
+    'overview.launch': 'Launch game'
+  },
+  zh_TW: {
+    'overview.runtime': '目前伺服器狀態',
+    'overview.runtime.note': '下載更新或資源包時這裡會跟著變；初始化完成後可以直接從這裡啟動遊戲。',
+    'overview.phase.starting': '初始化中',
+    'overview.phase.update': '下載更新',
+    'overview.phase.resources': '下載資源',
+    'overview.phase.running': '正常執行',
+    'overview.launch': '啟動遊戲'
+  },
+  ja_JP: {
+    'overview.runtime': 'サーバーの状態',
+    'overview.runtime.note': '更新やリソースパックのダウンロード中はここに表示されます。初期化が終わればここからゲームを起動できます。',
+    'overview.phase.starting': '起動準備中',
+    'overview.phase.update': '更新をダウンロード中',
+    'overview.phase.resources': 'リソースをダウンロード中',
+    'overview.phase.running': '正常稼働',
+    'overview.launch': 'ゲーム起動'
+  },
+  ko_KR: {
+    'overview.runtime': '서버 상태',
+    'overview.runtime.note': '업데이트나 리소스 팩을 내려받는 동안 여기에 표시됩니다. 초기화가 끝나면 여기서 게임을 실행할 수 있습니다.',
+    'overview.phase.starting': '초기화 중',
+    'overview.phase.update': '업데이트 내려받는 중',
+    'overview.phase.resources': '리소스 내려받는 중',
+    'overview.phase.running': '정상 실행 중',
+    'overview.launch': '게임 실행'
+  },
+  de_DE: {
+    'overview.runtime': 'Serverstatus',
+    'overview.runtime.note': 'Zeigt hier den Fortschritt, während ein Update oder das Ressourcenpaket geladen wird; nach dem Start lässt sich der Client von hier aus starten.',
+    'overview.phase.starting': 'Startet',
+    'overview.phase.update': 'Update wird geladen',
+    'overview.phase.resources': 'Ressourcen werden geladen',
+    'overview.phase.running': 'Läuft',
+    'overview.launch': 'Spiel starten'
+  },
+  fr_FR: {
+    'overview.runtime': 'État du serveur',
+    'overview.runtime.note': 'Suit l’hôte pendant le téléchargement d’une mise à jour ou du paquet de ressources ; une fois le démarrage terminé, le client se lance d’ici.',
+    'overview.phase.starting': 'Démarrage',
+    'overview.phase.update': 'Téléchargement de la mise à jour',
+    'overview.phase.resources': 'Téléchargement des ressources',
+    'overview.phase.running': 'En marche',
+    'overview.launch': 'Lancer le jeu'
+  },
+  es_ES: {
+    'overview.runtime': 'Estado del servidor',
+    'overview.runtime.note': 'Sigue al host mientras descarga una actualización o el paquete de recursos; cuando termine el arranque, el cliente se inicia desde aquí.',
+    'overview.phase.starting': 'Iniciando',
+    'overview.phase.update': 'Descargando actualización',
+    'overview.phase.resources': 'Descargando recursos',
+    'overview.phase.running': 'En marcha',
+    'overview.launch': 'Iniciar juego'
+  },
+  th_TH: {
+    'overview.runtime': 'สถานะเซิร์ฟเวอร์',
+    'overview.runtime.note': 'จะแสดงที่นี่ระหว่างดาวน์โหลดอัปเดตหรือชุดทรัพยากร เมื่อเริ่มระบบเสร็จสามารถเปิดเกมได้จากที่นี่',
+    'overview.phase.starting': 'กำลังเริ่มต้น',
+    'overview.phase.update': 'กำลังดาวน์โหลดอัปเดต',
+    'overview.phase.resources': 'กำลังดาวน์โหลดทรัพยากร',
+    'overview.phase.running': 'ทำงานปกติ',
+    'overview.launch': 'เปิดเกม'
+  },
+  id_ID: {
+    'overview.runtime': 'Status server',
+    'overview.runtime.note': 'Mengikuti host saat mengunduh pembaruan atau paket sumber daya; setelah inisialisasi selesai, game bisa dijalankan dari sini.',
+    'overview.phase.starting': 'Menyiapkan',
+    'overview.phase.update': 'Mengunduh pembaruan',
+    'overview.phase.resources': 'Mengunduh sumber daya',
+    'overview.phase.running': 'Berjalan normal',
+    'overview.launch': 'Jalankan game'
+  }
+};
+Object.keys(RUNTIME_STRINGS).forEach((lang) => {
+  STRINGS[lang] = Object.assign(STRINGS[lang] || {}, RUNTIME_STRINGS[lang]);
+});
+
+// The CN launch block: the specific-channel build can be started through the hosts block or through the CN
+// patch DLL, and the operator has to be able to tell the two apart. Same reason as above for a separate table.
+const CNLAUNCH_STRINGS = {
+  zh_CN: {
+    'setup.cnlaunch': '国服启动方式',
+    'setup.cnlaunch.note': '两条路连的都是这台服务器，只是引导方式不同：hosts 改本机 hosts（需管理员权限），DLL 注入把国服补丁塞进客户端（不改 hosts，但要先放好 CN 版补丁 DLL）。点哪个按钮就用哪种方式启动，选择会被记住。',
+    'setup.cnlaunch.hosts': '启动游戏（hosts）',
+    'setup.cnlaunch.dll': '启动游戏（DLL 注入）',
+    'setup.cnlaunch.patch.ready': '国服补丁 DLL 已就位，可以用 DLL 注入启动。',
+    'setup.cnlaunch.patch.missing': '国服补丁 DLL 不在 {0}：把 CN 版 MikuSB-Patch.dll 复制到该路径后，DLL 注入才可用。'
+  },
+  en_US: {
+    'setup.cnlaunch': 'CN launch method',
+    'setup.cnlaunch.note': 'Both routes reach this server; only the way the client is steered differs. Hosts rewrites this machine\'s hosts file (needs administrator rights), the DLL route injects the CN patch (no hosts change, but the CN build of the patch DLL has to be in place). The button you press decides the route, and the choice is remembered.',
+    'setup.cnlaunch.hosts': 'Launch game (hosts)',
+    'setup.cnlaunch.dll': 'Launch game (DLL injection)',
+    'setup.cnlaunch.patch.ready': 'The CN patch DLL is in place, so the DLL route is ready.',
+    'setup.cnlaunch.patch.missing': 'The CN patch DLL is not at {0}; copy the CN build of MikuSB-Patch.dll there to enable the DLL route.'
+  },
+  zh_TW: {
+    'setup.cnlaunch': '國服啟動方式',
+    'setup.cnlaunch.note': '兩條路連的都是這台伺服器，只是引導方式不同：hosts 改本機 hosts（需管理員權限），DLL 注入把國服補丁放進用戶端（不改 hosts，但要先放好 CN 版補丁 DLL）。點哪個按鈕就用哪種方式啟動，選擇會被記住。',
+    'setup.cnlaunch.hosts': '啟動遊戲（hosts）',
+    'setup.cnlaunch.dll': '啟動遊戲（DLL 注入）',
+    'setup.cnlaunch.patch.ready': '國服補丁 DLL 已就位，可以用 DLL 注入啟動。',
+    'setup.cnlaunch.patch.missing': '國服補丁 DLL 不在 {0}：把 CN 版 MikuSB-Patch.dll 複製到該路徑後，DLL 注入才可用。'
+  },
+  ja_JP: {
+    'setup.cnlaunch': 'CN クライアントの起動方法',
+    'setup.cnlaunch.note': 'どちらも同じサーバーに接続します。違いはクライアントの誘導方法だけです。hosts はこの PC の hosts を書き換え（管理者権限が必要）、DLL は CN 用パッチを注入します（hosts は変更しませんが、CN 版 MikuSB-Patch.dll を配置しておく必要があります）。押したボタンの方法で起動し、選択は保存されます。',
+    'setup.cnlaunch.hosts': 'ゲーム起動（hosts）',
+    'setup.cnlaunch.dll': 'ゲーム起動（DLL 注入）',
+    'setup.cnlaunch.patch.ready': 'CN 用パッチ DLL があるため、DLL 注入で起動できます。',
+    'setup.cnlaunch.patch.missing': 'CN 用パッチ DLL が {0} にありません。CN 版 MikuSB-Patch.dll をそこへコピーすると DLL 注入が使えます。'
+  },
+  ko_KR: {
+    'setup.cnlaunch': 'CN 실행 방식',
+    'setup.cnlaunch.note': '두 방식 모두 같은 서버에 연결되며, 차이는 클라이언트를 유도하는 방법뿐입니다. hosts 는 이 PC의 hosts 파일을 고치고(관리자 권한 필요), DLL 은 CN 패치를 주입합니다(hosts 는 건드리지 않지만 CN 빌드 MikuSB-Patch.dll 이 있어야 합니다). 누른 버튼의 방식으로 실행되며 선택은 저장됩니다.',
+    'setup.cnlaunch.hosts': '게임 실행(hosts)',
+    'setup.cnlaunch.dll': '게임 실행(DLL 주입)',
+    'setup.cnlaunch.patch.ready': 'CN 패치 DLL 이 준비되어 DLL 주입으로 실행할 수 있습니다.',
+    'setup.cnlaunch.patch.missing': 'CN 패치 DLL 이 {0} 에 없습니다. CN 빌드 MikuSB-Patch.dll 을 복사하면 DLL 주입을 쓸 수 있습니다.'
+  },
+  de_DE: {
+    'setup.cnlaunch': 'CN-Startmethode',
+    'setup.cnlaunch.note': 'Beide Wege erreichen denselben Server; nur die Steuerung des Clients unterscheidet sich. hosts schreibt die hosts-Datei dieses Rechners um (Administratorrechte nötig), die DLL-Variante injiziert den CN-Patch (keine hosts-Änderung, dafür muss der CN-Build der Patch-DLL bereitliegen). Der gedrückte Knopf entscheidet, und die Wahl wird gemerkt.',
+    'setup.cnlaunch.hosts': 'Spiel starten (hosts)',
+    'setup.cnlaunch.dll': 'Spiel starten (DLL-Injektion)',
+    'setup.cnlaunch.patch.ready': 'Die CN-Patch-DLL liegt bereit, die DLL-Variante ist einsatzfähig.',
+    'setup.cnlaunch.patch.missing': 'Die CN-Patch-DLL fehlt unter {0}; kopiere den CN-Build von MikuSB-Patch.dll dorthin, um die DLL-Variante zu nutzen.'
+  },
+  fr_FR: {
+    'setup.cnlaunch': 'Méthode de lancement CN',
+    'setup.cnlaunch.note': 'Les deux voies mènent au même serveur ; seule la façon de guider le client change. hosts réécrit le fichier hosts de cette machine (droits administrateur requis), la voie DLL injecte le patch CN (aucune modification de hosts, mais le build CN de la DLL doit être en place). Le bouton choisi décide de la voie, et le choix est mémorisé.',
+    'setup.cnlaunch.hosts': 'Lancer le jeu (hosts)',
+    'setup.cnlaunch.dll': 'Lancer le jeu (injection DLL)',
+    'setup.cnlaunch.patch.ready': 'La DLL de patch CN est en place, la voie DLL est disponible.',
+    'setup.cnlaunch.patch.missing': 'La DLL de patch CN est absente de {0} ; copiez-y le build CN de MikuSB-Patch.dll pour activer la voie DLL.'
+  },
+  es_ES: {
+    'setup.cnlaunch': 'Método de inicio CN',
+    'setup.cnlaunch.note': 'Ambas rutas llegan al mismo servidor; solo cambia cómo se guía al cliente. hosts reescribe el archivo hosts de este equipo (requiere permisos de administrador), la ruta DLL inyecta el parche CN (sin tocar hosts, pero el build CN de la DLL debe estar colocado). El botón que pulses decide la ruta, y la elección se recuerda.',
+    'setup.cnlaunch.hosts': 'Iniciar juego (hosts)',
+    'setup.cnlaunch.dll': 'Iniciar juego (inyección DLL)',
+    'setup.cnlaunch.patch.ready': 'La DLL del parche CN está colocada, la ruta DLL está lista.',
+    'setup.cnlaunch.patch.missing': 'La DLL del parche CN no está en {0}; copia allí el build CN de MikuSB-Patch.dll para habilitar la ruta DLL.'
+  },
+  th_TH: {
+    'setup.cnlaunch': 'วิธีเปิดเกม CN',
+    'setup.cnlaunch.note': 'ทั้งสองวิธีเชื่อมต่อเซิร์ฟเวอร์เดียวกัน ต่างกันแค่วิธีชี้นำไคลเอนต์: hosts จะแก้ไฟล์ hosts ของเครื่องนี้ (ต้องใช้สิทธิ์ผู้ดูแลระบบ) ส่วน DLL จะฉีดแพตช์ CN ให้ (ไม่แตะ hosts แต่ต้องวาง MikuSB-Patch.dll เวอร์ชัน CN ไว้ให้เรียบร้อย) ปุ่มที่กดจะเป็นตัวเลือกวิธี และระบบจะจำไว้',
+    'setup.cnlaunch.hosts': 'เปิดเกม (hosts)',
+    'setup.cnlaunch.dll': 'เปิดเกม (ฉีด DLL)',
+    'setup.cnlaunch.patch.ready': 'มีแพตช์ DLL เวอร์ชัน CN แล้ว จึงใช้วิธีฉีด DLL ได้',
+    'setup.cnlaunch.patch.missing': 'ไม่พบแพตช์ DLL เวอร์ชัน CN ที่ {0} คัดลอก MikuSB-Patch.dll เวอร์ชัน CN ไปวางแล้วจึงจะใช้วิธีฉีด DLL ได้'
+  },
+  id_ID: {
+    'setup.cnlaunch': 'Cara menjalankan CN',
+    'setup.cnlaunch.note': 'Kedua jalur menuju server yang sama; yang berbeda hanya cara mengarahkan klien. hosts menulis ulang berkas hosts mesin ini (perlu hak administrator), jalur DLL menyuntikkan patch CN (tidak mengubah hosts, tetapi build CN MikuSB-Patch.dll harus sudah ada). Tombol yang ditekan menentukan jalurnya, dan pilihannya diingat.',
+    'setup.cnlaunch.hosts': 'Jalankan game (hosts)',
+    'setup.cnlaunch.dll': 'Jalankan game (suntik DLL)',
+    'setup.cnlaunch.patch.ready': 'DLL patch CN sudah tersedia, jalur DLL siap dipakai.',
+    'setup.cnlaunch.patch.missing': 'DLL patch CN tidak ada di {0}; salin build CN MikuSB-Patch.dll ke sana agar jalur DLL bisa dipakai.'
+  }
+};
+Object.keys(CNLAUNCH_STRINGS).forEach((lang) => {
+  STRINGS[lang] = Object.assign(STRINGS[lang] || {}, CNLAUNCH_STRINGS[lang]);
+});
+
+// Wizard gating copy. Kept apart from SETUP_STRINGS so the step rules stay in one readable block: each
+// step owns the sentence that explains why the next control is still disabled.
+const WIZARD_STRINGS = {
+  zh_CN: {
+    'setup.channel.ready': '该渠道的补丁 DLL 已就位。',
+    'setup.channel.preparing': '正在准备该渠道的补丁 DLL…',
+    'setup.channel.failed': '准备补丁 DLL 失败',
+    'setup.mode.note': 'DLL 注入不写 hosts；hosts 模式会改写本机 hosts。选择会写进配置。',
+    'setup.locked': '先完成上一步'
+  },
+  en_US: {
+    'setup.channel.ready': 'The patch DLL for this channel is in place.',
+    'setup.channel.preparing': 'Preparing the patch DLL for this channel…',
+    'setup.channel.failed': 'Preparing the patch DLL failed',
+    'setup.mode.note': 'DLL injection leaves hosts alone; hosts mode rewrites this machine hosts file. The choice is saved with the config.',
+    'setup.locked': 'Finish the previous step first'
+  },
+  zh_TW: {
+    'setup.channel.ready': '該渠道的補丁 DLL 已就位。',
+    'setup.channel.preparing': '正在準備該渠道的補丁 DLL…',
+    'setup.channel.failed': '準備補丁 DLL 失敗',
+    'setup.mode.note': 'DLL 注入不寫 hosts；hosts 模式會改寫本機 hosts。選擇會寫進設定。',
+    'setup.locked': '先完成上一步'
+  },
+  ja_JP: {
+    'setup.channel.ready': 'このチャネルのパッチ DLL は準備済みです。',
+    'setup.channel.preparing': 'このチャネルのパッチ DLL を準備しています…',
+    'setup.channel.failed': 'パッチ DLL の準備に失敗しました',
+    'setup.mode.note': 'DLL 注入は hosts を変更しません。hosts モードはこの PC の hosts を書き換えます。選択は設定に保存されます。',
+    'setup.locked': '先に前の手順を完了してください'
+  },
+  ko_KR: {
+    'setup.channel.ready': '이 채널의 패치 DLL이 준비되었습니다.',
+    'setup.channel.preparing': '이 채널의 패치 DLL을 준비하는 중…',
+    'setup.channel.failed': '패치 DLL 준비에 실패했습니다',
+    'setup.mode.note': 'DLL 주입은 hosts를 건드리지 않습니다. hosts 모드는 이 PC의 hosts 파일을 다시 씁니다. 선택은 설정에 저장됩니다.',
+    'setup.locked': '먼저 이전 단계를 완료하세요'
+  },
+  de_DE: {
+    'setup.channel.ready': 'Die Patch-DLL für diesen Kanal liegt bereit.',
+    'setup.channel.preparing': 'Die Patch-DLL für diesen Kanal wird vorbereitet…',
+    'setup.channel.failed': 'Patch-DLL konnte nicht vorbereitet werden',
+    'setup.mode.note': 'DLL-Injection lässt die hosts-Datei unverändert; der hosts-Modus schreibt sie neu. Die Auswahl wird in der Konfiguration gespeichert.',
+    'setup.locked': 'Schließe zuerst den vorherigen Schritt ab'
+  },
+  fr_FR: {
+    'setup.channel.ready': 'La DLL de patch de ce canal est en place.',
+    'setup.channel.preparing': 'Préparation de la DLL de patch de ce canal…',
+    'setup.channel.failed': 'La préparation de la DLL de patch a échoué',
+    'setup.mode.note': 'L injection DLL ne touche pas au fichier hosts ; le mode hosts réécrit celui de cette machine. Le choix est enregistré dans la configuration.',
+    'setup.locked': 'Terminez d abord l étape précédente'
+  },
+  es_ES: {
+    'setup.channel.ready': 'La DLL de parche de este canal está lista.',
+    'setup.channel.preparing': 'Preparando la DLL de parche de este canal…',
+    'setup.channel.failed': 'No se pudo preparar la DLL de parche',
+    'setup.mode.note': 'La inyección DLL no toca el archivo hosts; el modo hosts reescribe el de este equipo. La elección se guarda en la configuración.',
+    'setup.locked': 'Completa primero el paso anterior'
+  },
+  th_TH: {
+    'setup.channel.ready': 'แพตช์ DLL ของช่องทางนี้พร้อมแล้ว',
+    'setup.channel.preparing': 'กำลังเตรียมแพตช์ DLL ของช่องทางนี้…',
+    'setup.channel.failed': 'เตรียมแพตช์ DLL ไม่สำเร็จ',
+    'setup.mode.note': 'การฉีด DLL จะไม่แตะไฟล์ hosts ส่วนโหมด hosts จะเขียนไฟล์ hosts ของเครื่องนี้ใหม่ ระบบจะบันทึกตัวเลือกไว้ในการตั้งค่า',
+    'setup.locked': 'ทำขั้นตอนก่อนหน้าให้เสร็จก่อน'
+  },
+  id_ID: {
+    'setup.channel.ready': 'DLL patch untuk kanal ini sudah siap.',
+    'setup.channel.preparing': 'Menyiapkan DLL patch untuk kanal ini…',
+    'setup.channel.failed': 'Gagal menyiapkan DLL patch',
+    'setup.mode.note': 'Injeksi DLL tidak menyentuh hosts; mode hosts menulis ulang berkas hosts mesin ini. Pilihannya disimpan di konfigurasi.',
+    'setup.locked': 'Selesaikan langkah sebelumnya dulu'
+  }
+};
+Object.keys(WIZARD_STRINGS).forEach((lang) => {
+  STRINGS[lang] = Object.assign(STRINGS[lang] || {}, WIZARD_STRINGS[lang]);
+});
+
+// ---------------------------------------------------------------------------------------------
+// setup verdicts
+// The server answers with codes, not prose (path checks, channel prep, next steps). It used to send
+// finished Chinese sentences, which is why an English panel showed "Install root 找不到安装根目录下的
+// data\game" and why adding a language meant editing C#. Everything the operator reads is now built here.
+// ---------------------------------------------------------------------------------------------
+const CODE_STRINGS = {
+  zh_CN: {
+    'setup.check.input.empty': '客户端路径为空。',
+    'setup.check.locate.missing': '这个路径下找不到 {0}。',
+    'setup.check.exe.missing': 'Game.exe 不存在。',
+    'setup.check.name.mismatch': '可执行文件名不是 Game.exe，游戏可能不是尘白禁区。',
+    'setup.check.userdir.missing': '找不到包含 {0} 的目录（-userdir 需要它）。',
+    'setup.check.paks.missing': '缺少 {0}（游戏资源未安装或路径不对）。',
+    'setup.check.paks.no_paks': '目录存在，但里面没有 .pak 文件。',
+    'setup.check.install.missing': '找不到这个客户端的安装根目录。',
+    'setup.channel.code.cn_ready': '国服补丁 DLL 已就位：{0}',
+    'setup.channel.code.cn_missing': '国服补丁 DLL 不在 {0}：把 CN 版 MikuSB-Patch.dll 放到该路径后再继续。',
+    'setup.channel.code.ready': '国际服补丁 DLL 已就位。',
+    'setup.channel.code.missing': '国际服补丁 DLL 仍未下载成功，检查网络后重试。',
+    'setup.channel.code.download_failed': '下载国际服补丁 DLL 失败，检查网络后重试（详情见日志）。',
+    'setup.next.cn_dll': '国服：DLL 注入模式，用下面的按钮启动游戏。',
+    'setup.next.cn_hosts': '国服：hosts 模式，直接用官方启动器或游戏 exe 启动。',
+    'setup.next.patch_dir': '把 Patch\\MikuSB-Patch.dll 放到 Config 同级目录（首次会自动下载）。',
+    'setup.next.launch': '用下面的按钮启动游戏。',
+    'setup.error.invalid_path': '客户端路径没有通过检查。',
+    'setup.error.region_required': '请先选择服务器区域（国服或国际服）。'
+  },
+  zh_TW: {
+    'setup.check.input.empty': '用戶端路徑為空。',
+    'setup.check.locate.missing': '這個路徑下找不到 {0}。',
+    'setup.check.exe.missing': 'Game.exe 不存在。',
+    'setup.check.name.mismatch': '可執行檔名不是 Game.exe，遊戲可能不是塵白禁區。',
+    'setup.check.userdir.missing': '找不到包含 {0} 的目錄（-userdir 需要它）。',
+    'setup.check.paks.missing': '缺少 {0}（遊戲資源未安裝或路徑不對）。',
+    'setup.check.paks.no_paks': '目錄存在，但裡面沒有 .pak 檔案。',
+    'setup.check.install.missing': '找不到這個用戶端的安裝根目錄。',
+    'setup.channel.code.cn_ready': '國服補丁 DLL 已就位：{0}',
+    'setup.channel.code.cn_missing': '國服補丁 DLL 不在 {0}：把 CN 版 MikuSB-Patch.dll 放到該路徑後再繼續。',
+    'setup.channel.code.ready': '國際服補丁 DLL 已就位。',
+    'setup.channel.code.missing': '國際服補丁 DLL 仍未下載成功，檢查網路後重試。',
+    'setup.channel.code.download_failed': '下載國際服補丁 DLL 失敗，檢查網路後重試（詳情見日誌）。',
+    'setup.next.cn_dll': '國服：DLL 注入模式，用下面的按鈕啟動遊戲。',
+    'setup.next.cn_hosts': '國服：hosts 模式，直接用官方啟動器或遊戲 exe 啟動。',
+    'setup.next.patch_dir': '把 Patch\\MikuSB-Patch.dll 放到 Config 同層目錄（首次會自動下載）。',
+    'setup.next.launch': '用下面的按鈕啟動遊戲。',
+    'setup.error.invalid_path': '用戶端路徑沒有通過檢查。',
+    'setup.error.region_required': '請先選擇伺服器區域（國服或國際服）。'
+  },
+  ja_JP: {
+    'setup.check.input.empty': 'クライアントのパスが空です。',
+    'setup.check.locate.missing': 'このパスに {0} が見つかりません。',
+    'setup.check.exe.missing': 'Game.exe が存在しません。',
+    'setup.check.name.mismatch': '実行ファイル名が Game.exe ではありません。Snowbreak ではない可能性があります。',
+    'setup.check.userdir.missing': '{0} を含むフォルダーが見つかりません（-userdir に必要です）。',
+    'setup.check.paks.missing': '{0} がありません（ゲーム資源が未インストールか、パスが違います）。',
+    'setup.check.paks.no_paks': 'フォルダーはありますが、.pak ファイルがありません。',
+    'setup.check.install.missing': 'このクライアントのインストール先が見つかりません。',
+    'setup.channel.code.cn_ready': 'CN 用パッチ DLL は配置済みです: {0}',
+    'setup.channel.code.cn_missing': 'CN 用パッチ DLL が {0} にありません。CN 版 MikuSB-Patch.dll を置いてから続行してください。',
+    'setup.channel.code.ready': 'グローバル用パッチ DLL は配置済みです。',
+    'setup.channel.code.missing': 'グローバル用パッチ DLL を取得できませんでした。ネットワークを確認して再試行してください。',
+    'setup.channel.code.download_failed': 'グローバル用パッチ DLL のダウンロードに失敗しました。ネットワークを確認して再試行してください（詳細はログ）。',
+    'setup.next.cn_dll': 'CN: DLL インジェクションモード。下のボタンで起動します。',
+    'setup.next.cn_hosts': 'CN: hosts モード。公式ランチャーまたはゲーム exe で起動します。',
+    'setup.next.patch_dir': 'Patch\\MikuSB-Patch.dll を Config と同じ場所に置いてください（初回は自動でダウンロードされます）。',
+    'setup.next.launch': '下のボタンでゲームを起動します。',
+    'setup.error.invalid_path': 'クライアントのパスがチェックを通りませんでした。',
+    'setup.error.region_required': '先にサーバー地域（CN またはグローバル）を選んでください。'
+  },
+  ko_KR: {
+    'setup.check.input.empty': '클라이언트 경로가 비어 있습니다.',
+    'setup.check.locate.missing': '이 경로에서 {0} 을(를) 찾을 수 없습니다.',
+    'setup.check.exe.missing': 'Game.exe 가 없습니다.',
+    'setup.check.name.mismatch': '실행 파일 이름이 Game.exe 가 아닙니다. Snowbreak 가 아닐 수 있습니다.',
+    'setup.check.userdir.missing': '{0} 이(가) 포함된 폴더를 찾을 수 없습니다 (-userdir 에 필요).',
+    'setup.check.paks.missing': '{0} 이(가) 없습니다 (게임 리소스가 설치되지 않았거나 경로가 다릅니다).',
+    'setup.check.paks.no_paks': '폴더는 있지만 .pak 파일이 없습니다.',
+    'setup.check.install.missing': '이 클라이언트의 설치 루트를 찾을 수 없습니다.',
+    'setup.channel.code.cn_ready': 'CN 패치 DLL 이 준비되었습니다: {0}',
+    'setup.channel.code.cn_missing': 'CN 패치 DLL 이 {0} 에 없습니다. CN 용 MikuSB-Patch.dll 을 넣은 뒤 계속하세요.',
+    'setup.channel.code.ready': '글로벌 패치 DLL 이 준비되었습니다.',
+    'setup.channel.code.missing': '글로벌 패치 DLL 을 아직 받지 못했습니다. 네트워크를 확인하고 다시 시도하세요.',
+    'setup.channel.code.download_failed': '글로벌 패치 DLL 다운로드에 실패했습니다. 네트워크를 확인하고 다시 시도하세요 (자세한 내용은 로그).',
+    'setup.next.cn_dll': 'CN: DLL 주입 모드입니다. 아래 버튼으로 게임을 시작하세요.',
+    'setup.next.cn_hosts': 'CN: hosts 모드입니다. 공식 런처나 게임 exe 로 시작하세요.',
+    'setup.next.patch_dir': 'Patch\\MikuSB-Patch.dll 을 Config 와 같은 위치에 두세요 (처음에는 자동으로 받습니다).',
+    'setup.next.launch': '아래 버튼으로 게임을 시작하세요.',
+    'setup.error.invalid_path': '클라이언트 경로가 검사를 통과하지 못했습니다.',
+    'setup.error.region_required': '먼저 서버 지역(CN 또는 글로벌)을 선택하세요.'
+  },
+  en_US: {
+    'setup.check.input.empty': 'The client path is empty.',
+    'setup.check.locate.missing': 'No {0} under this path.',
+    'setup.check.exe.missing': 'Game.exe does not exist.',
+    'setup.check.name.mismatch': 'The executable is not Game.exe; this may not be Snowbreak.',
+    'setup.check.userdir.missing': 'No folder containing {0} (-userdir needs it).',
+    'setup.check.paks.missing': '{0} is missing (the client resources are not installed, or the path is wrong).',
+    'setup.check.paks.no_paks': 'The folder exists but holds no .pak file.',
+    'setup.check.install.missing': 'Cannot find the install root for this client.',
+    'setup.channel.code.cn_ready': 'CN patch DLL is in place: {0}',
+    'setup.channel.code.cn_missing': 'CN patch DLL is not at {0}. Copy the CN MikuSB-Patch.dll there and continue.',
+    'setup.channel.code.ready': 'Global patch DLL is in place.',
+    'setup.channel.code.missing': 'The global patch DLL is still missing. Check the network and try again.',
+    'setup.channel.code.download_failed': 'Downloading the global patch DLL failed. Check the network and try again (details in the log).',
+    'setup.next.cn_dll': 'CN: DLL injection mode. Start the game with the button below.',
+    'setup.next.cn_hosts': 'CN: hosts mode. Start the game with the official launcher or the game exe.',
+    'setup.next.patch_dir': 'Keep Patch\\MikuSB-Patch.dll next to Config (it downloads automatically the first time).',
+    'setup.next.launch': 'Start the game with the button below.',
+    'setup.error.invalid_path': 'The client path did not pass the checks.',
+    'setup.error.region_required': 'Pick a server region first (CN or global).'
+  },
+  fr_FR: {
+    'setup.check.input.empty': 'Le chemin du client est vide.',
+    'setup.check.locate.missing': 'Aucun {0} sous ce chemin.',
+    'setup.check.exe.missing': 'Game.exe est absent.',
+    'setup.check.name.mismatch': "L'exécutable n'est pas Game.exe ; ce n'est peut-être pas Snowbreak.",
+    'setup.check.userdir.missing': 'Aucun dossier ne contient {0} (nécessaire pour -userdir).',
+    'setup.check.paks.missing': '{0} est absent (ressources du client non installées ou chemin incorrect).',
+    'setup.check.paks.no_paks': 'Le dossier existe mais ne contient aucun fichier .pak.',
+    'setup.check.install.missing': "Impossible de trouver la racine d'installation de ce client.",
+    'setup.channel.code.cn_ready': 'DLL de patch CN en place : {0}',
+    'setup.channel.code.cn_missing': "La DLL de patch CN n'est pas dans {0}. Copiez-y le MikuSB-Patch.dll CN puis continuez.",
+    'setup.channel.code.ready': 'DLL de patch globale en place.',
+    'setup.channel.code.missing': 'La DLL de patch globale est toujours absente. Vérifiez le réseau et réessayez.',
+    'setup.channel.code.download_failed': 'Le téléchargement de la DLL de patch globale a échoué. Vérifiez le réseau et réessayez (détails dans le journal).',
+    'setup.next.cn_dll': 'CN : mode injection DLL. Lancez le jeu avec le bouton ci-dessous.',
+    'setup.next.cn_hosts': 'CN : mode hosts. Lancez le jeu avec le lanceur officiel ou Game.exe.',
+    'setup.next.patch_dir': 'Placez Patch\\MikuSB-Patch.dll à côté de Config (téléchargé automatiquement la première fois).',
+    'setup.next.launch': 'Lancez le jeu avec le bouton ci-dessous.',
+    'setup.error.invalid_path': "Le chemin du client n'a pas passé les vérifications.",
+    'setup.error.region_required': "Choisissez d'abord une région de serveur (CN ou globale)."
+  },
+  es_ES: {
+    'setup.check.input.empty': 'La ruta del cliente está vacía.',
+    'setup.check.locate.missing': 'No hay {0} en esta ruta.',
+    'setup.check.exe.missing': 'Game.exe no existe.',
+    'setup.check.name.mismatch': 'El ejecutable no es Game.exe; puede que no sea Snowbreak.',
+    'setup.check.userdir.missing': 'No hay ninguna carpeta que contenga {0} (lo necesita -userdir).',
+    'setup.check.paks.missing': 'Falta {0} (los recursos del cliente no están instalados o la ruta es incorrecta).',
+    'setup.check.paks.no_paks': 'La carpeta existe pero no contiene ningún archivo .pak.',
+    'setup.check.install.missing': 'No se encuentra la raíz de instalación de este cliente.',
+    'setup.channel.code.cn_ready': 'DLL de parche CN lista: {0}',
+    'setup.channel.code.cn_missing': 'La DLL de parche CN no está en {0}. Copia allí el MikuSB-Patch.dll de CN y continúa.',
+    'setup.channel.code.ready': 'DLL de parche global lista.',
+    'setup.channel.code.missing': 'La DLL de parche global sigue faltando. Comprueba la red y vuelve a intentarlo.',
+    'setup.channel.code.download_failed': 'No se pudo descargar la DLL de parche global. Comprueba la red y vuelve a intentarlo (detalles en el registro).',
+    'setup.next.cn_dll': 'CN: modo inyección de DLL. Inicia el juego con el botón de abajo.',
+    'setup.next.cn_hosts': 'CN: modo hosts. Inicia el juego con el lanzador oficial o Game.exe.',
+    'setup.next.patch_dir': 'Coloca Patch\\MikuSB-Patch.dll junto a Config (se descarga automáticamente la primera vez).',
+    'setup.next.launch': 'Inicia el juego con el botón de abajo.',
+    'setup.error.invalid_path': 'La ruta del cliente no superó las comprobaciones.',
+    'setup.error.region_required': 'Elige primero una región de servidor (CN o global).'
+  },
+  de_DE: {
+    'setup.check.input.empty': 'Der Client-Pfad ist leer.',
+    'setup.check.locate.missing': 'Unter diesem Pfad wurde kein {0} gefunden.',
+    'setup.check.exe.missing': 'Game.exe ist nicht vorhanden.',
+    'setup.check.name.mismatch': 'Die Programmdatei ist nicht Game.exe; möglicherweise ist das nicht Snowbreak.',
+    'setup.check.userdir.missing': 'Kein Ordner enthält {0} (wird für -userdir benötigt).',
+    'setup.check.paks.missing': '{0} fehlt (Client-Ressourcen nicht installiert oder Pfad falsch).',
+    'setup.check.paks.no_paks': 'Der Ordner existiert, enthält aber keine .pak-Datei.',
+    'setup.check.install.missing': 'Das Installationsverzeichnis dieses Clients wurde nicht gefunden.',
+    'setup.channel.code.cn_ready': 'CN-Patch-DLL liegt bereit: {0}',
+    'setup.channel.code.cn_missing': 'Die CN-Patch-DLL liegt nicht unter {0}. Kopiere die CN-MikuSB-Patch.dll dorthin und fahre fort.',
+    'setup.channel.code.ready': 'Globale Patch-DLL liegt bereit.',
+    'setup.channel.code.missing': 'Die globale Patch-DLL fehlt weiterhin. Prüfe das Netzwerk und versuche es erneut.',
+    'setup.channel.code.download_failed': 'Das Herunterladen der globalen Patch-DLL ist fehlgeschlagen. Prüfe das Netzwerk und versuche es erneut (Details im Log).',
+    'setup.next.cn_dll': 'CN: DLL-Injektionsmodus. Starte das Spiel mit der Schaltfläche unten.',
+    'setup.next.cn_hosts': 'CN: hosts-Modus. Starte das Spiel mit dem offiziellen Launcher oder Game.exe.',
+    'setup.next.patch_dir': 'Lege Patch\\MikuSB-Patch.dll neben Config (wird beim ersten Mal automatisch geladen).',
+    'setup.next.launch': 'Starte das Spiel mit der Schaltfläche unten.',
+    'setup.error.invalid_path': 'Der Client-Pfad hat die Prüfungen nicht bestanden.',
+    'setup.error.region_required': 'Wähle zuerst eine Serverregion (CN oder global).'
+  },
+  th_TH: {
+    'setup.check.input.empty': 'พาธไคลเอนต์ว่างอยู่',
+    'setup.check.locate.missing': 'ไม่พบ {0} ใต้พาธนี้',
+    'setup.check.exe.missing': 'ไม่พบ Game.exe',
+    'setup.check.name.mismatch': 'ชื่อไฟล์เรียกไม่ใช่ Game.exe อาจไม่ใช่ Snowbreak',
+    'setup.check.userdir.missing': 'ไม่พบโฟลเดอร์ที่มี {0} (จำเป็นสำหรับ -userdir)',
+    'setup.check.paks.missing': 'ไม่พบ {0} (ทรัพยากรเกมยังไม่ได้ติดตั้งหรือพาธไม่ถูกต้อง)',
+    'setup.check.paks.no_paks': 'โฟลเดอร์มีอยู่แต่ไม่มีไฟล์ .pak',
+    'setup.check.install.missing': 'ไม่พบโฟลเดอร์ติดตั้งของไคลเอนต์นี้',
+    'setup.channel.code.cn_ready': 'DLL แพตช์ CN พร้อมแล้ว: {0}',
+    'setup.channel.code.cn_missing': 'ไม่พบ DLL แพตช์ CN ที่ {0} ให้คัดลอก MikuSB-Patch.dll เวอร์ชัน CN ไปไว้ที่นั่นแล้วดำเนินการต่อ',
+    'setup.channel.code.ready': 'DLL แพตช์โกลบอลพร้อมแล้ว',
+    'setup.channel.code.missing': 'ยังดาวน์โหลด DLL แพตช์โกลบอลไม่ได้ ตรวจสอบเครือข่ายแล้วลองอีกครั้ง',
+    'setup.channel.code.download_failed': 'ดาวน์โหลด DLL แพตช์โกลบอลล้มเหลว ตรวจสอบเครือข่ายแล้วลองอีกครั้ง (รายละเอียดในบันทึก)',
+    'setup.next.cn_dll': 'CN: โหมดฉีด DLL เริ่มเกมด้วยปุ่มด้านล่าง',
+    'setup.next.cn_hosts': 'CN: โหมด hosts เริ่มเกมด้วยตัวเรียกเกมอย่างเป็นทางการหรือ Game.exe',
+    'setup.next.patch_dir': 'วาง Patch\\MikuSB-Patch.dll ไว้ข้าง Config (ครั้งแรกจะดาวน์โหลดอัตโนมัติ)',
+    'setup.next.launch': 'เริ่มเกมด้วยปุ่มด้านล่าง',
+    'setup.error.invalid_path': 'พาธไคลเอนต์ไม่ผ่านการตรวจสอบ',
+    'setup.error.region_required': 'เลือกภูมิภาคเซิร์ฟเวอร์ก่อน (CN หรือโกลบอล)'
+  },
+  id_ID: {
+    'setup.check.input.empty': 'Jalur klien kosong.',
+    'setup.check.locate.missing': 'Tidak ada {0} di jalur ini.',
+    'setup.check.exe.missing': 'Game.exe tidak ada.',
+    'setup.check.name.mismatch': 'Nama berkas eksekusi bukan Game.exe; ini mungkin bukan Snowbreak.',
+    'setup.check.userdir.missing': 'Tidak ada folder yang berisi {0} (dibutuhkan oleh -userdir).',
+    'setup.check.paks.missing': '{0} tidak ada (sumber daya klien belum terpasang atau jalurnya salah).',
+    'setup.check.paks.no_paks': 'Folder ada tetapi tidak berisi berkas .pak.',
+    'setup.check.install.missing': 'Tidak menemukan folder instalasi klien ini.',
+    'setup.channel.code.cn_ready': 'DLL patch CN sudah siap: {0}',
+    'setup.channel.code.cn_missing': 'DLL patch CN tidak ada di {0}. Salin MikuSB-Patch.dll versi CN ke sana lalu lanjutkan.',
+    'setup.channel.code.ready': 'DLL patch global sudah siap.',
+    'setup.channel.code.missing': 'DLL patch global masih belum ada. Periksa jaringan lalu coba lagi.',
+    'setup.channel.code.download_failed': 'Gagal mengunduh DLL patch global. Periksa jaringan lalu coba lagi (detail di log).',
+    'setup.next.cn_dll': 'CN: mode injeksi DLL. Jalankan game dengan tombol di bawah.',
+    'setup.next.cn_hosts': 'CN: mode hosts. Jalankan game dengan launcher resmi atau Game.exe.',
+    'setup.next.patch_dir': 'Letakkan Patch\\MikuSB-Patch.dll di samping Config (otomatis diunduh saat pertama kali).',
+    'setup.next.launch': 'Jalankan game dengan tombol di bawah.',
+    'setup.error.invalid_path': 'Jalur klien tidak lolos pemeriksaan.',
+    'setup.error.region_required': 'Pilih wilayah server dulu (CN atau global).'
+  }
+};
+Object.keys(CODE_STRINGS).forEach((lang) => {
+  STRINGS[lang] = Object.assign(STRINGS[lang] || {}, CODE_STRINGS[lang]);
 });
 
 function t(key, ...args) {
@@ -2269,7 +2666,6 @@ function applyShell() {
     ['setup', 'nav.setup'],
     ['overview', 'nav.overview'],
     ['accounts', 'nav.accounts'],
-    ['online', 'nav.online'],
     ['replay', 'nav.replay'],
     ['console', 'nav.console']
   ]
@@ -2331,6 +2727,7 @@ function maybeShowNotice() {
 
 async function renderOverview() {
   const [overview, health] = await Promise.all([api('/overview'), api('/health')]);
+  const runtime = runtimeState(health);
   setActiveTab('overview');
   view.innerHTML = `
     <h2>${esc(t('overview.title'))}</h2>
@@ -2340,6 +2737,15 @@ async function renderOverview() {
       <div class="card"><div class="card-label">${esc(t('overview.commands'))}</div><div class="card-value">${esc(overview.commands)}</div></div>
       <div class="card"><div class="card-label">${esc(t('overview.uptime'))}</div><div class="card-value">${esc(formatDuration(health.uptime_sec || 0))}</div></div>
     </div>
+    <h3 class="section">${esc(t('overview.runtime'))}</h3>
+    <div class="setup-row">
+      <span id="runtime-pill" class="${runtime.cls}">${esc(runtime.text)}</span>
+      <span id="runtime-launch-slot">${health.initialized
+        ? '<button id="runtime-launch" class="primary">' + esc(t('overview.launch')) + '</button>'
+        : ''}</span>
+      <span id="runtime-msg" class="note"></span>
+    </div>
+    <p class="note">${esc(t('overview.runtime.note'))}</p>
     <h3 class="section">${esc(t('overview.server'))}</h3>
     <table class="kv">
       <tr><th>${esc(t('overview.name'))}</th><td>${esc(overview.name || health.name || 'MikuSB')}</td></tr>
@@ -2364,6 +2770,83 @@ async function renderOverview() {
   `;
   setStatus(true, t('status.running', health.version || '?', formatDuration(health.uptime_sec || 0)));
   wireUpdate();
+  wireRuntime();
+}
+
+// The host reports its phase through /health because the panel is served before the command layer is
+// wired (see Common/Util/ServerRuntime.cs). Anything that is not update/resources means "running", and
+// "running" before MarkInitialized is still the startup went through.
+function runtimeState(health) {
+  const phase = (health && health.phase) || 'running';
+  if (phase === 'update') return { text: t('overview.phase.update'), cls: 'pill warn' };
+  if (phase === 'resources') return { text: t('overview.phase.resources'), cls: 'pill warn' };
+  if (health && health.initialized === false) return { text: t('overview.phase.starting'), cls: 'pill' };
+  return { text: t('overview.phase.running'), cls: 'pill ok' };
+}
+
+function attachLaunch(button) {
+  if (!button) return;
+  button.addEventListener('click', async () => {
+    const message = document.getElementById('runtime-msg');
+    button.disabled = true;
+    if (message) {
+      message.className = 'note';
+      message.textContent = t('setup.launch.running');
+    }
+    try {
+      const data = await api('/setup/launch', { method: 'POST', body: {} });
+      const detail = (data && data.command) || '';
+      const ok = !!(data && data.success);
+      if (message) {
+        message.className = ok ? 'note' : 'note warn-text';
+        message.textContent = ok
+          ? t('setup.launch.done', detail)
+          : t('setup.launch.failed', ((data && data.messages) || []).filter(Boolean).join(' ') || detail);
+      }
+      if (!ok) button.disabled = false;
+    } catch (error) {
+      if (message) {
+        message.className = 'note warn-text';
+        message.textContent = t('setup.launch.failed',
+          (error.body && (error.body.message || error.body.code)) || error.message);
+      }
+      button.disabled = false;
+    }
+  });
+}
+
+function wireRuntime() {
+  attachLaunch(document.getElementById('runtime-launch'));
+  scheduleRuntimePoll();
+}
+
+// The row has to stay current while the host is still downloading (a big resource package takes a while,
+// and the launch button only appears once startup has finished), so poll /health while it is on screen.
+function scheduleRuntimePoll() {
+  clearTimeout(scheduleRuntimePoll.timer);
+  scheduleRuntimePoll.timer = setTimeout(async () => {
+    const pill = document.getElementById('runtime-pill');
+    if (!pill) return; // navigated to another page
+    try {
+      const health = await api('/health');
+      const next = runtimeState(health);
+      pill.className = next.cls;
+      pill.textContent = next.text;
+      const slot = document.getElementById('runtime-launch-slot');
+      if (slot) {
+        const existing = document.getElementById('runtime-launch');
+        if (health.initialized && !existing) {
+          slot.innerHTML = '<button id="runtime-launch" class="primary">' + esc(t('overview.launch')) + '</button>';
+          attachLaunch(document.getElementById('runtime-launch'));
+        } else if (!health.initialized && existing) {
+          slot.innerHTML = '';
+        }
+      }
+    } catch (error) {
+      if (error.message === 'unauthorized') return;
+    }
+    scheduleRuntimePoll();
+  }, 5000);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -2465,7 +2948,6 @@ async function renderAccounts(page) {
       <tr>
         <td class="mono">${esc(account.uid)}</td>
         <td>${esc(account.username)}</td>
-        <td>${account.online ? '<span class="pill ok">' + esc(t('accounts.online')) + '</span>' : '<span class="pill">' + esc(t('accounts.offline')) + '</span>'}</td>
         <td>${account.ban_type && account.ban_type !== 'None' ? '<span class="pill bad">' + esc(account.ban_type) + '</span>' : esc(t('accounts.normal'))}</td>
         <td class="mono small">${esc((account.permissions || []).join(', '))}</td>
         <td class="right">
@@ -2492,12 +2974,11 @@ async function renderAccounts(page) {
       <thead><tr>
         <th>${esc(t('accounts.th.uid'))}</th>
         <th>${esc(t('accounts.th.user'))}</th>
-        <th>${esc(t('accounts.th.status'))}</th>
         <th>${esc(t('accounts.th.ban'))}</th>
         <th>${esc(t('accounts.th.perms'))}</th>
         <th></th>
       </tr></thead>
-      <tbody>${rows || '<tr><td colspan="6" class="empty">' + esc(t('accounts.empty')) + '</td></tr>'}</tbody>
+      <tbody>${rows || '<tr><td colspan="5" class="empty">' + esc(t('accounts.empty')) + '</td></tr>'}</tbody>
     </table>
     <div class="pager">
       <button id="prev" ${state.accounts.page <= 1 ? 'disabled' : ''}>${esc(t('accounts.prev'))}</button>
@@ -2548,46 +3029,11 @@ async function renderAccounts(page) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// online
-// ---------------------------------------------------------------------------------------------
-
-async function renderOnline() {
-  setActiveTab('online');
-  const data = await api('/online');
-  const rows = (data.items || [])
-    .map(
-      (player) => `
-      <tr>
-        <td class="mono"><a class="link" href="#/players/${esc(player.uid)}">${esc(player.uid)}</a></td>
-        <td>${esc(player.name || t('online.unnamed'))}</td>
-        <td class="mono">${esc(player.level)}</td>
-        <td class="mono small">${esc(player.remote_address || '')}</td>
-      </tr>`
-    )
-    .join('');
-
-  view.innerHTML = `
-    <h2>${esc(t('online.title'))} <span class="muted">${esc(t('online.count', data.count || 0))}</span></h2>
-    <div class="toolbar"><button id="refresh">${esc(t('online.refresh'))}</button></div>
-    <table class="grid">
-      <thead><tr>
-        <th>${esc(t('accounts.th.uid'))}</th>
-        <th>${esc(t('online.th.name'))}</th>
-        <th>${esc(t('online.th.level'))}</th>
-        <th>${esc(t('online.th.remote'))}</th>
-      </tr></thead>
-      <tbody>${rows || '<tr><td colspan="4" class="empty">' + esc(t('online.empty')) + '</td></tr>'}</tbody>
-    </table>
-  `;
-  document.getElementById('refresh').onclick = () => renderOnline().catch(reportError);
-}
-
-// ---------------------------------------------------------------------------------------------
 // player detail
 // ---------------------------------------------------------------------------------------------
 
 async function renderPlayer(uid) {
-  setActiveTab('online');
+  setActiveTab('accounts');
   const [data, currencies] = await Promise.all([api('/players/' + uid), loadCurrencies()]);
   const account = data.account;
   const player = data.player;
@@ -2607,7 +3053,7 @@ async function renderPlayer(uid) {
     .join('');
 
   view.innerHTML = `
-    <h2>UID ${esc(uid)} · ${esc((account && account.username) || '?')} ${account && account.online ? '<span class="pill ok">' + esc(t('accounts.online')) + '</span>' : '<span class="pill">' + esc(t('accounts.offline')) + '</span>'}</h2>
+    <h2>UID ${esc(uid)} · ${esc((account && account.username) || '?')}</h2>
     <div class="cards">
       <div class="card"><div class="card-label">${esc(t('player.charName'))}</div><div class="card-value small">${esc((player && player.name) || '—')}</div></div>
       <div class="card"><div class="card-label">${esc(t('player.level'))}</div><div class="card-value">${esc((player && player.level) ?? '—')}</div></div>
@@ -2631,7 +3077,6 @@ async function renderPlayer(uid) {
       <button id="money-add">${esc(t('player.add'))}</button>
       <button id="money-set">${esc(t('player.set'))}</button>
     </div>
-    ${account && account.online ? '' : '<p class="note">' + esc(t('player.offlineHint')) + '</p>'}
     <table class="grid">
       <thead><tr>
         <th>${esc(t('player.th.id'))}</th>
@@ -2916,7 +3361,9 @@ async function renderConsole(prefill) {
     // The endpoint answers { items: [...] } (like /accounts), so unwrap it here; older builds returned a
     // bare array and a .map() over the wrapper threw "commands.map is not a function", which left the
     // replay page on screen and looked like the nav link did nothing.
-    const payload = await api('/commands');
+    // ?lang= lets the server translate the command descriptions itself: the attribute text is shared
+    // with the in-game prompt, so it is stored as an I18N key there and resolved per request here.
+    const payload = await api('/commands?lang=' + encodeURIComponent(state.lang));
     state.commands = Array.isArray(payload) ? payload : (payload && payload.items) || [];
   }
   const commands = state.commands || [];
@@ -2943,9 +3390,15 @@ async function renderConsole(prefill) {
           .map(
             (cmd) => `
           <tr>
-            <td class="mono">${esc(cmd.name)}</td>
-            <td class="mono small">${esc(cmd.usage || '')}</td>
-            <td class="small">${esc(cmd.description || '')}</td>
+            <td class="mono">${esc(cmd.name)}${
+              (cmd.aliases || []).length
+                ? `<div class="note">${esc(t('console.aliases'))}: ${cmd.aliases
+                    .map((alias) => '/' + esc(alias))
+                    .join(' ')}</div>`
+                : ''
+            }</td>
+            <td class="mono small">${esc(cmd.usage || '').replace(/\n/g, '<br>')}</td>
+            <td class="small">${esc(cmd.description || '').replace(/\n/g, '<br>')}</td>
           </tr>`
           )
           .join('')}
@@ -3008,14 +3461,19 @@ function setupChecks(probe) {
   return (
     '<ul class="checks">' +
     probe.checks
-      .map(
-        (check) =>
+      .map((check) => {
+        // The label is a field name; the sentence that says what is wrong comes from the code, in the
+        // operator's language. Older servers send no code and only that Chinese sentence in detail.
+        const verdict = check.code ? t('setup.check.' + check.key + '.' + check.code, check.detail || '') : '';
+        return (
           '<li class="' + (check.ok ? 'ok' : 'bad') + '">' +
           '<span class="pill ' + (check.ok ? 'ok' : 'warn') + '">' + (check.ok ? 'OK' : '!') + '</span> ' +
           '<b>' + esc(t('setup.check.' + check.key)) + '</b> ' +
           '<span class="mono">' + esc(check.detail || '') + '</span>' +
+          (verdict && verdict !== check.detail ? '<br><span class="note">' + esc(verdict) + '</span>' : '') +
           '</li>'
-      )
+        );
+      })
       .join('') +
     '</ul>'
   );
@@ -3044,9 +3502,24 @@ async function renderSetup() {
     state.setupAddress = addresses.indexOf(data.public_address) >= 0 ? data.public_address : addresses[0];
   }
 
-  const probe = data.probe || { valid: false, checks: [] };
+  // A probe run from this page outranks the one /setup returns: that endpoint probes the saved config
+  // path, which stays empty until the operator clicks the apply button, so rebuilding from it would wipe
+  // a good checklist (and re-lock the apply button) right after a successful check.
+  // Only trust the server's probe once a path is actually saved: before that it is the "客户端路径为空"
+  // row for a path nobody has entered yet, which reads like an error the moment the wizard opens.
+  const savedPath = data.game_path || '';
+  const serverProbe = savedPath || data.configured ? data.probe : null;
+  const probe = state.setupProbe || serverProbe || { valid: false, checks: [] };
   const region = state.setupRegion;
   const hosts = data.hosts || { entries: [], managed: false };
+  // The wizard unlocks in order: channel (and that channel's patch DLL) -> client path -> write config ->
+  // launch. Each gate is derived from what the server just reported, never from a local button state, so a
+  // stale page cannot offer "启动游戏" for a config that was never written.
+  const channelReady = !!region && (region === 'cn' ? !!data.cn_patch_present : !!data.patch_present);
+  const pathReady = channelReady && !!probe.valid;
+  const configReady = pathReady && !!data.configured;
+  const cnMode = state.setupMode || data.cn_launch_mode || 'hosts';
+  const locked = (unlocked) => (unlocked ? '' : ' disabled');
   // The CN route is only tested against the old official launcher, so the wizard says so and links the
   // exact build instead of leaving people to hunt for it.
   const cnRegion = (data.regions || []).find((item) => item.id === 'cn');
@@ -3065,7 +3538,7 @@ async function renderSetup() {
     ${probe.valid ? '' : '<div class="callout warn">' + esc(t('setup.pending')) + '</div>'}
     ${region ? '' : '<div class="callout warn">' + esc(t('setup.region.pick')) + '</div>'}
 
-    <h3 class="section">${esc(t('setup.region'))}</h3>
+    <h3 class="section"><span class="step-no${channelReady ? ' done' : ''}">1</span>${esc(t('setup.region'))}</h3>
     <div class="region-row">
       ${(data.regions || [])
         .map(
@@ -3078,18 +3551,26 @@ async function renderSetup() {
         )
         .join('')}
     </div>
+    <p id="setup-channel-msg" class="note">${channelReady ? esc(t('setup.channel.ready')) : ''}</p>
+    ${region === 'cn' ? `
+    <div class="setup-row" id="setup-mode-row">
+      <label class="chip"><input type="radio" name="cnmode" value="dll"${cnMode === 'dll' ? ' checked' : ''}> ${esc(t('setup.cnlaunch.dll'))}</label>
+      <label class="chip"><input type="radio" name="cnmode" value="hosts"${cnMode === 'hosts' ? ' checked' : ''}> ${esc(t('setup.cnlaunch.hosts'))}</label>
+      <span class="note grow">${esc(t('setup.mode.note'))}</span>
+    </div>` : ''}
     ${cnLauncher}
 
-    <h3 class="section">${esc(t('setup.path'))}</h3>
+    <h3 class="section"><span class="step-no${pathReady ? ' done' : ''}">2</span>${esc(t('setup.path'))}</h3>
     <div class="setup-row">
-      <input id="setup-path" class="grow mono" spellcheck="false" placeholder="${esc(t('setup.path.placeholder'))}" value="${esc(data.game_path || '')}">
-      <button id="setup-check" class="secondary">${esc(t('setup.path.check'))}</button>
-      <button id="setup-detect" class="secondary">${esc(t('setup.path.detect'))}</button>
+      <input id="setup-path" class="grow mono" spellcheck="false" placeholder="${esc(t('setup.path.placeholder'))}" value="${esc(state.setupPath ?? data.game_path ?? '')}"${locked(channelReady)}>
+      <button id="setup-check" class="secondary"${locked(channelReady)}>${esc(t('setup.path.check'))}</button>
+      <button id="setup-detect" class="secondary"${locked(channelReady)}>${esc(t('setup.path.detect'))}</button>
     </div>
+    ${channelReady ? '' : '<p class="note">' + esc(t('setup.locked')) + '</p>'}
     <div id="setup-candidates"></div>
     <div id="setup-checks">${setupChecks(probe)}</div>
 
-    <h3 class="section">${esc(t('setup.address'))}</h3>
+    <h3 class="section"><span class="step-no${configReady ? ' done' : ''}">3</span>${esc(t('setup.address'))}</h3>
     <div class="setup-row">
       <select id="setup-address">
         ${addresses
@@ -3103,11 +3584,11 @@ async function renderSetup() {
     </div>
 
     <div class="setup-row end">
-      <button id="setup-apply" class="primary"${region ? '' : ' disabled'}>${esc(t('setup.apply'))}</button>
+      <button id="setup-apply" class="primary"${locked(pathReady)}>${esc(t('setup.apply'))}</button>
       <span id="setup-next" class="note"></span>
     </div>
 
-    ${region === 'cn' ? `
+    ${region === 'cn' && cnMode === 'hosts' ? `
     <h3 class="section">${esc(t('setup.hosts'))}
       <span class="pill ${hosts.entries && hosts.entries.length ? 'ok' : 'warn'}">${
         hosts.entries && hosts.entries.length
@@ -3126,17 +3607,16 @@ async function renderSetup() {
       <summary>${esc(t('setup.hosts.domains'))} · ${(data.cn_domains || []).length}</summary>
       <ul class="mono">${(data.cn_domains || []).map((domain) => '<li>' + esc(domain) + '</li>').join('')}</ul>
     </details>
-    ` : `
-    <h3 class="section">${esc(t('setup.launch'))}</h3>
-    <p class="note">${esc(t('setup.launch.note'))}</p>
-    ${data.patch_present
-      ? '<p class="note">' + esc(t('setup.patch.ready')) + '</p>'
-      : '<p class="note warn-text">' + esc(t('setup.patch.missing')) + '</p>'}
+    ` : region === 'cn' ? '<p class="note">' + esc(t('setup.hosts.dllmode')) + '</p>' : ''}
+
+    <h3 class="section"><span class="step-no${configReady ? ' done' : ''}">4</span>${esc(t('setup.launch'))}</h3>
+    <p class="note">${esc(region === 'cn' ? (cnMode === 'dll' ? t('setup.launch.dll.note') : t('setup.launch.hosts.note')) : t('setup.launch.note'))}</p>
     <div class="setup-row">
-      <button id="setup-launch" class="secondary">${esc(t('setup.launch'))}</button>
+      <button id="setup-launch" class="primary"${locked(configReady)}>${esc(
+        region === 'cn' ? (cnMode === 'dll' ? t('setup.cnlaunch.dll') : t('setup.cnlaunch.hosts')) : t('setup.launch')
+      )}</button>
       <span id="setup-launch-msg" class="note grow"></span>
     </div>
-    `}
 
     <h3 class="section">${esc(t('setup.current'))}</h3>
     <table class="kv">
@@ -3153,23 +3633,66 @@ async function renderSetup() {
 
   const pathInput = document.getElementById('setup-path');
   const checksBox = document.getElementById('setup-checks');
+  // The wizard repaints after a probe verdict changes, which rebuilds this input; without keeping the text in
+  // state, a path picked from "自动探测" (or typed by hand) vanished right after it was filled in.
+  pathInput.addEventListener('input', () => {
+    state.setupPath = pathInput.value;
+    // The old verdict described the old text: drop it so the checklist cannot claim a path nobody typed.
+    state.setupProbe = null;
+    checksBox.textContent = '';
+  });
 
   async function probePath() {
     checksBox.innerHTML = '<p class="note">…</p>';
+    state.setupPath = pathInput.value;
     try {
       const result = await api('/setup/probe', {
         method: 'POST',
         body: { path: pathInput.value, region: state.setupRegion }
       });
+      state.setupProbe = result.probe;
       checksBox.innerHTML = setupChecks(result.probe);
+      // A valid probe is what unlocks "写入配置", and that gate is computed during render, so repaint when
+      // the verdict changed instead of leaving a disabled button under a green checklist.
+      if (!!result.probe.valid !== !!probe.valid) {
+        await renderSetup();
+      }
     } catch (error) {
       checksBox.innerHTML = '<p class="note">' + esc(error.message) + '</p>';
     }
   }
 
+  // Step one does real work: it asks the server to make sure that channel's patch DLL is on disk (the
+  // global build downloads it, the CN build ships it). Only when that answers does the path step unlock,
+  // which is why the click awaits the endpoint instead of just repainting the card.
   Array.from(view.querySelectorAll('[data-region]')).forEach((button) => {
-    button.addEventListener('click', () => {
-      state.setupRegion = button.dataset.region;
+    button.addEventListener('click', async () => {
+      const next = button.dataset.region;
+      state.setupRegion = next;
+      state.setupMode = next === 'cn' ? (data.cn_launch_mode || 'hosts') : null;
+      await renderSetup();
+      const box = document.getElementById('setup-channel-msg');
+      if (box) box.textContent = t('setup.channel.preparing');
+      try {
+        const result = await api('/setup/channel', { method: 'POST', body: { region: next } });
+        await renderSetup();
+        // The server reports a code now; older builds only have the Chinese detail, which is why the
+        // fallback is still there.
+        const detail = result.code
+          ? t('setup.channel.code.' + result.code, result.patch_path || '')
+          : result.detail || '';
+        const again = document.getElementById('setup-channel-msg');
+        if (again) again.textContent = detail;
+        if (!result.ok) toast(detail || t('setup.channel.failed'), true);
+      } catch (error) {
+        reportError(error);
+      }
+    });
+  });
+
+  Array.from(view.querySelectorAll('input[name="cnmode"]')).forEach((radio) => {
+    radio.addEventListener('change', () => {
+      state.setupMode = radio.value;
       renderSetup().catch(reportError);
     });
   });
@@ -3197,6 +3720,7 @@ async function renderSetup() {
         '</div>';
       Array.from(box.querySelectorAll('[data-candidate]')).forEach((button) => {
         button.addEventListener('click', () => {
+          state.setupPath = button.dataset.candidate;
           pathInput.value = button.dataset.candidate;
           probePath();
         });
@@ -3234,18 +3758,29 @@ async function renderSetup() {
         body: {
           region: state.setupRegion,
           game_path: pathInput.value,
-          public_address: state.setupAddress
+          public_address: state.setupAddress,
+          // Decides the hosts block: "dll" clears it, "hosts" (or global) writes it.
+          mode: state.setupRegion === 'cn' ? cnMode : null
         }
       });
       toast(t('setup.done'));
       state.setupRegion = result.region;
+      // The server now knows the path, so /setup's own probe is authoritative again.
+      state.setupProbe = null;
       await renderSetup();
       const next = document.getElementById('setup-next');
       if (next) {
-        const steps = (result.next_steps || []).map((step) => esc(step)).join('<br>');
+        const steps = (result.next_step_codes && result.next_step_codes.length
+          ? result.next_step_codes.map((code) => t('setup.next.' + code))
+          : result.next_steps || []
+        )
+          .map((step) => esc(step))
+          .join('<br>');
         // The wizard writes the hosts block as part of this same button. Report it only when something is
         // off: a success used to be a second button the operator had to find on their own.
-        next.innerHTML = steps + setupHostsReport(result.hosts_sync, data);
+        // In DLL mode the hosts block is expected to be gone, so reporting ""hosts has no MikuSB entries""
+      // reads like a failure of a step this mode does not run.
+      next.innerHTML = steps + (cnMode === 'dll' ? '' : setupHostsReport(result.hosts_sync, data));
       }
     } catch (error) {
       // invalid_path comes back with the full probe result; show it under the path box instead of
@@ -3288,8 +3823,13 @@ async function renderSetup() {
       launchButton.textContent = t('setup.launch.running');
       if (message) message.textContent = '';
       try {
-        const result = await api('/setup/launch', { method: 'POST', body: {} });
-        const detail = (result.messages || []).join(' ') || result.command;
+        // The route follows the config the wizard just wrote, so the button starts whichever way the
+        // operator picked in step one instead of asking again.
+        const result = await api('/setup/launch', {
+          method: 'POST',
+          body: { mode: state.setupRegion === 'cn' ? cnMode : null }
+        });
+        const detail = (result.messages || []).filter(Boolean).join(' ') || result.command;
         const text = result.success ? t('setup.launch.done', detail) : t('setup.launch.failed', detail);
         toast(text, !result.success);
         await renderSetup();
@@ -3363,7 +3903,18 @@ function formatRange(startUnix, endUnix) {
 
 function reportError(error) {
   if (error && error.message === 'unauthorized') return;
-  var extra = error && error.body && error.body.code ? ' (' + error.body.code + ')' : '';
+  // Server-raised setup failures arrive as a code plus a Chinese sentence. Prefer the translated code and
+  // only fall back to the sentence (or the code in brackets) when this build does not know it yet.
+  var code = error && error.body && error.body.code;
+  if (code) {
+    var key = 'setup.error.' + code;
+    var text = t(key);
+    if (text !== key) {
+      toast(text, true);
+      return;
+    }
+  }
+  var extra = code ? ' (' + code + ')' : '';
   toast(((error && error.message) || t('load.failed')) + extra, true);
 }
 
@@ -3373,7 +3924,6 @@ async function route() {
   try {
     if (parts[0] === 'setup') await renderSetup();
     else if (parts[0] === 'accounts') await renderAccounts(parts[1] ? Number(parts[1]) : undefined);
-    else if (parts[0] === 'online') await renderOnline();
     else if (parts[0] === 'players') await renderPlayer(Number(parts[1] || 0));
     else if (parts[0] === 'replay') await renderReplay();
     else if (parts[0] === 'console') await renderConsole();

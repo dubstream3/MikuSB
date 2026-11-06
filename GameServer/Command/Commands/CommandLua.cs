@@ -11,7 +11,7 @@ namespace MikuSB.GameServer.Command.Commands;
 //
 //   /lua UI.Open('Dlc35Main')            -- open a widget
 //   /lua GM.LevelVictory(GetPlayerController())  -- finish the running level
-[CommandInfo("lua", "Run Lua inside the connected client.", "Usage: /lua <lua code> [@uid]", ["cl"], [PermEnum.Admin, PermEnum.Support])]
+[CommandInfo("lua", "Game.Command.Lua.Desc", "Game.Command.Lua.Usage", ["cl"], [PermEnum.Admin, PermEnum.Support])]
 public class CommandLua : ICommands
 {
     [CommandDefault]

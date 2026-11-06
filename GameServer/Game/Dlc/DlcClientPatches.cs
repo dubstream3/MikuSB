@@ -114,9 +114,22 @@ public static class DlcClientPatches
         local GOODS_PATH = [[shop/test_goods.txt]]
         local TABS_PATH = [[shop/test_shop_tab.txt]]
 
-        local GOODS_CSV = [[
+                local GOODS_CSV = [[
         xxx_3885127109	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A
         ShopId	GoodsId	GDPLN	PosIndex	Weight	Class	Price1	LimitType	LimitNum	DiscountType	Discount	ShowSupportHead
+        60	3008	{5,5,1,4,1}	1	10	ordinary	{3,1}
+        60	3010	{5,9,1,3,1}	2	10	ordinary	{3,1}
+        60	3011	{5,6,1,2,1}	3	10	ordinary	{3,1}
+        60	3012	{5,6,2,1,1}	4	10	ordinary	{3,1}
+        60	3002	{5,1,1,4,1}	5	10	ordinary	{3,1}
+        60	3003	{5,2,1,4,1}	6	10	ordinary	{3,1}
+        60	3004	{5,3,1,4,1}	7	10	ordinary	{3,1}
+        60	3007	{5,5,1,3,1}	8	10	ordinary	{3,1}
+        60	3006	{5,5,1,2,1}	9	10	ordinary	{3,1}
+        60	3009	{5,9,1,2,1}	10	10	ordinary	{3,1}
+        60	3005	{5,5,1,1,1}	11	10	ordinary	{3,1}
+        60	3001	{4,3,1,1,3000}	12	10	ordinary	{3,1}
+        60	3013	{25,20,2,2}	13	10	ordinary	{1,50}
         61	3101	{3,1,13,1,1}	1	10	ordinary	{3,1}
         61	3102	{3,2,13,1,1}	2	10	ordinary	{3,1}
         61	3103	{3,3,13,1,1}	3	10	ordinary	{3,1}
@@ -150,307 +163,292 @@ public static class DlcClientPatches
         61	3131	{3,1,26,1,1}	31	10	ordinary	{3,1}
         61	3132	{3,2,26,1,1}	32	10	ordinary	{3,1}
         61	3133	{3,3,26,1,1}	33	10	ordinary	{3,1}
-        64	3501	{3,1,28,1,1}	67	10	ordinary	{3,1}					1
-        64	3502	{3,2,28,1,1}	68	10	ordinary	{3,1}					1
-        64	3503	{3,3,28,1,1}	69	10	ordinary	{3,1}					1
-        64	3504	{3,1,29,1,1}	70	10	ordinary	{3,1}					1
-        64	3505	{3,2,29,1,1}	71	10	ordinary	{3,1}					1
-        64	3506	{3,3,29,1,1}	72	10	ordinary	{3,1}					1
-        64	3507	{3,1,30,1,1}	73	10	ordinary	{3,1}					1
-        64	3508	{3,2,30,1,1}	74	10	ordinary	{3,1}					1
-        64	3509	{3,3,30,1,1}	75	10	ordinary	{3,1}					1
-        64	3510	{3,1,31,1,1}	76	10	ordinary	{3,1}					1
-        64	3511	{3,2,31,1,1}	77	10	ordinary	{3,1}					1
-        64	3512	{3,3,31,1,1}	78	10	ordinary	{3,1}					1
-        64	3513	{3,1,32,1,1}	79	10	ordinary	{3,1}					1
-        64	3514	{3,2,32,1,1}	80	10	ordinary	{3,1}					1
-        64	3515	{3,3,32,1,1}	81	10	ordinary	{3,1}					1
-        64	3516	{3,1,33,1,1}	82	10	ordinary	{3,1}					1
-        64	3517	{3,2,33,1,1}	83	10	ordinary	{3,1}					1
-        64	3518	{3,3,33,1,1}	84	10	ordinary	{3,1}					1
-        64	3519	{3,1,34,1,1}	85	10	ordinary	{3,1}					1
-        64	3520	{3,2,34,1,1}	86	10	ordinary	{3,1}					1
-        64	3521	{3,3,34,1,1}	87	10	ordinary	{3,1}					1
-        64	3522	{3,1,35,1,1}	88	10	ordinary	{3,1}					1
-        64	3523	{3,2,35,1,1}	89	10	ordinary	{3,1}					1
-        64	3524	{3,3,35,1,1}	90	10	ordinary	{3,1}					1
-        64	3525	{3,1,36,1,1}	91	10	ordinary	{3,1}					1
-        64	3526	{3,2,36,1,1}	92	10	ordinary	{3,1}					1
-        64	3527	{3,3,36,1,1}	93	10	ordinary	{3,1}					1
-        64	3528	{3,1,37,1,1}	58	10	ordinary	{3,1}					1
-        64	3529	{3,2,37,1,1}	59	10	ordinary	{3,1}					1
-        64	3530	{3,3,37,1,1}	60	10	ordinary	{3,1}					1
-        64	3531	{3,1,38,1,1}	61	10	ordinary	{3,1}					1
-        64	3532	{3,2,38,1,1}	62	10	ordinary	{3,1}					1
-        64	3533	{3,3,38,1,1}	63	10	ordinary	{3,1}					1
-        64	3534	{3,1,39,1,1}	64	10	ordinary	{3,1}					1
-        64	3535	{3,2,39,1,1}	65	10	ordinary	{3,1}					1
-        64	3536	{3,3,39,1,1}	66	10	ordinary	{3,1}					1
-        64	3537	{3,1,41,1,1}	52	10	ordinary	{3,1}					1
-        64	3538	{3,2,41,1,1}	53	10	ordinary	{3,1}					1
-        64	3539	{3,3,41,1,1}	54	10	ordinary	{3,1}					1
-        64	3540	{3,1,40,1,1}	55	10	ordinary	{3,1}					1
-        64	3541	{3,2,40,1,1}	56	10	ordinary	{3,1}					1
-        64	3542	{3,3,40,1,1}	57	10	ordinary	{3,1}					1
-        64	3543	{3,1,42,1,1}	49	10	ordinary	{3,1}					1
-        64	3544	{3,2,42,1,1}	50	10	ordinary	{3,1}					1
-        64	3545	{3,3,42,1,1}	51	10	ordinary	{3,1}					1
-        64	3546	{3,1,43,1,1}	46	10	ordinary	{3,1}					1
-        64	3547	{3,2,43,1,1}	47	10	ordinary	{3,1}					1
-        64	3548	{3,3,43,1,1}	48	10	ordinary	{3,1}					1
-        64	3549	{3,1,44,1,1}	40	10	ordinary	{3,1}					1
-        64	3550	{3,2,44,1,1}	41	10	ordinary	{3,1}					1
-        64	3551	{3,3,44,1,1}	42	10	ordinary	{3,1}					1
-        64	3552	{3,1,45,1,1}	43	10	ordinary	{3,1}					1
-        64	3553	{3,2,45,1,1}	44	10	ordinary	{3,1}					1
-        64	3554	{3,3,45,1,1}	45	10	ordinary	{3,1}					1
-        64	3555	{3,1,46,1,1}	37	10	ordinary	{3,1}					1
-        64	3556	{3,2,46,1,1}	38	10	ordinary	{3,1}					1
-        64	3557	{3,3,46,1,1}	39	10	ordinary	{3,1}					1
-        64	3558	{3,1,47,1,1}	34	10	ordinary	{3,1}					1
-        64	3559	{3,2,47,1,1}	35	10	ordinary	{3,1}					1
-        64	3560	{3,3,47,1,1}	36	10	ordinary	{3,1}					1
-        64	3561	{3,1,48,1,1}	31	10	ordinary	{3,1}					1
-        64	3562	{3,2,48,1,1}	32	10	ordinary	{3,1}					1
-        64	3563	{3,3,48,1,1}	33	10	ordinary	{3,1}					1
-        64	3564	{3,1,49,1,1}	28	10	ordinary	{3,1}					1
-        64	3565	{3,2,49,1,1}	29	10	ordinary	{3,1}					1
-        64	3566	{3,3,49,1,1}	30	10	ordinary	{3,1}					1
-        64	3567	{3,1,50,1,1}	22	10	ordinary	{3,1}					1
-        64	3568	{3,2,50,1,1}	23	10	ordinary	{3,1}					1
-        64	3569	{3,3,50,1,1}	24	10	ordinary	{3,1}					1
-        64	3570	{3,1,51,1,1}	25	10	ordinary	{3,1}					1
-        64	3571	{3,2,51,1,1}	26	10	ordinary	{3,1}					1
-        64	3572	{3,3,51,1,1}	27	10	ordinary	{3,1}					1
-        64	3573	{3,1,52,1,1}	19	10	ordinary	{3,1}					1
-        64	3574	{3,2,52,1,1}	20	10	ordinary	{3,1}					1
-        64	3575	{3,3,52,1,1}	21	10	ordinary	{3,1}					1
-        64	3576	{3,1,53,1,1}	13	10	ordinary	{3,1}					1
-        64	3577	{3,2,53,1,1}	14	10	ordinary	{3,1}					1
-        64	3578	{3,3,53,1,1}	15	10	ordinary	{3,1}					1
-        64	3579	{3,1,54,1,1}	16	10	ordinary	{3,1}					1
-        64	3580	{3,2,54,1,1}	17	10	ordinary	{3,1}					1
-        64	3581	{3,3,54,1,1}	18	10	ordinary	{3,1}					1
-        64	3582	{3,1,55,1,1}	7	10	ordinary	{3,1}					1
-        64	3583	{3,2,55,1,1}	8	10	ordinary	{3,1}					1
-        64	3584	{3,3,55,1,1}	9	10	ordinary	{3,1}					1
-        64	3585	{3,1,56,1,1}	10	10	ordinary	{3,1}					1
-        64	3586	{3,2,56,1,1}	11	10	ordinary	{3,1}					1
-        64	3587	{3,3,56,1,1}	12	10	ordinary	{3,1}					1
-        64	3588	{3,1,57,1,1}	1	10	ordinary	{3,1}					1
-        64	3589	{3,2,57,1,1}	2	10	ordinary	{3,1}					1
-        64	3590	{3,3,57,1,1}	3	10	ordinary	{3,1}					1
-        64	3591	{3,1,58,1,1}	4	10	ordinary	{3,1}					1
-        64	3592	{3,2,58,1,1}	5	10	ordinary	{3,1}					1
-        64	3593	{3,3,58,1,1}	6	10	ordinary	{3,1}					1
-        62	3201	{5,4,5,2,1}	26	10	ordinary	{3,1}
-        62	3202	{5,4,2,2,1}	27	10	ordinary	{3,1}
-        62	3203	{5,4,4,2,1}	28	10	ordinary	{3,1}
-        62	3204	{5,4,10,2,1}	29	10	ordinary	{3,1}
-        62	3205	{5,4,1,2,1}	30	10	ordinary	{3,1}
-        62	3206	{5,4,8,2,1}	31	10	ordinary	{3,1}
-        62	3207	{5,4,14,2,1}	32	10	ordinary	{3,1}
-        62	3208	{5,4,6,2,1}	33	10	ordinary	{3,1}
-        62	3209	{5,4,12,2,1}	34	10	ordinary	{3,1}
-        62	3210	{5,4,17,1,1}	35	10	ordinary	{3,1}
-        62	3211	{5,4,15,1,1}	36	10	ordinary	{3,1}
-        62	3212	{5,4,16,1,1}	37	10	ordinary	{3,1}
-        62	3213	{5,4,7,2,1}	38	10	ordinary	{3,1}
-        62	3214	{5,4,11,2,1}	39	10	ordinary	{3,1}
-        62	3215	{5,4,13,2,1}	40	10	ordinary	{3,1}
-        62	3216	{5,4,2,3,1}	24	10	ordinary	{3,1}
-        62	3217	{5,4,8,3,1}	25	10	ordinary	{3,1}
-        62	3218	{5,4,18,1,1}	23	10	ordinary	{3,1}
-        62	3219	{5,4,15,2,1}	21	10	ordinary	{3,1}
-        62	3220	{5,4,5,3,1}	22	10	ordinary	{3,1}
-        62	3221	{5,4,4,3,1}	20	10	ordinary	{3,1}
-        62	3222	{5,4,20,1,1}	19	10	ordinary	{3,1}
-        62	3223	{5,4,14,3,1}	17	10	ordinary	{3,1}
-        62	3224	{5,4,10,3,1}	18	10	ordinary	{3,1}
-        62	3225	{5,4,11,3,1}	16	10	ordinary	{3,1}
-        62	3226	{5,4,21,1,1}	15	10	ordinary	{3,1}
-        62	3227	{1,3,2,1,1}	13	10	ordinary	{3,1}
-        62	3228	{5,32,1,1,1}	14	10	ordinary	{3,1}
-        62	3229	{5,4,18,2,1}	12	10	ordinary	{3,1}
-        62	3230	{5,4,15,3,1}	10	10	ordinary	{3,1}
-        62	3231	{5,4,17,2,1}	11	10	ordinary	{3,1}
-        62	3232	{5,4,22,1,1}	9	10	ordinary	{3,1}
-        62	3233	{5,4,8,4,1}	7	10	ordinary	{3,1}
-        62	3234	{5,4,13,3,1}	8	10	ordinary	{3,1}
-        62	3235	{5,4,23,1,1}	4	10	ordinary	{3,1}
-        62	3236	{1,6,3,1,1}	5	10	ordinary	{3,1}
-        62	3237	{5,32,2,1,1}	6	10	ordinary	{3,1}
-        62	3238	{5,4,20,2,1}	1	10	ordinary	{3,1}
-        62	3239	{1,12,3,1,1}	2	10	ordinary	{3,1}
-        62	3240	{5,32,3,1,1}	3	10	ordinary	{3,1}
-        62	3241	{5,4,1,1,1}	100	10	ordinary	{3,1}
-        62	3242	{5,4,2,1,1}	101	10	ordinary	{3,1}
-        62	3243	{5,4,3,1,1}	102	10	ordinary	{3,1}
-        62	3244	{5,4,4,1,1}	103	10	ordinary	{3,1}
-        62	3245	{5,4,5,1,1}	104	10	ordinary	{3,1}
-        62	3246	{5,4,6,1,1}	105	10	ordinary	{3,1}
-        62	3247	{5,4,7,1,1}	106	10	ordinary	{3,1}
-        62	3248	{5,4,8,1,1}	107	10	ordinary	{3,1}
-        62	3249	{5,4,10,1,1}	108	10	ordinary	{3,1}
-        62	3250	{5,4,11,1,1}	109	10	ordinary	{3,1}
-        62	3251	{5,4,12,1,1}	110	10	ordinary	{3,1}
-        62	3252	{5,4,14,1,1}	111	10	ordinary	{3,1}
-        62	3253	{5,4,13,1,1}	112	10	ordinary	{3,1}
-        60	3001	{4,3,1,1,3000}	2		ordinary	{3,1}
-        60	3002	{5,1,1,4,1}	3		ordinary	{3,1}
-        60	3003	{5,2,1,4,1}	4		ordinary	{3,1}
-        60	3004	{5,3,1,4,1}	5		ordinary	{3,1}
-        60	3005	{5,5,1,1,1}	6		ordinary	{3,1}
-        60	3006	{5,5,1,2,1}	7		ordinary	{3,1}
-        60	3007	{5,5,1,3,1}	8		ordinary	{3,1}
-        60	3008	{5,5,1,4,1}	9		ordinary	{3,1}
-        60	3009	{5,9,1,2,1}	10		ordinary	{3,1}
-        60	3010	{5,9,1,3,1}	11		ordinary	{3,1}
-        60	3011	{5,6,1,2,1}	12		ordinary	{3,1}
-        60	3012	{5,6,2,1,1}	13		ordinary	{3,1}
-        60	3013	{25,20,2,2}	1		ordinary	{1,50}	5	1	1	{{1,60}}
-        63	3301	{2,1,17,1,1}	23		ordinary	{3,1}
-        63	3302	{2,1,18,1,1}	24		ordinary	{3,1}
-        63	3303	{2,2,4,1,1}	25		ordinary	{3,1}
-        63	3304	{2,2,17,1,1}	26		ordinary	{3,1}
-        63	3305	{2,2,19,1,1}	27		ordinary	{3,1}
-        63	3306	{2,3,17,1,1}	28		ordinary	{3,1}
-        63	3307	{2,3,4,1,1}	29		ordinary	{3,1}
-        63	3308	{2,4,3,1,1}	30		ordinary	{3,1}
-        63	3309	{2,5,3,1,1}	31		ordinary	{3,1}
-        63	3310	{2,5,19,1,1}	32		ordinary	{3,1}
-        63	3311	{2,4,18,1,1}	33		ordinary	{3,1}
-        63	3312	{2,5,22,1,1}	34		ordinary	{3,1}
-        63	3313	{2,4,20,1,1}	35		ordinary	{3,1}
-        63	3314	{2,1,25,1,1}	36		ordinary	{3,1}
-        63	3315	{2,2,22,1,1}	37		ordinary	{3,1}
-        63	3316	{2,6,4,1,1}	38		ordinary	{3,1}
-        63	3317	{2,3,24,1,1}	39		ordinary	{3,1}
-        63	3318	{2,1,27,1,1}	40		ordinary	{3,1}
-        63	3319	{2,4,26,1,1}	41		ordinary	{3,1}
-        63	3320	{2,3,26,1,1}	42		ordinary	{3,1}
-        63	3321	{2,7,3,1,1}	21		ordinary	{3,1}
-        63	3322	{2,5,24,1,1}	22		ordinary	{3,1}
-        63	3323	{2,4,28,1,1}	20		ordinary	{3,1}
-        63	3324	{2,5,26,1,1}	18		ordinary	{3,1}
-        63	3325	{2,3,28,1,1}	19		ordinary	{3,1}
-        63	3326	{2,2,24,1,1}	17		ordinary	{3,1}
-        63	3327	{2,4,30,1,1}	16		ordinary	{3,1}
-        63	3328	{2,8,3,1,1}	14		ordinary	{3,1}
-        63	3329	{2,1,29,1,1}	15		ordinary	{3,1}
-        63	3330	{2,3,30,1,1}	13		ordinary	{3,1}
-        63	3331	{2,5,28,1,1}	12		ordinary	{3,1}
-        63	3332	{2,3,31,1,1}	11		ordinary	{3,1}
-        63	3333	{2,2,26,1,1}	10		ordinary	{3,1}
-        63	3334	{2,9,3,1,1}	8		ordinary	{3,1}
-        63	3335	{2,5,30,1,1}	9		ordinary	{3,1}
-        63	3336	{2,1,31,1,1}	7		ordinary	{3,1}
-        63	3337	{2,1,33,1,1}	5		ordinary	{3,1}
-        63	3338	{2,4,32,1,1}	6		ordinary	{3,1}
-        63	3339	{2,3,33,1,1}	3		ordinary	{3,1}
-        63	3340	{2,5,31,1,1}	4		ordinary	{3,1}
-        63	3341	{2,7,5,1,1}	1		ordinary	{3,1}
-        63	3342	{2,2,27,1,1}	2		ordinary	{3,1}
-        63	3343	{2,1,3,1,1}	120		ordinary	{3,1}
-        63	3344	{2,1,5,1,1}	121		ordinary	{3,1}
-        63	3345	{2,1,9,1,1}	122		ordinary	{3,1}
-        63	3346	{2,1,10,1,1}	123		ordinary	{3,1}
-        63	3347	{2,1,11,1,1}	124		ordinary	{3,1}
-        63	3348	{2,1,12,1,1}	125		ordinary	{3,1}
-        63	3349	{2,1,13,1,1}	126		ordinary	{3,1}
-        63	3350	{2,1,14,1,1}	127		ordinary	{3,1}
-        63	3351	{2,1,21,1,1}	128		ordinary	{3,1}
-        63	3352	{2,1,22,1,1}	129		ordinary	{3,1}
-        63	3353	{2,1,23,1,1}	130		ordinary	{3,1}
-        63	3354	{2,1,24,1,1}	131		ordinary	{3,1}
-        63	3355	{2,1,26,1,1}	132		ordinary	{3,1}
-        63	3356	{2,2,3,1,1}	133		ordinary	{3,1}
-        63	3357	{2,2,5,1,1}	134		ordinary	{3,1}
-        63	3358	{2,2,6,1,1}	135		ordinary	{3,1}
-        63	3359	{2,2,8,1,1}	136		ordinary	{3,1}
-        63	3360	{2,2,12,1,1}	137		ordinary	{3,1}
-        63	3361	{2,2,13,1,1}	138		ordinary	{3,1}
-        63	3362	{2,2,15,1,1}	139		ordinary	{3,1}
-        63	3363	{2,2,16,1,1}	140		ordinary	{3,1}
-        63	3364	{2,2,21,1,1}	141		ordinary	{3,1}
-        63	3365	{2,3,3,1,1}	142		ordinary	{3,1}
-        63	3366	{2,3,5,1,1}	143		ordinary	{3,1}
-        63	3367	{2,3,9,1,1}	144		ordinary	{3,1}
-        63	3368	{2,3,11,1,1}	145		ordinary	{3,1}
-        63	3369	{2,3,12,1,1}	146		ordinary	{3,1}
-        63	3370	{2,3,13,1,1}	147		ordinary	{3,1}
-        63	3371	{2,3,14,1,1}	148		ordinary	{3,1}
-        63	3372	{2,3,15,1,1}	149		ordinary	{3,1}
-        63	3373	{2,3,21,1,1}	150		ordinary	{3,1}
-        63	3374	{2,3,22,1,1}	151		ordinary	{3,1}
-        63	3375	{2,3,23,1,1}	152		ordinary	{3,1}
-        63	3376	{2,3,25,1,1}	153		ordinary	{3,1}
-        63	3377	{2,4,2,1,1}	154		ordinary	{3,1}
-        63	3378	{2,4,4,1,1}	155		ordinary	{3,1}
-        63	3379	{2,4,9,1,1}	156		ordinary	{3,1}
-        63	3380	{2,4,10,1,1}	157		ordinary	{3,1}
-        63	3381	{2,4,11,1,1}	158		ordinary	{3,1}
-        63	3382	{2,4,12,1,1}	159		ordinary	{3,1}
-        63	3383	{2,4,15,1,1}	160		ordinary	{3,1}
-        63	3384	{2,4,16,1,1}	161		ordinary	{3,1}
-        63	3385	{2,4,21,1,1}	162		ordinary	{3,1}
-        63	3386	{2,4,22,1,1}	163		ordinary	{3,1}
-        63	3387	{2,4,23,1,1}	164		ordinary	{3,1}
-        63	3388	{2,4,25,1,1}	165		ordinary	{3,1}
-        63	3389	{2,5,2,1,1}	166		ordinary	{3,1}
-        63	3390	{2,5,6,1,1}	167		ordinary	{3,1}
-        63	3391	{2,5,7,1,1}	168		ordinary	{3,1}
-        63	3392	{2,5,10,1,1}	169		ordinary	{3,1}
-        63	3393	{2,5,11,1,1}	170		ordinary	{3,1}
-        63	3394	{2,5,12,1,1}	171		ordinary	{3,1}
-        63	3395	{2,5,15,1,1}	172		ordinary	{3,1}
-        63	3396	{2,5,16,1,1}	173		ordinary	{3,1}
-        63	3397	{2,5,21,1,1}	174		ordinary	{3,1}
-        63	3398	{2,6,2,1,1}	175		ordinary	{3,1}
-        63	3399	{2,7,2,1,1}	118		ordinary	{3,1}
-        63	3400	{2,5,23,1,1}	119		ordinary	{3,1}
-        63	3401	{2,4,27,1,1}	117		ordinary	{3,1}
-        63	3402	{2,5,25,1,1}	115		ordinary	{3,1}
-        63	3403	{2,3,27,1,1}	116		ordinary	{3,1}
-        63	3404	{2,2,23,1,1}	114		ordinary	{3,1}
-        63	3405	{2,4,29,1,1}	113		ordinary	{3,1}
-        63	3406	{2,8,2,1,1}	111		ordinary	{3,1}
-        63	3407	{2,1,28,1,1}	112		ordinary	{3,1}
-        63	3408	{2,3,29,1,1}	110		ordinary	{3,1}
-        63	3409	{2,5,27,1,1}	109		ordinary	{3,1}
-        63	3410	{2,2,25,1,1}	108		ordinary	{3,1}
-        63	3411	{2,9,2,1,1}	106		ordinary	{3,1}
-        63	3412	{2,5,29,1,1}	107		ordinary	{3,1}
-        63	3413	{2,1,30,1,1}	105		ordinary	{3,1}
-        63	3414	{2,1,32,1,1}	103		ordinary	{3,1}
-        63	3415	{2,4,31,1,1}	104		ordinary	{3,1}
-        63	3416	{2,3,32,1,1}	102		ordinary	{3,1}
-        63	3417	{2,7,4,1,1}	101		ordinary	{3,1}
-        63	3418	{2,1,15,1,1}	176		ordinary	{3,1}
-        63	3419	{2,1,16,1,1}	177		ordinary	{3,1}
-        63	3420	{2,2,9,1,1}	178		ordinary	{3,1}
-        63	3421	{2,2,14,1,1}	179		ordinary	{3,1}
-        63	3422	{2,3,10,1,1}	180		ordinary	{3,1}
-        63	3423	{2,3,16,1,1}	181		ordinary	{3,1}
-        63	3424	{2,4,13,1,1}	182		ordinary	{3,1}
-        63	3425	{2,4,14,1,1}	183		ordinary	{3,1}
-        63	3426	{2,5,13,1,1}	184		ordinary	{3,1}
-        63	3427	{2,5,14,1,1}	185		ordinary	{3,1}
-        63	3428	{2,6,3,1,1}	186		ordinary	{3,1}
-        63	3429	{2,1,19,1,1}	187		ordinary	{3,1}
-        63	3430	{2,1,20,1,1}	188		ordinary	{3,1}
-        63	3431	{2,2,18,1,1}	189		ordinary	{3,1}
-        63	3432	{2,2,20,1,1}	190		ordinary	{3,1}
-        63	3433	{2,3,18,1,1}	191		ordinary	{3,1}
-        63	3434	{2,3,19,1,1}	192		ordinary	{3,1}
-        63	3435	{2,3,20,1,1}	193		ordinary	{3,1}
-        63	3436	{2,4,17,1,1}	194		ordinary	{3,1}
-        63	3437	{2,4,19,1,1}	195		ordinary	{3,1}
-        63	3438	{2,4,24,1,1}	196		ordinary	{3,1}
-        63	3439	{2,4,33,1,1}	197		ordinary	{3,1}
-        63	3440	{2,5,17,1,1}	198		ordinary	{3,1}
-        63	3441	{2,5,18,1,1}	199		ordinary	{3,1}
-        63	3442	{2,5,20,1,1}	200		ordinary	{3,1}
+        62	3254	{5,4,1,3,1}	1	10	ordinary	{3,1}
+        62	3255	{5,4,5,4,1}	2	10	ordinary	{3,1}
+        62	3256	{5,4,24,1,1}	3	10	ordinary	{3,1}
+        62	3201	{5,4,5,2,1}	4	10	ordinary	{3,1}
+        62	3202	{5,4,2,2,1}	5	10	ordinary	{3,1}
+        62	3203	{5,4,4,2,1}	6	10	ordinary	{3,1}
+        62	3204	{5,4,10,2,1}	7	10	ordinary	{3,1}
+        62	3205	{5,4,1,2,1}	8	10	ordinary	{3,1}
+        62	3206	{5,4,8,2,1}	9	10	ordinary	{3,1}
+        62	3207	{5,4,14,2,1}	10	10	ordinary	{3,1}
+        62	3208	{5,4,6,2,1}	11	10	ordinary	{3,1}
+        62	3209	{5,4,12,2,1}	12	10	ordinary	{3,1}
+        62	3210	{5,4,17,1,1}	13	10	ordinary	{3,1}
+        62	3211	{5,4,15,1,1}	14	10	ordinary	{3,1}
+        62	3212	{5,4,16,1,1}	15	10	ordinary	{3,1}
+        62	3213	{5,4,7,2,1}	16	10	ordinary	{3,1}
+        62	3214	{5,4,11,2,1}	17	10	ordinary	{3,1}
+        62	3215	{5,4,13,2,1}	18	10	ordinary	{3,1}
+        62	3216	{5,4,2,3,1}	19	10	ordinary	{3,1}
+        62	3217	{5,4,8,3,1}	20	10	ordinary	{3,1}
+        62	3218	{5,4,18,1,1}	21	10	ordinary	{3,1}
+        62	3219	{5,4,15,2,1}	22	10	ordinary	{3,1}
+        62	3220	{5,4,5,3,1}	23	10	ordinary	{3,1}
+        62	3221	{5,4,4,3,1}	24	10	ordinary	{3,1}
+        62	3222	{5,4,20,1,1}	25	10	ordinary	{3,1}
+        62	3223	{5,4,14,3,1}	26	10	ordinary	{3,1}
+        62	3224	{5,4,10,3,1}	27	10	ordinary	{3,1}
+        62	3225	{5,4,11,3,1}	28	10	ordinary	{3,1}
+        62	3226	{5,4,21,1,1}	29	10	ordinary	{3,1}
+        62	3228	{5,32,1,1,1}	30	10	ordinary	{3,1}
+        62	3229	{5,4,18,2,1}	31	10	ordinary	{3,1}
+        62	3230	{5,4,15,3,1}	32	10	ordinary	{3,1}
+        62	3231	{5,4,17,2,1}	33	10	ordinary	{3,1}
+        62	3232	{5,4,22,1,1}	34	10	ordinary	{3,1}
+        62	3233	{5,4,8,4,1}	35	10	ordinary	{3,1}
+        62	3234	{5,4,13,3,1}	36	10	ordinary	{3,1}
+        62	3235	{5,4,23,1,1}	37	10	ordinary	{3,1}
+        62	3237	{5,32,2,1,1}	38	10	ordinary	{3,1}
+        62	3238	{5,4,20,2,1}	39	10	ordinary	{3,1}
+        62	3240	{5,32,3,1,1}	40	10	ordinary	{3,1}
+        62	3241	{5,4,1,1,1}	41	10	ordinary	{3,1}
+        62	3242	{5,4,2,1,1}	42	10	ordinary	{3,1}
+        62	3243	{5,4,3,1,1}	43	10	ordinary	{3,1}
+        62	3244	{5,4,4,1,1}	44	10	ordinary	{3,1}
+        62	3245	{5,4,5,1,1}	45	10	ordinary	{3,1}
+        62	3246	{5,4,6,1,1}	46	10	ordinary	{3,1}
+        62	3247	{5,4,7,1,1}	47	10	ordinary	{3,1}
+        62	3248	{5,4,8,1,1}	48	10	ordinary	{3,1}
+        62	3249	{5,4,10,1,1}	49	10	ordinary	{3,1}
+        62	3250	{5,4,11,1,1}	50	10	ordinary	{3,1}
+        62	3251	{5,4,12,1,1}	51	10	ordinary	{3,1}
+        62	3252	{5,4,14,1,1}	52	10	ordinary	{3,1}
+        62	3253	{5,4,13,1,1}	53	10	ordinary	{3,1}
+        62	3227	{1,3,2,1,1}	54	10	ordinary	{3,1}
+        62	3236	{1,6,3,1,1}	55	10	ordinary	{3,1}
+        62	3239	{1,12,3,1,1}	56	10	ordinary	{3,1}
+        63	3446	{2,10,3,1,1}	1	10	ordinary	{3,1}
+        63	3447	{2,1,35,1,1}	2	10	ordinary	{3,1}
+        63	3448	{2,7,7,1,1}	3	10	ordinary	{3,1}
+        63	3443	{2,10,2,1,1}	4	10	ordinary	{3,1}
+        63	3444	{2,1,34,1,1}	5	10	ordinary	{3,1}
+        63	3445	{2,7,6,1,1}	6	10	ordinary	{3,1}
+        63	3301	{2,1,17,1,1}	7	10	ordinary	{3,1}
+        63	3302	{2,1,18,1,1}	8	10	ordinary	{3,1}
+        63	3303	{2,2,4,1,1}	9	10	ordinary	{3,1}
+        63	3304	{2,2,17,1,1}	10	10	ordinary	{3,1}
+        63	3305	{2,2,19,1,1}	11	10	ordinary	{3,1}
+        63	3306	{2,3,17,1,1}	12	10	ordinary	{3,1}
+        63	3307	{2,3,4,1,1}	13	10	ordinary	{3,1}
+        63	3308	{2,4,3,1,1}	14	10	ordinary	{3,1}
+        63	3309	{2,5,3,1,1}	15	10	ordinary	{3,1}
+        63	3310	{2,5,19,1,1}	16	10	ordinary	{3,1}
+        63	3311	{2,4,18,1,1}	17	10	ordinary	{3,1}
+        63	3312	{2,5,22,1,1}	18	10	ordinary	{3,1}
+        63	3313	{2,4,20,1,1}	19	10	ordinary	{3,1}
+        63	3314	{2,1,25,1,1}	20	10	ordinary	{3,1}
+        63	3315	{2,2,22,1,1}	21	10	ordinary	{3,1}
+        63	3316	{2,6,4,1,1}	22	10	ordinary	{3,1}
+        63	3317	{2,3,24,1,1}	23	10	ordinary	{3,1}
+        63	3318	{2,1,27,1,1}	24	10	ordinary	{3,1}
+        63	3319	{2,4,26,1,1}	25	10	ordinary	{3,1}
+        63	3320	{2,3,26,1,1}	26	10	ordinary	{3,1}
+        63	3321	{2,7,3,1,1}	27	10	ordinary	{3,1}
+        63	3322	{2,5,24,1,1}	28	10	ordinary	{3,1}
+        63	3323	{2,4,28,1,1}	29	10	ordinary	{3,1}
+        63	3324	{2,5,26,1,1}	30	10	ordinary	{3,1}
+        63	3325	{2,3,28,1,1}	31	10	ordinary	{3,1}
+        63	3326	{2,2,24,1,1}	32	10	ordinary	{3,1}
+        63	3327	{2,4,30,1,1}	33	10	ordinary	{3,1}
+        63	3328	{2,8,3,1,1}	34	10	ordinary	{3,1}
+        63	3329	{2,1,29,1,1}	35	10	ordinary	{3,1}
+        63	3330	{2,3,30,1,1}	36	10	ordinary	{3,1}
+        63	3331	{2,5,28,1,1}	37	10	ordinary	{3,1}
+        63	3332	{2,3,31,1,1}	38	10	ordinary	{3,1}
+        63	3333	{2,2,26,1,1}	39	10	ordinary	{3,1}
+        63	3334	{2,9,3,1,1}	40	10	ordinary	{3,1}
+        63	3335	{2,5,30,1,1}	41	10	ordinary	{3,1}
+        63	3336	{2,1,31,1,1}	42	10	ordinary	{3,1}
+        63	3337	{2,1,33,1,1}	43	10	ordinary	{3,1}
+        63	3338	{2,4,32,1,1}	44	10	ordinary	{3,1}
+        63	3339	{2,3,33,1,1}	45	10	ordinary	{3,1}
+        63	3340	{2,5,31,1,1}	46	10	ordinary	{3,1}
+        63	3341	{2,7,5,1,1}	47	10	ordinary	{3,1}
+        63	3342	{2,2,27,1,1}	48	10	ordinary	{3,1}
+        63	3431	{2,2,18,1,1}	49	10	ordinary	{3,1}
+        63	3439	{2,4,33,1,1}	50	10	ordinary	{3,1}
+        63	3343	{2,1,3,1,1}	51	10	ordinary	{3,1}
+        63	3344	{2,1,5,1,1}	52	10	ordinary	{3,1}
+        63	3345	{2,1,9,1,1}	53	10	ordinary	{3,1}
+        63	3346	{2,1,10,1,1}	54	10	ordinary	{3,1}
+        63	3347	{2,1,11,1,1}	55	10	ordinary	{3,1}
+        63	3348	{2,1,12,1,1}	56	10	ordinary	{3,1}
+        63	3349	{2,1,13,1,1}	57	10	ordinary	{3,1}
+        63	3350	{2,1,14,1,1}	58	10	ordinary	{3,1}
+        63	3351	{2,1,21,1,1}	59	10	ordinary	{3,1}
+        63	3352	{2,1,22,1,1}	60	10	ordinary	{3,1}
+        63	3353	{2,1,23,1,1}	61	10	ordinary	{3,1}
+        63	3354	{2,1,24,1,1}	62	10	ordinary	{3,1}
+        63	3355	{2,1,26,1,1}	63	10	ordinary	{3,1}
+        63	3356	{2,2,3,1,1}	64	10	ordinary	{3,1}
+        63	3357	{2,2,5,1,1}	65	10	ordinary	{3,1}
+        63	3358	{2,2,6,1,1}	66	10	ordinary	{3,1}
+        63	3359	{2,2,8,1,1}	67	10	ordinary	{3,1}
+        63	3360	{2,2,12,1,1}	68	10	ordinary	{3,1}
+        63	3361	{2,2,13,1,1}	69	10	ordinary	{3,1}
+        63	3362	{2,2,15,1,1}	70	10	ordinary	{3,1}
+        63	3363	{2,2,16,1,1}	71	10	ordinary	{3,1}
+        63	3364	{2,2,21,1,1}	72	10	ordinary	{3,1}
+        63	3365	{2,3,3,1,1}	73	10	ordinary	{3,1}
+        63	3366	{2,3,5,1,1}	74	10	ordinary	{3,1}
+        63	3367	{2,3,9,1,1}	75	10	ordinary	{3,1}
+        63	3368	{2,3,11,1,1}	76	10	ordinary	{3,1}
+        63	3369	{2,3,12,1,1}	77	10	ordinary	{3,1}
+        63	3370	{2,3,13,1,1}	78	10	ordinary	{3,1}
+        63	3371	{2,3,14,1,1}	79	10	ordinary	{3,1}
+        63	3372	{2,3,15,1,1}	80	10	ordinary	{3,1}
+        63	3373	{2,3,21,1,1}	81	10	ordinary	{3,1}
+        63	3374	{2,3,22,1,1}	82	10	ordinary	{3,1}
+        63	3375	{2,3,23,1,1}	83	10	ordinary	{3,1}
+        63	3376	{2,3,25,1,1}	84	10	ordinary	{3,1}
+        63	3377	{2,4,2,1,1}	85	10	ordinary	{3,1}
+        63	3378	{2,4,4,1,1}	86	10	ordinary	{3,1}
+        63	3379	{2,4,9,1,1}	87	10	ordinary	{3,1}
+        63	3380	{2,4,10,1,1}	88	10	ordinary	{3,1}
+        63	3381	{2,4,11,1,1}	89	10	ordinary	{3,1}
+        63	3382	{2,4,12,1,1}	90	10	ordinary	{3,1}
+        63	3383	{2,4,15,1,1}	91	10	ordinary	{3,1}
+        63	3384	{2,4,16,1,1}	92	10	ordinary	{3,1}
+        63	3385	{2,4,21,1,1}	93	10	ordinary	{3,1}
+        63	3386	{2,4,22,1,1}	94	10	ordinary	{3,1}
+        63	3387	{2,4,23,1,1}	95	10	ordinary	{3,1}
+        63	3388	{2,4,25,1,1}	96	10	ordinary	{3,1}
+        63	3389	{2,5,2,1,1}	97	10	ordinary	{3,1}
+        63	3390	{2,5,6,1,1}	98	10	ordinary	{3,1}
+        63	3391	{2,5,7,1,1}	99	10	ordinary	{3,1}
+        63	3392	{2,5,10,1,1}	100	10	ordinary	{3,1}
+        63	3393	{2,5,11,1,1}	101	10	ordinary	{3,1}
+        63	3394	{2,5,12,1,1}	102	10	ordinary	{3,1}
+        63	3395	{2,5,15,1,1}	103	10	ordinary	{3,1}
+        63	3396	{2,5,16,1,1}	104	10	ordinary	{3,1}
+        63	3397	{2,5,21,1,1}	105	10	ordinary	{3,1}
+        63	3398	{2,6,2,1,1}	106	10	ordinary	{3,1}
+        63	3399	{2,7,2,1,1}	107	10	ordinary	{3,1}
+        63	3400	{2,5,23,1,1}	108	10	ordinary	{3,1}
+        63	3401	{2,4,27,1,1}	109	10	ordinary	{3,1}
+        63	3402	{2,5,25,1,1}	110	10	ordinary	{3,1}
+        63	3403	{2,3,27,1,1}	111	10	ordinary	{3,1}
+        63	3404	{2,2,23,1,1}	112	10	ordinary	{3,1}
+        63	3405	{2,4,29,1,1}	113	10	ordinary	{3,1}
+        63	3406	{2,8,2,1,1}	114	10	ordinary	{3,1}
+        63	3407	{2,1,28,1,1}	115	10	ordinary	{3,1}
+        63	3408	{2,3,29,1,1}	116	10	ordinary	{3,1}
+        63	3409	{2,5,27,1,1}	117	10	ordinary	{3,1}
+        63	3410	{2,2,25,1,1}	118	10	ordinary	{3,1}
+        63	3411	{2,9,2,1,1}	119	10	ordinary	{3,1}
+        63	3412	{2,5,29,1,1}	120	10	ordinary	{3,1}
+        63	3413	{2,1,30,1,1}	121	10	ordinary	{3,1}
+        63	3414	{2,1,32,1,1}	122	10	ordinary	{3,1}
+        63	3415	{2,4,31,1,1}	123	10	ordinary	{3,1}
+        63	3416	{2,3,32,1,1}	124	10	ordinary	{3,1}
+        63	3417	{2,7,4,1,1}	125	10	ordinary	{3,1}
+        64	3501	{3,1,28,1,1}	1	10	ordinary	{3,1}
+        64	3502	{3,2,28,1,1}	2	10	ordinary	{3,1}
+        64	3503	{3,3,28,1,1}	3	10	ordinary	{3,1}
+        64	3504	{3,1,29,1,1}	4	10	ordinary	{3,1}
+        64	3505	{3,2,29,1,1}	5	10	ordinary	{3,1}
+        64	3506	{3,3,29,1,1}	6	10	ordinary	{3,1}
+        64	3507	{3,1,30,1,1}	7	10	ordinary	{3,1}
+        64	3508	{3,2,30,1,1}	8	10	ordinary	{3,1}
+        64	3509	{3,3,30,1,1}	9	10	ordinary	{3,1}
+        64	3510	{3,1,31,1,1}	10	10	ordinary	{3,1}
+        64	3511	{3,2,31,1,1}	11	10	ordinary	{3,1}
+        64	3512	{3,3,31,1,1}	12	10	ordinary	{3,1}
+        64	3513	{3,1,32,1,1}	13	10	ordinary	{3,1}
+        64	3514	{3,2,32,1,1}	14	10	ordinary	{3,1}
+        64	3515	{3,3,32,1,1}	15	10	ordinary	{3,1}
+        64	3516	{3,1,33,1,1}	16	10	ordinary	{3,1}
+        64	3517	{3,2,33,1,1}	17	10	ordinary	{3,1}
+        64	3518	{3,3,33,1,1}	18	10	ordinary	{3,1}
+        64	3519	{3,1,34,1,1}	19	10	ordinary	{3,1}
+        64	3520	{3,2,34,1,1}	20	10	ordinary	{3,1}
+        64	3521	{3,3,34,1,1}	21	10	ordinary	{3,1}
+        64	3522	{3,1,35,1,1}	22	10	ordinary	{3,1}
+        64	3523	{3,2,35,1,1}	23	10	ordinary	{3,1}
+        64	3524	{3,3,35,1,1}	24	10	ordinary	{3,1}
+        64	3525	{3,1,36,1,1}	25	10	ordinary	{3,1}
+        64	3526	{3,2,36,1,1}	26	10	ordinary	{3,1}
+        64	3527	{3,3,36,1,1}	27	10	ordinary	{3,1}
+        64	3528	{3,1,37,1,1}	28	10	ordinary	{3,1}
+        64	3529	{3,2,37,1,1}	29	10	ordinary	{3,1}
+        64	3530	{3,3,37,1,1}	30	10	ordinary	{3,1}
+        64	3531	{3,1,38,1,1}	31	10	ordinary	{3,1}
+        64	3532	{3,2,38,1,1}	32	10	ordinary	{3,1}
+        64	3533	{3,3,38,1,1}	33	10	ordinary	{3,1}
+        64	3534	{3,1,39,1,1}	34	10	ordinary	{3,1}
+        64	3535	{3,2,39,1,1}	35	10	ordinary	{3,1}
+        64	3536	{3,3,39,1,1}	36	10	ordinary	{3,1}
+        64	3537	{3,1,41,1,1}	37	10	ordinary	{3,1}
+        64	3538	{3,2,41,1,1}	38	10	ordinary	{3,1}
+        64	3539	{3,3,41,1,1}	39	10	ordinary	{3,1}
+        64	3540	{3,1,40,1,1}	40	10	ordinary	{3,1}
+        64	3541	{3,2,40,1,1}	41	10	ordinary	{3,1}
+        64	3542	{3,3,40,1,1}	42	10	ordinary	{3,1}
+        64	3543	{3,1,42,1,1}	43	10	ordinary	{3,1}
+        64	3544	{3,2,42,1,1}	44	10	ordinary	{3,1}
+        64	3545	{3,3,42,1,1}	45	10	ordinary	{3,1}
+        64	3546	{3,1,43,1,1}	46	10	ordinary	{3,1}
+        64	3547	{3,2,43,1,1}	47	10	ordinary	{3,1}
+        64	3548	{3,3,43,1,1}	48	10	ordinary	{3,1}
+        64	3549	{3,1,44,1,1}	49	10	ordinary	{3,1}
+        64	3550	{3,2,44,1,1}	50	10	ordinary	{3,1}
+        64	3551	{3,3,44,1,1}	51	10	ordinary	{3,1}
+        64	3552	{3,1,45,1,1}	52	10	ordinary	{3,1}
+        64	3553	{3,2,45,1,1}	53	10	ordinary	{3,1}
+        64	3554	{3,3,45,1,1}	54	10	ordinary	{3,1}
+        64	3555	{3,1,46,1,1}	55	10	ordinary	{3,1}
+        64	3556	{3,2,46,1,1}	56	10	ordinary	{3,1}
+        64	3557	{3,3,46,1,1}	57	10	ordinary	{3,1}
+        64	3558	{3,1,47,1,1}	58	10	ordinary	{3,1}
+        64	3559	{3,2,47,1,1}	59	10	ordinary	{3,1}
+        64	3560	{3,3,47,1,1}	60	10	ordinary	{3,1}
+        64	3561	{3,1,48,1,1}	61	10	ordinary	{3,1}
+        64	3562	{3,2,48,1,1}	62	10	ordinary	{3,1}
+        64	3563	{3,3,48,1,1}	63	10	ordinary	{3,1}
+        64	3564	{3,1,49,1,1}	64	10	ordinary	{3,1}
+        64	3565	{3,2,49,1,1}	65	10	ordinary	{3,1}
+        64	3566	{3,3,49,1,1}	66	10	ordinary	{3,1}
+        64	3567	{3,1,50,1,1}	67	10	ordinary	{3,1}
+        64	3568	{3,2,50,1,1}	68	10	ordinary	{3,1}
+        64	3569	{3,3,50,1,1}	69	10	ordinary	{3,1}
+        64	3570	{3,1,51,1,1}	70	10	ordinary	{3,1}
+        64	3571	{3,2,51,1,1}	71	10	ordinary	{3,1}
+        64	3572	{3,3,51,1,1}	72	10	ordinary	{3,1}
+        64	3573	{3,1,52,1,1}	73	10	ordinary	{3,1}
+        64	3574	{3,2,52,1,1}	74	10	ordinary	{3,1}
+        64	3575	{3,3,52,1,1}	75	10	ordinary	{3,1}
+        64	3576	{3,1,53,1,1}	76	10	ordinary	{3,1}
+        64	3577	{3,2,53,1,1}	77	10	ordinary	{3,1}
+        64	3578	{3,3,53,1,1}	78	10	ordinary	{3,1}
+        64	3579	{3,1,54,1,1}	79	10	ordinary	{3,1}
+        64	3580	{3,2,54,1,1}	80	10	ordinary	{3,1}
+        64	3581	{3,3,54,1,1}	81	10	ordinary	{3,1}
+        64	3582	{3,1,55,1,1}	82	10	ordinary	{3,1}
+        64	3583	{3,2,55,1,1}	83	10	ordinary	{3,1}
+        64	3584	{3,3,55,1,1}	84	10	ordinary	{3,1}
+        64	3585	{3,1,56,1,1}	85	10	ordinary	{3,1}
+        64	3586	{3,2,56,1,1}	86	10	ordinary	{3,1}
+        64	3587	{3,3,56,1,1}	87	10	ordinary	{3,1}
+        64	3588	{3,1,57,1,1}	88	10	ordinary	{3,1}
+        64	3589	{3,2,57,1,1}	89	10	ordinary	{3,1}
+        64	3590	{3,3,57,1,1}	90	10	ordinary	{3,1}
+        64	3591	{3,1,58,1,1}	91	10	ordinary	{3,1}
+        64	3592	{3,2,58,1,1}	92	10	ordinary	{3,1}
+        64	3593	{3,3,58,1,1}	93	10	ordinary	{3,1}
+        64	3601	{3,1,59,1,1}	94	10	ordinary	{3,1}
+        64	3602	{3,2,59,1,1}	95	10	ordinary	{3,1}
+        64	3603	{3,3,59,1,1}	96	10	ordinary	{3,1}
+        64	3604	{3,1,60,1,1}	97	10	ordinary	{3,1}
+        64	3605	{3,2,60,1,1}	98	10	ordinary	{3,1}
+        64	3606	{3,3,60,1,1}	99	10	ordinary	{3,1}
+        64	3607	{3,1,61,1,1}	100	10	ordinary	{3,1}
+        64	3608	{3,2,61,1,1}	101	10	ordinary	{3,1}
+        64	3609	{3,3,61,1,1}	102	10	ordinary	{3,1}
+        64	3610	{3,1,62,1,1}	103	10	ordinary	{3,1}
+        64	3611	{3,2,62,1,1}	104	10	ordinary	{3,1}
+        64	3612	{3,3,62,1,1}	105	10	ordinary	{3,1}
         ]]
         local TABS_CSV = [[
         xxx_454630312	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A	A
@@ -639,6 +637,7 @@ public static class DlcClientPatches
         local function gtwfix()
         if not IsInTime then return end
         local floor = MIKU_ACTIVATION_FLOOR
+        local stop = MIKU_ACT_STOPAT
         local era = MIKU_ACT_ERA
         if MikuGlobalTimePatched and MikuGlobalEraFloor == floor and MikuGlobalEraId == era then return end
         MikuGlobalTimePatched = true
@@ -648,8 +647,21 @@ public static class DlcClientPatches
         MikuRawIsInTime = old
         IsInTime = function(nStart, nEnd, nNow)
         if old(nStart, nEnd, nNow) then return true end
+        -- No era is being served at all: the gate has nothing to anchor to, so it must stay inert
+        -- instead of relaxing every expired window. Otherwise the whole history of activities opens
+        -- at once, and the client queues one special-invite splash (plus its character reveal) per
+        -- activity the moment the player leaves the dorm into the lobby.
+        if floor == 0 or stop == 0 then return false end
+        -- Rows without a real start (-1 means open ended in this client) cannot be placed in an
+        -- era, so they keep the original gate. Treating -1 as open opened every unlimited
+        -- activity of every version at once.
+        if not nStart or nStart == -1 or nStart == 0 then return false end
         if not nEnd or nEnd == -1 or nEnd == 0 then return false end
-        if floor ~= 0 and math.max(nEnd, floor) ~= nEnd then return false end
+        if math.max(nEnd, floor) ~= nEnd then return false end
+        -- Only the windows of the served era may reopen. Without an upper bound every later
+        -- version qualifies as well, and the lobby fills with activities from eras nobody plays
+        -- (the duplicate tiles came from exactly that). Comparisons avoid the wire charset.
+        if stop and stop ~= 0 and nStart and nStart ~= 0 and math.max(nStart, stop) == nStart and nStart ~= stop then return false end
         local t = nNow or GetTime()
         if old(-1, nEnd, t) then return false end
         return true
@@ -688,11 +700,15 @@ public static class DlcClientPatches
     /// reconnect fallback; on login the client reloads its own activity table anyway, and the probe
     /// confirmed the historical rows went back to their CSV windows and closed.
     /// </summary>
-    public static string GlobalTimeWindowsFor(long activationFloor, uint eraId = 0) =>
+    public static string GlobalTimeWindowsFor(long activationFloor, long eraStop, uint eraId = 0) =>
         GlobalTimeWindows
             .Replace(
                 ActivationFloorToken,
                 activationFloor.ToString(CultureInfo.InvariantCulture),
+                StringComparison.Ordinal)
+            .Replace(
+                GachaStopToken,
+                eraStop.ToString(CultureInfo.InvariantCulture),
                 StringComparison.Ordinal)
             .Replace(
                 ActivationEraToken,
@@ -704,23 +720,53 @@ public static class DlcClientPatches
     /// 决定一张打脸图能不能弹，而它的第一道判断就是全局 IsInTime —— 于是 GlobalTimeWindows 一旦把
     /// 「已过期」放开，**所有历史活动的打脸图同时变成可弹**，客户端会给每一张都排一次队
     /// （实测：重启后连续打开 152 次 ActiviyFace，正是「所有版本的弹窗」）。
-    /// 打脸图只是公告，所以这里让它退回**原始**时间语义：只有自身时间窗真正在当下的活动才弹。
-    /// MikuRawIsInTime 由 GlobalTimeWindows 在包装前捕获；万一拿不到（例如本次会话的 IsInTime 早已
-    /// 被包装过、原始函数已不可达），就一律不弹——「安静」是这里的正确退化方向，绝不能退回全弹。
-    /// 同时清掉登录时已经排好的队列，否则本次会话仍会把旧的 152 张弹完。
+    /// 打脸图只是公告，所以这里让它退回**原始**时间语义，只额外放行一类：**当前时代自己的**公告
+    /// （窗口起点 >= 时代起点，且结束时间落在时代之内），也就是玩家复刻那一版真正该看到的特别邀请；
+    /// 更早版本一律不弹。同一个活动每次启动只放一次（tbMikuEraFaceShown 去重），进出活动页来回跑
+    /// 不会再排队。MikuRawIsInTime 由 GlobalTimeWindows 在包装前捕获；万一拿不到（例如本次会话的
+    /// IsInTime 早已被包装过、原始函数已不可达），就一律不弹——「安静」是这里的正确退化方向，
+    /// 绝不能退回全弹。同时清掉登录时已经排好的队列，否则本次会话仍会把旧的 152 张弹完。
     /// </summary>
-    public const string ActivityFaceQuiet = """
+    private const string ActivityFaceQuiet = """
         local function afqfix()
         if not Activityface or not Activityface.CheckDateTime then return end
-        if Activityface.bQuietPatched then return end
-        Activityface.bQuietPatched = true
-        local oldCheck = Activityface.CheckDateTime
+        local floor = MIKU_ACTIVATION_FLOOR
+        local stop = MIKU_ACT_STOPAT
+        local era = MIKU_ACT_ERA
+        -- Bind the checkout to the era currently served. Returning early on the first install kept
+        -- the first era floor over stop inside the closure, so every later switch judged splashes by
+        -- the wrong window.
+        if Activityface.bMikuQuietFloor == floor and Activityface.bMikuQuietStop == stop and Activityface.bMikuQuietEra == era then
+        Activityface.tbPopFaceId = {}
+        Activityface.bLoginFirst = false
+        return
+        end
+        Activityface.bMikuQuietFloor = floor
+        Activityface.bMikuQuietStop = stop
+        Activityface.bMikuQuietEra = era
+        -- Keep one link to the shipped function no matter how many eras we walk through; wrapping our
+        -- own previous wrapper would stack a filter per switch.
+        local oldCheck = Activityface.bMikuRawCheck or Activityface.CheckDateTime
+        Activityface.bMikuRawCheck = oldCheck
+        Activityface.tbMikuEraFaceShown = Activityface.tbMikuEraFaceShown or {}
         Activityface.CheckDateTime = function(InId)
         local raw = MikuRawIsInTime
         if not raw then return false end
         local cfg = Activityface.GetConfig(InId)
         if not cfg then return false end
-        if not raw(cfg.tStarttime, cfg.tEndtime, GetTime()) then return false end
+        local now = GetTime()
+        if raw(cfg.tStarttime, cfg.tEndtime, now) then return oldCheck(InId) end
+        if floor == 0 or stop == 0 then return false end
+        local nStart = cfg.tStarttime
+        local nEnd = cfg.tEndtime
+        if not nStart or nStart == -1 or nStart == 0 or math.max(nStart, 0) ~= nStart then return false end
+        if not nEnd or nEnd == -1 or nEnd == 0 or math.max(nEnd, 0) ~= nEnd then return false end
+        if math.max(nStart, floor) ~= nStart then return false end
+        if math.max(nEnd, floor) ~= nEnd then return false end
+        -- ... and it has to sit inside the served era, not merely after the beginning.
+        if stop and stop ~= 0 and math.max(nStart, stop) == nStart and nStart ~= stop then return false end
+        if Activityface.tbMikuEraFaceShown[InId] then return false end
+        Activityface.tbMikuEraFaceShown[InId] = true
         return oldCheck(InId)
         end
         Activityface.tbPopFaceId = {}
@@ -728,6 +774,91 @@ public static class DlcClientPatches
         end
         afqfix()
         """;
+
+    /// <summary>
+    /// 供应站（商城）页签的窗口。IBLogic.LoadIBShopTab (Purchase/IBShop.lua:1145) 把
+    /// ibshoptab 的 StartTime/EndTime 解析成 nStartTime/nEndTime，IBLogic.GetGroupList (:753)
+    /// 用 IsInTime 过滤，**并且**要求该页签的商品列表非空 (:779) 才把按钮放出来 —— 两层都是
+    /// 客户端本地 CSV 的历史窗口，服务端不参与，所以复刻时代之后「供应站/时装」只剩配件一类
+    /// 页签、互动/时装/武器皮肤全部消失。这里把商城的页签与商品窗口统一钉到当前时间，和
+    /// DlcShopWindows 对崇福集市做的事一样，只是对象换成了 IBLogic 的三张表。
+    /// </summary>
+    public const string IbshopWindows = """
+        local function ibfix()
+        if not IBLogic or not IBLogic.tbIbShopList then return end
+        if IBLogic.bMikuWindowPatched then return end
+        if not next(IBLogic.tbIbShopList) then return end
+        if not next(IBLogic.tbIbGoods or {}) then return end
+        IBLogic.bMikuWindowPatched = true
+        local now = GetTime() local off1 = 3600 local off2 = -2592000
+        local function stamp(t)
+        if not t then return end
+        t.nStartTime = now - off1
+        t.nEndTime = now - off2
+        if t.nShowStartTime then t.nShowStartTime = now - off1 end
+        if t.nShowEndTime then t.nShowEndTime = now - off2 end
+        end
+        for _, v in pairs(IBLogic.tbIbShopList) do stamp(v) end
+        for _, list in pairs(IBLogic.tbIbShopGroup) do for _, v in ipairs(list) do stamp(v) end end
+        for _, v in pairs(IBLogic.tbIbGoods) do stamp(v) end
+        end
+        ibfix()
+        """;
+
+    /// <summary>
+    /// The party screen decides which mode button to show by mapping the first level of each
+    /// <c>online.txt</c> row through <c>PartyLogic.tbHandBookConf</c>. When that lookup misses, every row
+    /// falls back to MapType 0 (the plain "冲关啦" button) and the later rows simply overwrite the earlier
+    /// one, so the plain button ends up loading the last row's level list (the escape-mode map).
+    /// The fix keeps the original lookup but falls back to the map types shipped in the client's own
+    /// handbook table, and logs what the raw lookup returned so a miss stays visible in Game.log.
+    /// </summary>
+    public const string PartyModeFix = """
+        local function mikumodefix()
+        if not PartyLogic or not PartyLogic.GetMapMode then return end
+        if PartyLogic.bMikuMapModeFixed then return end
+        PartyLogic.bMikuMapModeFixed = true
+        local MIKU_MAPMODE = { [9623]=1, [9625]=1, [9626]=2, [9633]=3, [9634]=2, [9638]=1, [9639]=1 }
+        local oldGet = PartyLogic.GetMapMode
+        PartyLogic.GetMapMode = function(tbMapID)
+        local mapid = tbMapID
+        if type(tbMapID) ~= [==[number]==] then
+        mapid = tbMapID and tbMapID[1]
+        end
+        local mode = oldGet(tbMapID)
+        if mode == 0 and mapid and MIKU_MAPMODE[mapid] then
+        return MIKU_MAPMODE[mapid]
+        end
+        return mode
+        end
+        .. [==[ raw9626=]==] .. tostring(oldGet(9626))
+        .. [==[ raw9633=]==] .. tostring(oldGet(9633))
+        .. [==[ fixed9626=]==] .. tostring(PartyLogic.GetMapMode(9626)))
+        end
+        mikumodefix()
+        """;
+
+    /// <summary>Patch name used on the wire; keep it stable so a re-push replaces the previous run.</summary>
+    public const string ActivityFaceQuietName = "ActivityFaceQuiet";
+
+    /// <summary>
+    /// <see cref="ActivityFaceQuiet"/> with the era floor baked in, so the guard can tell the served
+    /// era's own announcements from the historical ones it has to keep quiet.
+    /// </summary>
+    public static string ActivityFaceQuietFor(long activationFloor, long eraStop, uint eraId = 0) =>
+        ActivityFaceQuiet
+            .Replace(
+                ActivationFloorToken,
+                activationFloor.ToString(CultureInfo.InvariantCulture),
+                StringComparison.Ordinal)
+            .Replace(
+                GachaStopToken,
+                eraStop.ToString(CultureInfo.InvariantCulture),
+                StringComparison.Ordinal)
+            .Replace(
+                ActivationEraToken,
+                eraId.ToString(CultureInfo.InvariantCulture),
+                StringComparison.Ordinal);
 
     /// <summary>
     /// DLC entry window. UMG/Main/umg_main.lua:1344 ShowBtnDlc takes the current DLC row from
@@ -1400,17 +1531,36 @@ public static class DlcClientPatches
         if not Activity or not Activity.tbConfig then return end
         if not DLC_Logic or not DLC_Logic.GetCurConf then return end
         local floor = MIKU_ACT_FLOOR
+        local stop = MIKU_ACT_STOPAT
         local era = MIKU_ACT_ERA
-        if MikuTryWin2 and MikuTryWinFloor == floor and MikuTryWinEra == era then return end
-        local conf = DLC_Logic.GetCurConf()
-        if not conf or not conf.tbTryID then return end
+        -- No era served: nothing to stamp. Opening every try row here is what produced a blank white
+        -- activity entry that dropped the player into an old version event.
+        -- Restore first, whatever the reason this run exists (era switch, Off, reload). Returning
+        -- before the restore left the previous era rows stamped open forever.
+        if MikuTryRaw then
+        for _, rec in pairs(MikuTryRaw) do
+        rec.row.nStartTime = rec.s
+        rec.row.nEndTime = rec.e
+        rec.row.tbCondition = rec.c
+        end
+        end
+        MikuTryRaw = {}
+        if floor == 0 or stop == 0 then MikuTryWin2 = nil return end
+        if MikuTryWin2 and MikuTryWinFloor == floor and MikuTryWinEra == era and MikuTryStop == stop then return end
         local now = GetTime() local off1 = 3600 local off2 = -2592000
-        for _, group in pairs(conf.tbTryID) do
-        local rows = Activity.GetTemplateCase(group)
-        if rows then
-        for _, row in pairs(rows) do
-        local nEnd = row.nEndTime
-        if nEnd and nEnd ~= -1 and math.max(nEnd, floor) == nEnd then
+        local stopon = stop and stop ~= 0
+        -- Every activity row that was running inside the served era: its window ends after the era
+        -- began and starts before the era ended. This covers the DLC page of try groups, the era of
+        -- mini games and everything else the Activity page lists, instead of the try groups alone.
+        for _, row in pairs(Activity.tbConfig) do
+        local s = row.nStartTime
+        local e = row.nEndTime
+        if e and e ~= -1 and e ~= 0 and math.max(e, floor) == e then
+        local inside = true
+        -- A row starting after the era ended belongs to a later version and must stay closed.
+        if stopon and s and s ~= -1 and s ~= 0 and math.max(s, stop) == s and s ~= stop then inside = false end
+        if inside then
+        MikuTryRaw[row.nId] = { row = row, s = s, e = e, c = row.tbCondition }
         local srv = nil
         if Activity.GetOpenTime then srv = Activity.GetOpenTime(row.nId) end
         if srv and srv ~= 0 then row.nStartTime = srv else row.nStartTime = now - off1 end
@@ -1419,10 +1569,10 @@ public static class DlcClientPatches
         end
         end
         end
-        end
         MikuTryWin2 = true
         MikuTryWinFloor = floor
         MikuTryWinEra = era
+        MikuTryStop = stop
         end
         MikuTryApply = gtry
         gtry()
@@ -1447,9 +1597,10 @@ public static class DlcClientPatches
     /// (the previous era's rows were stamped open in the running session, and the reload only puts the
     /// shipped windows back - the guard would otherwise treat that as "already done").
     /// </summary>
-    public static string GachaTryWindowsFor(long floor, uint eraId = 0) =>
+    public static string GachaTryWindowsFor(long floor, long eraStop, uint eraId = 0) =>
         GachaTryWindows
             .Replace(GachaTryFloorToken, floor.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+            .Replace(GachaStopToken, eraStop.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
             .Replace(ActivationEraToken, eraId.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
 
     /// <summary>
@@ -1504,20 +1655,28 @@ public static class DlcClientPatches
         local stopon = stop and stop ~= 0
         for id, info in pairs(Gacha.tbGacha) do
         local w = MikuPoolRaw[id]
-        local keep = false
-        if floor == 0 then
-        keep = true
-        elseif w then
+        local open = false
+        local leave = false
+        if not w then
+        -- Shipped without a window at all: touch nothing. Treating no window as in this era
+        -- used to hand out a brand new window, which is the opposite of leaving it alone.
+        leave = true
+        else
         local okp, s = pcall(ParseTime, w[1])
         local okq, e = false, nil
         if okp then okq, e = pcall(ParseTime, w[2]) end
-        if okp and okq and s and e and math.max(e, floor) == e and e ~= floor then
-        if stopon then keep = math.min(s, stop) == s and s ~= stop else keep = true end
+        if not (okp and okq and s and e) then
+        -- Unparseable window: leave the banner alone rather than hiding a pool we cannot read.
+        leave = true
+        elseif math.max(e, floor) == e and e ~= floor then
+        if stopon then open = math.min(s, stop) == s and s ~= stop else open = true end
         end
         end
         if floor == 0 then
         info.tbPoolTime = w and { w[1], w[2] } or nil
-        elseif keep then
+        elseif leave then
+        -- Deliberately no assignment.
+        elseif open then
         info.tbPoolTime = { lo, hi }
         else
         info.tbPoolTime = nil
@@ -1557,6 +1716,41 @@ public static class DlcClientPatches
         end
         """;
 
+    /// <summary>
+    /// Vegetable war (farmwar, the 爆爆菜园 mini game) keeps its own windows in
+    /// FarmWarActivityCfg.tbActivityCfg / tbChapter / tbLevel, separate from Activity.tbConfig, so the
+    /// era-wide stamp in GachaTryWindows never reaches it and the client keeps showing "already
+    /// ended". Stamp those tables after every config load.
+    /// </summary>
+    public const string FarmWarWindows = """
+        local function farmfix()
+        if not FarmWarActivityCfg then return end
+        local now = GetTime() local off2 = -2592000 local lo = now - 3600 local hi = now - off2
+        local function stamp(t)
+        if not t then return end
+        if t.nStartTime ~= nil then t.nStartTime = lo end
+        if t.nEndTime ~= nil then t.nEndTime = hi end
+        end
+        for _, v in pairs(FarmWarActivityCfg.tbActivityCfg or {}) do stamp(v) end
+        for _, list in pairs(FarmWarActivityCfg.tbChapter or {}) do
+        for _, v in pairs(list) do stamp(v) end
+        end
+        for _, v in pairs(FarmWarActivityCfg.tbLevel or {}) do stamp(v) end
+        end
+        if FarmWarActivityCfg and not FarmWarActivityCfg.bMikuFarm then
+        FarmWarActivityCfg.bMikuFarm = true
+        if FarmWarActivityCfg.LoadCfg then
+        local oldfarmload = FarmWarActivityCfg.LoadCfg
+        FarmWarActivityCfg.LoadCfg = function(...)
+        local r = oldfarmload(...)
+        farmfix()
+        return r
+        end
+        end
+        end
+        farmfix()
+        """;
+
     /// <summary>Replaced by the pinned era's end (unix seconds) in <see cref="GachaPoolWindowsFor"/>.</summary>
     public const string GachaStopToken = "MIKU_ACT_STOPAT";
 
@@ -1571,6 +1765,40 @@ public static class DlcClientPatches
             .Replace(GachaTryFloorToken, floor.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
             .Replace(GachaStopToken, eraStop.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
             .Replace(ActivationEraToken, eraId.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
+
+    /// <summary>
+    /// Renders every era payload once with sample values and returns the ones that would die on the
+    /// client. Two silent killers are checked: characters System.Text.Json escapes to \uXXXX (anything
+    /// outside 7-bit ASCII, plus + &lt; &gt; &amp; ' ") and any MIKU_ placeholder left after rendering.
+    /// Runs against the assembly that is actually serving - validating archived copies proves nothing
+    /// about the deployed payloads, which is exactly how three regressions slipped through.
+    /// </summary>
+    public static IReadOnlyList<string> AuditEraPayloads(long floor = 1750000000L, long stop = 1760000000L, uint era = 32)
+    {
+        var payloads = new (string Name, string Body)[]
+        {
+            (nameof(GlobalTimeWindows), GlobalTimeWindowsFor(floor, stop, era)),
+            (nameof(ActivityFaceQuiet), ActivityFaceQuietFor(floor, stop, era)),
+            (nameof(GachaTryWindows), GachaTryWindowsFor(floor, stop, era)),
+            (nameof(GachaPoolWindows), GachaPoolWindowsFor(floor, stop, era)),
+        };
+
+        var problems = new List<string>();
+        foreach (var (name, body) in payloads)
+        {
+            if (body.Contains("MIKU_", StringComparison.Ordinal))
+                problems.Add($"{name}: unsubstituted placeholder left in the payload");
+
+            if (body.Any(ch => ch > 0x7E))
+                problems.Add($"{name}: non-ASCII characters (would be escaped to \\uXXXX)");
+
+            foreach (var bad in "+<>&'\"")
+                if (body.Contains(bad))
+                    problems.Add($"{name}: contains '{bad}', which the client cannot decode");
+        }
+
+        return problems;
+    }
 
     /// <summary>
     /// Error isolation for the Lua event bus. Misc/EventSystem.lua dispatches every listener of an

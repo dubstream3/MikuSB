@@ -137,6 +137,87 @@ public class CommandTextCHT
     public GameCommandTextCHT Game { get; } = new();
     public GameCommandCnTextCHT GameCn { get; } = new();
     public GameCommandHostsCleanTextCHT HostsClean { get; } = new();
+    public AttrTextCHT Attr { get; } = new();
+    public DlcTextCHT Dlc { get; } = new();
+    public LuaTextCHT Lua { get; } = new();
+    public MoneyTextCHT Money { get; } = new();
+    public QuestTextCHT Quest { get; } = new();
+    public ItemTextCHT Item { get; } = new();
+}
+
+/// <summary>
+///     path: Game.Command.Attr
+/// </summary>
+public class AttrTextCHT
+{
+    public string Desc => "讀寫玩家的屬性值（等級、經驗、技能、貨幣等）";
+
+    public string Usage => "用法：/attr get <gid> <sid> [@uid]\n" +
+                           "用法：/attr set <gid> <sid> <value> [@uid]";
+}
+
+/// <summary>
+///     path: Game.Command.Dlc
+/// </summary>
+public class DlcTextCHT
+{
+    public string Desc => "執行期切換任意 DLC 時代（活動復刻）";
+
+    public string Usage => "用法：/dlc <期號> [-save]\n" +
+                           "用法：/dlc off\n" +
+                           "用法：/dlc status\n" +
+                           "-save 表示同時寫進 Config.json，重啟後仍然生效";
+}
+
+/// <summary>
+///     path: Game.Command.Lua
+/// </summary>
+public class LuaTextCHT
+{
+    public string Desc => "在已連線的客戶端裡執行 Lua 程式碼";
+
+    public string Usage => "用法：/lua <Lua 程式碼> [@uid]";
+}
+
+/// <summary>
+///     path: Game.Command.Money
+/// </summary>
+public class MoneyTextCHT
+{
+    public string Desc => "查詢、設定或發放遊戲內貨幣";
+
+    public string Usage => "用法：/money list [@uid]\n" +
+                           "用法：/money get <id|名稱> [@uid]\n" +
+                           "用法：/money set <id|名稱> <數量> [@uid]\n" +
+                           "用法：/money add <id|名稱> <數量> [@uid]\n" +
+                           "用法：/money spend <id|名稱> <數量> [-a] [@uid]\n" +
+                           "用法：/money seed [@uid]\n" +
+                           "用法：/money reset [@uid]\n" +
+                           "-a 表示對全部貨幣生效";
+}
+
+/// <summary>
+///     path: Game.Command.Quest
+/// </summary>
+public class QuestTextCHT
+{
+    public string Desc => "一鍵完成全部任務關卡（測試用）";
+
+    public string Usage => "用法：/quest complete_all <1|0|on|off>";
+}
+
+/// <summary>
+///     path: Game.Command.Item
+/// </summary>
+public class ItemTextCHT
+{
+    public string Desc => "發放指定道具（材料、消耗品等 supplies 模板）";
+
+    public string Usage => "用法：/item <detail> [-p<particular>] [-l<等級>] [-g<類型>] [-c<數量>] [@uid]\n" +
+                           "預設：類型 5、particular 1、等級 1、數量 1";
+
+    public string NotFound => "未找到道具模板 {0}！";
+    public string Added => "已向玩家添加 {0} 個道具（模板 {1}）！";
 }
 
 #endregion
@@ -322,11 +403,13 @@ public class GiveAllTextCHT
                           "注意：-1 表示全部";
     public string Usage => "用法：/giveall weapon <detail/-1> -p<特定> -l<等級>\n" +
                            "用法：/giveall weaponskin <detail/-1> -p<特定>\n" +
-                           "用法：/giveall card <detail/-1> -p<特定> -l<等級>" +
-                           "用法：/giveall profile <detail/-1> -g<類型> -p<特定> -l<等級>" +
-                           "用法：/giveall skinpart <detail/-1> -g<類型> -p<特定> -l<等級>" +
-                           "用法：/giveall weaponpart <detail/-1> -g<類型> -p<特定> -l<等級>" +
+                           "用法：/giveall card <detail/-1> -p<特定> -l<等級>\n" +
+                           "用法：/giveall profile <detail/-1> -g<類型> -p<特定> -l<等級>\n" +
+                           "用法：/giveall skinpart <detail/-1> -g<類型> -p<特定> -l<等級>\n" +
+                           "用法：/giveall weaponpart <detail/-1> -g<類型> -p<特定> -l<等級>\n" +
                            "用法：/giveall call <detail/-1> -g<類型> -p<特定> -l<等級>\n" +
+                           "用法：/giveall skin <detail/-1> -g<類型> -p<特定> -l<等級>\n" +
+                           "用法：/giveall furniture <detail/-1> -g<類型> -p<特定> -l<等級>\n" +
                            "用法：/giveall piece <detail/-1> -p<特定> -c<數量>\n" +
                            "用法：/giveall girl <detail/-1> -p<特定>";
     public string NotFound => "未找到 {0}！";
@@ -358,8 +441,8 @@ public class GameCommandTextCHT
 
 public class GameCommandCnTextCHT
 {
-    public string Desc => "寫入 hosts 並啟動特定渠道的用戶端";
-    public string Usage => "用法: /game-cn [額外遊戲參數]";
+    public string Desc => "寫入 hosts 或注入國服補丁 DLL，然後啟動特定渠道的用戶端";
+    public string Usage => "用法: /game-cn [-hosts|-dll] [額外遊戲參數]";
     public string Started => "遊戲已啟動。PID: {0}";
     public string Failed => "遊戲啟動失敗: {0}";
     public string HostsUpdated => "已更新 hosts 檔案: {0}";
@@ -367,6 +450,10 @@ public class GameCommandCnTextCHT
     public string HostsFailed => "寫入 hosts 失敗: {0}";
     public string NeedAdmin => "寫入 hosts 需要管理員權限。請以管理員身分重新啟動伺服器, 或手動把下面這段加入 {0}:\n{1}";
     public string Unsupported => "當前系統不支援自動維護 hosts。";
+    public string DllMode => "DLL 注入模式：不改 hosts，直接注入國服補丁。";
+    public string DllStarted => "遊戲已啟動（國服 DLL 注入）。PID: {0}";
+    public string DllFailed => "遊戲啟動失敗（DLL 注入）: {0}";
+    public string DllMissing => "國服補丁 DLL 無法注入: {0}";
 }
 
 public class GameCommandHostsCleanTextCHT
@@ -378,6 +465,10 @@ public class GameCommandHostsCleanTextCHT
     public string NeedAdmin => "清理 hosts 需要管理員權限, 請以管理員身份重新啟動服務端後再試: {0}";
     public string Failed => "清理 hosts 失敗: {0}";
     public string Unsupported => "當前系統不支援自動維護 hosts。";
+    public string DllMode => "DLL 注入模式：不改 hosts，直接注入國服補丁。";
+    public string DllStarted => "遊戲已啟動（國服 DLL 注入）。PID: {0}";
+    public string DllFailed => "遊戲啟動失敗（DLL 注入）: {0}";
+    public string DllMissing => "國服補丁 DLL 無法注入: {0}";
 }
 
 #endregion

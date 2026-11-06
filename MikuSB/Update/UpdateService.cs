@@ -174,6 +174,11 @@ public static class UpdateService
                 return false;
             }
 
+            // The panel is the only place that can show a long download, so the host publishes what it is
+            // downloading; SdkServer reads it from Common state instead of a bridge delegate (delegates are
+            // wired after the update check, and the panel is already serving while this runs).
+            ServerRuntime.Enter(ServerRuntime.PhaseUpdate, check.Latest);
+
             using var client = GitHubApi.CreateClient("MikuSB-Updater");
 
             var tempRoot = CreateStagingDirectory();
@@ -222,6 +227,7 @@ public static class UpdateService
             if (process == null)
             {
                 Logger.Warn(I18NManager.Translate("Server.ServerInfo.FailedToStartUpdater"));
+                ServerRuntime.BackToRunning();
                 return false;
             }
 
@@ -229,10 +235,14 @@ public static class UpdateService
             // The startup path returns from Main and the process ends there; the panel path has no such exit,
             // so the host registers ShutdownRequest and we ask it to stop now that the updater holds the files.
             ShutdownRequest?.Invoke(0);
+            // Only reachable when nobody is listening for the shutdown request (the console-only hosts): then
+            // this process keeps running, so it must stop claiming it is still downloading.
+            ServerRuntime.BackToRunning();
             return true;
         }
         catch (Exception ex)
         {
+            ServerRuntime.BackToRunning();
             Logger.Warn(I18NManager.Translate("Server.ServerInfo.AutoUpdateCheckFailed"), ex);
             return false;
         }
@@ -243,7 +253,16 @@ public static class UpdateService
         if (!AreRequiredResourcesPresent())
         {
             Logger.Warn(I18NManager.Translate("Server.ServerInfo.RequiredResourcesMissing"));
-            await DownloadAndInstallResourcesAsync();
+            try
+            {
+                await DownloadAndInstallResourcesAsync();
+            }
+            finally
+            {
+                // Registered as well when the download throws: a failed install leaves the host in the error
+                // path, and the panel must not keep advertising a download that is no longer running.
+                ServerRuntime.BackToRunning();
+            }
         }
     }
 
@@ -322,6 +341,10 @@ public static class UpdateService
                 return ParseVersionText(text);
         }
 
+        // One warning for the whole lookup instead of one debug line per dropped source: the per-source
+        // lines are inside GitHubApi.ReadTextAsync and stay silent when a mirror answers.
+        Logger.Warn($"version.txt could not be read from any source ({VersionFileUrls.Length} url(s) tried); " +
+                    "the update check reports version_unavailable.");
         return null;
     }
 
@@ -403,6 +426,10 @@ public static class UpdateService
 
     private static async Task DownloadAndInstallResourcesAsync()
     {
+        // Same reason as the release download above: this runs inside startup, while the panel is already
+        // serving, and it is the slowest step of a first run.
+        ServerRuntime.Enter(ServerRuntime.PhaseResources, ResourceArchiveUrl);
+
         using var client = GitHubApi.CreateClient("MikuSB-Updater");
         var tempRoot = Path.Combine(Path.GetTempPath(), "MikuSB", "resources", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempRoot);

@@ -21,6 +21,12 @@ public class Connection(Socket socket, IPEndPoint remote) : SocketConnection(soc
     /// <summary>Team id the client asked for with ReqOnlineRoom(303) (10 = Online.TeamId).</summary>
     public uint OnlineRoomTeamId { get; set; }
 
+    /// <summary>
+    /// Set once a room start (ReqOnlineRoomStart or the solo auto-start in HandlerReqOnlineRoom) has sent
+    /// NtfOnlineStart, so the two paths can never travel the client twice.
+    /// </summary>
+    public bool OnlineRoomStarted { get; set; }
+
     private static readonly HashSet<string> DummyPacketNames =
     [
         

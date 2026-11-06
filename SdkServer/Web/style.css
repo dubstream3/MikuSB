@@ -432,3 +432,25 @@ button.chip { font-size: 12px; padding: 4px 9px; }
 .update-box { display: flex; flex-direction: column; gap: 10px; }
 .update-line { display: flex; flex-wrap: wrap; gap: 14px; align-items: baseline; }
 .update-line b { color: var(--fg); }
+
+/* Wizard step badge: the number turns green once the step's own gate is satisfied, so the operator can see
+   how far the setup got without reading the whole page. */
+.step-no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.step-no.done { border-color: rgba(74, 222, 128, .45); color: var(--ok); }
+
+/* A locked step is disabled rather than hidden: the operator should see what comes next and why it waits. */
+input:disabled, select:disabled, button:disabled { opacity: .45; cursor: not-allowed; }
+
+#setup-mode-row .chip { display: inline-flex; align-items: center; gap: 6px; }

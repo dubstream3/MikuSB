@@ -158,6 +158,27 @@ public static class DlcRuntimeOverrides
     }
 
     /// <summary>
+    /// True when the row really belongs to the served era: its start sits at or after the era began and,
+    /// when the era has an end, at or before that end. Rows that cannot be dated (permanent activities)
+    /// answer false while a pin is active - they were open in every version, so accepting them is exactly
+    /// what let the client hand out every historical giveaway at once. With no pin the shipped semantics
+    /// stay untouched.
+    /// </summary>
+    public static bool IsInsideServedEra(string? windowStartRaw, string? windowEndRaw)
+    {
+        var floor = ActivationFloor();
+        if (floor <= 0)
+            return true;
+
+        var start = ToUnixSeconds(ParseConfigTime(windowStartRaw));
+        if (start <= 0 || start < floor)
+            return false;
+
+        var stop = ActivationEraEnd();
+        return stop <= 0 || start <= stop;
+    }
+
+    /// <summary>
     /// Parses a client table timestamp ("[202601290400]") as local time. Every window in the shipped
     /// tables uses that shape and the client turns it into a unix second with os.time on the local wall
     /// clock, so the server has to read it the same way.
@@ -412,6 +433,26 @@ public static class DlcRuntimeOverrides
     }
 
     /// <summary>
+    /// True when [start, end] overlaps the served era [floor, era end]. Used by the func-id selectors
+    /// below as a fallback: eras that predate the DlcFuncConfId column (DLC25 and earlier have no func
+    /// block at all) still ship 异星守护 / 弑神斗场 / 多诺, they just have to be found by their own
+    /// window instead of by an explicit id.
+    /// </summary>
+    private static bool IntersectsEra(long start, long end)
+    {
+        var floor = ActivationFloor();
+        if (floor <= 0)
+            return false;
+
+        var stop = ActivationEraEnd();
+        if (end > 0 && end < floor)
+            return false;
+        if (stop > 0 && start > 0 && start > stop)
+            return false;
+        return true;
+    }
+
+    /// <summary>
     /// 多诺-巅峰对决 (Donoduel) season id. DonoDuel:GetActId() reads attribute (gid 185, sid 1) and
     /// DlcFuncDonoduel.OnGetTimeInfo -> DonoDuelConfig:GetSeasonConfig(cfg) returns nil for an unknown
     /// season, so the pinned DLC's Donoduel entry (DlcFuncConfId Donoduel=1) is used as the season id.
@@ -421,13 +462,37 @@ public static class DlcRuntimeOverrides
     {
         var act = GetPinnedActivity();
         var actId = ResolveFuncConfigId(act?.DlcFuncConfId, "Donoduel");
-        if (actId == 0)
-            return 0;
+        if (actId != 0)
+        {
+            foreach (var row in GameData.DonoDuelSeasonData.Values)
+            {
+                if (ReadUint(row.SeasonID) == actId)
+                    return actId;
+            }
+        }
 
+        // Eras that predate the DlcFuncConfId column ship no func ids at all (DLC25 and earlier), yet
+        // they still have this mode: pick the season whose own window overlaps the served era.
         foreach (var row in GameData.DonoDuelSeasonData.Values)
         {
-            if (ReadUint(row.SeasonID) == actId)
-                return actId;
+            var start = ToUnixSeconds(ParseConfigTime(row.OpenTime?.ToString()));
+            var end = ToUnixSeconds(ParseConfigTime(row.CloseTime?.ToString()));
+            if (IntersectsEra(start, end))
+            {
+                var fallback = ReadUint(row.SeasonID);
+                Logger.GetByClassName().Info(
+                    $"Donoduel season {fallback} picked by window (era has no DlcFuncConfId).");
+                return fallback;
+            }
+        }
+
+        // A single shipped season is the only season there is: serve it even when its window sits
+        // outside the era, otherwise every era before the table grew loses the entry.
+        if (GameData.DonoDuelSeasonData.Count == 1)
+        {
+            var only = ReadUint(GameData.DonoDuelSeasonData.Values.First().SeasonID);
+            Logger.GetByClassName().Info($"Donoduel season {only} is the only shipped row; serving it for era {act?.Id}.");
+            return only;
         }
 
         Logger.GetByClassName().Warn(
@@ -446,11 +511,22 @@ public static class DlcRuntimeOverrides
     {
         var act = GetPinnedActivity();
         var actId = ResolveFuncConfigId(act?.DlcFuncConfId, "Mow");
-        if (actId == 0)
-            return 0;
-
-        if (GameData.AlienDefenseData.ContainsKey(actId))
+        if (actId != 0 && GameData.AlienDefenseData.ContainsKey(actId))
             return actId;
+
+        // Eras without a DlcFuncConfId block (DLC25 and earlier) still have 异星守护: choose the act
+        // whose own window overlaps the served era.
+        foreach (var row in GameData.AlienDefenseData.Values)
+        {
+            var start = ToUnixSeconds(ParseConfigTime(row.StartTime?.ToString()));
+            var end = ToUnixSeconds(ParseConfigTime(row.EndTime?.ToString()));
+            if (IntersectsEra(start, end))
+            {
+                Logger.GetByClassName().Info(
+                    $"Alien defense act {row.Id} picked by window (era has no DlcFuncConfId).");
+                return row.Id;
+            }
+        }
 
         Logger.GetByClassName().Warn(
             $"Alien defense act {actId} has no dlc/AlienDefense/alienlist row; skipping AlienDefense attribute.");
@@ -468,13 +544,28 @@ public static class DlcRuntimeOverrides
     {
         var act = GetPinnedActivity();
         var actId = ResolveFuncConfigId(act?.DlcFuncConfId, "Teamboss");
-        if (actId == 0)
-            return 0;
+        if (actId != 0)
+        {
+            foreach (var row in GameData.SeasonBossData.Values)
+            {
+                if (ReadUint(row.ActID) == actId)
+                    return actId;
+            }
+        }
 
+        // Eras without a DlcFuncConfId block (DLC25 and earlier) still have 弑神斗场: choose the act
+        // whose own window overlaps the served era.
         foreach (var row in GameData.SeasonBossData.Values)
         {
-            if (ReadUint(row.ActID) == actId)
-                return actId;
+            var start = ToUnixSeconds(ParseConfigTime(row.StartTime?.ToString()));
+            var end = ToUnixSeconds(ParseConfigTime(row.EndTime?.ToString()));
+            if (IntersectsEra(start, end))
+            {
+                var fallback = ReadUint(row.ActID);
+                Logger.GetByClassName().Info(
+                    $"Teamboss act {fallback} picked by window (era has no DlcFuncConfId).");
+                return fallback;
+            }
         }
 
         Logger.GetByClassName().Warn(

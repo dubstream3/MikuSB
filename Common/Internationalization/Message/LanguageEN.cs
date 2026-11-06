@@ -96,6 +96,87 @@ public class CommandTextEN
     public GameCommandTextEN Game { get; } = new();
     public GameCommandCnTextEN GameCn { get; } = new();
     public GameCommandHostsCleanTextEN HostsClean { get; } = new();
+    public AttrTextEN Attr { get; } = new();
+    public DlcTextEN Dlc { get; } = new();
+    public LuaTextEN Lua { get; } = new();
+    public MoneyTextEN Money { get; } = new();
+    public QuestTextEN Quest { get; } = new();
+    public ItemTextEN Item { get; } = new();
+}
+
+/// <summary>
+///     path: Game.Command.Attr
+/// </summary>
+public class AttrTextEN
+{
+    public string Desc => "Read or write a player attribute (level, exp, skill, currency)";
+
+    public string Usage => "Usage: /attr get <gid> <sid> [@uid]\n" +
+                           "Usage: /attr set <gid> <sid> <value> [@uid]";
+}
+
+/// <summary>
+///     path: Game.Command.Dlc
+/// </summary>
+public class DlcTextEN
+{
+    public string Desc => "Serve any DLC era at runtime (activity replay)";
+
+    public string Usage => "Usage: /dlc <era id> [-save]\n" +
+                           "Usage: /dlc off\n" +
+                           "Usage: /dlc status\n" +
+                           "-save also writes the choice into Config.json so it survives a restart";
+}
+
+/// <summary>
+///     path: Game.Command.Lua
+/// </summary>
+public class LuaTextEN
+{
+    public string Desc => "Run Lua inside the connected client";
+
+    public string Usage => "Usage: /lua <lua code> [@uid]";
+}
+
+/// <summary>
+///     path: Game.Command.Money
+/// </summary>
+public class MoneyTextEN
+{
+    public string Desc => "Read, set or hand out in-game currencies";
+
+    public string Usage => "Usage: /money list [@uid]\n" +
+                           "Usage: /money get <id|name> [@uid]\n" +
+                           "Usage: /money set <id|name> <value> [@uid]\n" +
+                           "Usage: /money add <id|name> <value> [@uid]\n" +
+                           "Usage: /money spend <id|name> <value> [-a] [@uid]\n" +
+                           "Usage: /money seed [@uid]\n" +
+                           "Usage: /money reset [@uid]\n" +
+                           "-a applies to every currency";
+}
+
+/// <summary>
+///     path: Game.Command.Quest
+/// </summary>
+public class QuestTextEN
+{
+    public string Desc => "Complete all quest levels at once (for testing)";
+
+    public string Usage => "Usage: /quest complete_all <1|0|on|off>";
+}
+
+/// <summary>
+///     path: Game.Command.Item
+/// </summary>
+public class ItemTextEN
+{
+    public string Desc => "Hand out a specific item (supplies template: materials, consumables)";
+
+    public string Usage => "Usage: /item <detail> [-p<particular>] [-l<level>] [-g<genre>] [-c<count>] [@uid]\n" +
+                           "Defaults: genre 5, particular 1, level 1, count 1";
+
+    public string NotFound => "Item template {0} not found!";
+    public string Added => "Added {0} item(s) (template {1}) to player!";
 }
 
 #endregion
@@ -292,11 +373,13 @@ public class GiveAllTextEN
                           "Note: -1 means all";
     public string Usage => "Usage: /giveall weapon <detail/-1> -p<particular> -l<level>\n" +
                            "Usage: /giveall weaponskin <detail/-1> -p<particular>\n" +
-                           "Usage: /giveall card <detail/-1> -p<particular> -l<level>" +
-                           "Usage: /giveall profile <detail/-1> -g<genre> -p<particular> -l<level>" +
-                           "Usage: /giveall skinpart <detail/-1> -g<genre> -p<particular> -l<level>" +
-                           "Usage: /giveall weaponpart <detail/-1> -g<genre> -p<particular> -l<level>" +
+                           "Usage: /giveall card <detail/-1> -p<particular> -l<level>\n" +
+                           "Usage: /giveall profile <detail/-1> -g<genre> -p<particular> -l<level>\n" +
+                           "Usage: /giveall skinpart <detail/-1> -g<genre> -p<particular> -l<level>\n" +
+                           "Usage: /giveall weaponpart <detail/-1> -g<genre> -p<particular> -l<level>\n" +
                            "Usage: /giveall call <detail/-1> -g<genre> -p<particular> -l<level>\n" +
+                           "Usage: /giveall skin <detail/-1> -g<genre> -p<particular> -l<level>\n" +
+                           "Usage: /giveall furniture <detail/-1> -g<genre> -p<particular> -l<level>\n" +
                            "Usage: /giveall piece <detail/-1> -p<particular> -c<count>\n" +
                            "Usage: /giveall girl <detail/-1> -p<particular>";
     public string NotFound => "{0} not found!";
@@ -328,8 +411,8 @@ public class GameCommandTextEN
 
 public class GameCommandCnTextEN
 {
-    public string Desc => "Launch the specific-channel client with the hosts records managed";
-    public string Usage => "Usage: /game-cn [extra game args]";
+    public string Desc => "Launch the specific-channel client by rewriting hosts or injecting the CN patch";
+    public string Usage => "Usage: /game-cn [-hosts|-dll] [extra game args]";
     public string Started => "Game launched. PID: {0}";
     public string Failed => "Failed to launch game: {0}";
     public string HostsUpdated => "Updated the hosts file: {0}";
@@ -337,6 +420,10 @@ public class GameCommandCnTextEN
     public string HostsFailed => "Failed to update the hosts file: {0}";
     public string NeedAdmin => "Writing the hosts file needs administrator rights. Restart the server elevated, or add this block to {0} by hand:\n{1}";
     public string Unsupported => "Managing the hosts file is not supported on this system.";
+    public string DllMode => "DLL mode: injecting the CN patch instead of rewriting hosts.";
+    public string DllStarted => "Game launched (CN patch injected). PID: {0}";
+    public string DllFailed => "Failed to launch the game with the patch DLL: {0}";
+    public string DllMissing => "The CN patch DLL could not be injected: {0}";
 }
 
 public class GameCommandHostsCleanTextEN
@@ -348,6 +435,10 @@ public class GameCommandHostsCleanTextEN
     public string NeedAdmin => "Cleaning the hosts file needs administrator rights. Restart the server elevated and try again: {0}";
     public string Failed => "Failed to clean the hosts file: {0}";
     public string Unsupported => "Managing the hosts file is not supported on this system.";
+    public string DllMode => "DLL mode: injecting the CN patch instead of rewriting hosts.";
+    public string DllStarted => "Game launched (CN patch injected). PID: {0}";
+    public string DllFailed => "Failed to launch the game with the patch DLL: {0}";
+    public string DllMissing => "The CN patch DLL could not be injected: {0}";
 }
 
 #endregion

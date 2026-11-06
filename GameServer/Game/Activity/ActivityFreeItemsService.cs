@@ -3,6 +3,7 @@ using MikuSB.Data.Excel;
 using MikuSB.Database;
 using MikuSB.GameServer.Game.Dlc;
 using MikuSB.GameServer.Game.Player;
+using MikuSB.GameServer.Server.Packet.Send.Misc;
 using MikuSB.Proto;
 using MikuSB.Util;
 using Newtonsoft.Json.Linq;
@@ -82,6 +83,95 @@ public static class ActivityFreeItemsService
     }
 
     /// <summary>
+    /// 切时代时把「当期赠送角色」直接发到号上。每个 DLC 期都带一条 Class=free_items 的特别邀请活动
+    /// （DLC32 -&gt; 356 = 瑟瑞斯·悠游, DLC35 -&gt; 557 = 茉莉安·霄鹰），它的 CustomData 就是
+    /// [[卡片],[后勤/货币]...]：卡片是 [1, detail, particular, level, count]，其余是同批赠送品。
+    ///
+    /// 这里复用玩家自己点「领取」时走的 ClaimAsync，所以后勤、货币、卡片的发放路径和客户端
+    /// 领取完全一致，唯一的区别是时机：切时代即发、并且把 (50, id*10+3) 置 1，于是特别邀请的
+    /// 打脸图不会再弹（奖励已经在包里），切走再切回也不会重复发（同一活动只发一次）。
+    ///
+    /// 只认「本期自己的」那条：开始时间必须落在本期 era 的 EnterStartTime 之后，否则 283 那种
+    /// 2099 年才结束的常驻自选活动会在任何一期里被选中。
+    /// </summary>
+    public static async ValueTask<int> GrantEraGiftAsync(PlayerInstance player, NtfSyncPlayer? sync)
+    {
+        if (!DlcRuntimeOverrides.PinActive)
+            return 0;
+
+        var pinned = DlcRuntimeOverrides.GetPinnedActivity();
+        var eraStart = DlcRuntimeOverrides.ParseConfigTime(pinned?.EnterStartTime);
+        if (pinned is null || eraStart is null)
+            return 0;
+
+        // Bound the search by BOTH ends of the era: without the upper bound "latest start after the era
+        // began" picked the next era's giveaway (pinning 32 handed out 557, the DLC35 gift, because its
+        // 2026-02-11 start is also later than 32's floor), and since that row had already been received
+        // the call returned silently - the 2026-11-05 "切期赠送角色不生效".
+        var eraEnd = DlcRuntimeOverrides.ParseConfigTime(pinned.CloseEndTime)
+                     ?? DlcRuntimeOverrides.ParseConfigTime(pinned.EndTime);
+
+        ActivityExcel? gift = null;
+        var giftStart = DateTime.MinValue;
+
+        foreach (var row in GameData.ActivityData.Values)
+        {
+            if (!IsFreeItems(row))
+                continue;
+
+            var start = DlcRuntimeOverrides.ParseConfigTime(row.StartTime);
+            if (start is null || start.Value < eraStart.Value)
+                continue;
+
+            // A giveaway that only started after the era closed belongs to a later version.
+            if (eraEnd is not null && start.Value > eraEnd.Value)
+                continue;
+
+            if (DlcRuntimeOverrides.IsHistoricalWindow(row.EndTime))
+                continue;
+
+            if (gift is null || start.Value > giftStart)
+            {
+                gift = row;
+                giftStart = start.Value;
+            }
+        }
+
+        if (gift is null)
+        {
+            Log.Info($"No giveaway activity starts inside era {pinned.Id}; nothing to grant.");
+            return 0;
+        }
+
+        if (player.Attributes.GetValue(GroupId, ReceiveSid(gift.Id)) != 0)
+        {
+            Log.Info($"Era {pinned.Id} giveaway {gift.Id} ({gift.StartTime}) was already received by " +
+                     $"uid={player.Uid}; nothing to grant.");
+            return 0;
+        }
+
+        var before = player.CharacterManager.CharacterData.Characters.Select(c => c.TemplateId).ToHashSet();
+
+        var granted = await ClaimAsync(player, gift, sync ?? new NtfSyncPlayer());
+        Log.Info(
+            $"Era {pinned.Id} giveaway {gift.Id} granted to uid={player.Uid}: {granted.Count} reward row(s).");
+
+        // NtfSyncAttr alone does not put a brand-new character on the client's roster - the request
+        // driven claim gets away with it because Activity_UpdateActiveWidget re-asks for the player,
+        // but a switch has nobody asking. Push the added cards the same way GM /girl does.
+        var added = player.CharacterManager.CharacterData.Characters
+            .Where(c => !before.Contains(c.TemplateId))
+            .ToList();
+        if (added.Count > 0)
+        {
+            Log.Info($"Era {pinned.Id} giveaway {gift.Id} pushed {added.Count} new character(s) to uid={player.Uid}.");
+            await player.SendPacket(new PacketNtfCallScript(added));
+        }
+
+        return granted.Count;
+    }
+
+    /// <summary>
     /// Grants the row's CustomData once and flips the receive flag the client gates on. Called with the
     /// login sync object so the flag reaches the client in the same packet as the claim answer - without
     /// it the client's cached (50, nId*10 + 3) stays 0 and the splash re-opens immediately.
@@ -91,14 +181,16 @@ public static class ActivityFreeItemsService
         ActivityExcel row,
         NtfSyncPlayer sync)
     {
-        // Era gate (mirrors Activity_Refresh): a giveaway whose window ended before the pinned DLC
-        // began belongs to an earlier version and is not claimable at all, exactly like on the live
-        // server. Answering with no reward is what the client's CloseSelf expects for a dead row.
-        if (DlcRuntimeOverrides.IsHistoricalWindow(row.EndTime))
+        // Era gate: only a giveaway that actually ran inside the served era is claimable. The old check
+        // only rejected rows that ENDED before the era began, so every later version's giveaway (and
+        // every undated permanent row) stayed claimable - the client then let the player collect the whole
+        // history in one visit. Answering without a reward is what CloseSelf expects for a dead row.
+        if (!DlcRuntimeOverrides.IsInsideServedEra(row.StartTime, row.EndTime))
         {
             Log.Info(
                 $"Refusing free items activity {row.Id} for uid={player.Uid}: window {row.StartTime}..{row.EndTime} " +
-                $"ended before the pinned DLC era (floor={DlcRuntimeOverrides.ActivationFloor()}).");
+                $"is outside the pinned DLC era (floor={DlcRuntimeOverrides.ActivationFloor()}, " +
+                $"stop={DlcRuntimeOverrides.ActivationEraEnd()}).");
             return [];
         }
 

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -9,6 +9,7 @@
     <RootNamespace>MikuSB.MikuSB</RootNamespace>
     <AssemblyName>MikuSB</AssemblyName>
     <ApplicationIcon>Source\Snowbreak.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
 	<SatelliteResourceLanguages>false</SatelliteResourceLanguages>
   </PropertyGroup>
 

@@ -1,23 +1,33 @@
-﻿using MikuSB.Data;
+using MikuSB.Data;
 using MikuSB.Database;
 using MikuSB.Database.Character;
 using MikuSB.Enums.Item;
 using MikuSB.GameServer.Game.Player;
 using MikuSB.GameServer.Server.Packet.Send.Misc;
 using MikuSB.Proto;
+using MikuSB.Util;
 using MikuSB.Util.Extensions;
 
 namespace MikuSB.GameServer.Game.Character;
 
 public class CharacterManager(PlayerInstance player) : BasePlayerManager(player)
 {
+    private static readonly Logger Log = new("Character");
+
     public CharacterData CharacterData { get; } = DatabaseHelper.GetInstanceOrCreateNew<CharacterData>(player.Uid);
     public async ValueTask<CharacterInfo?> AddCharacter(ItemTypeEnum genre, uint detail, uint particular, uint level = 1, uint star = 1, bool sendPacket = true)
     {
         var characterId = GameResourceTemplateId.FromGdpl((uint)genre,detail,particular,1);
         if (CharacterData.Characters.Any(a => a.TemplateId == characterId)) return null;
         var CharacterExcel = GameData.CardData.Values.FirstOrDefault(x => x.Genre == (int)genre && x.Detail == detail && x.Particular == particular);
-        if (CharacterExcel == null) return null;
+        if (CharacterExcel == null)
+        {
+            // A silent null here made the era giveaway look granted while no card reached the roster:
+            // the reward rows report success either way, so name the miss explicitly.
+            Log.Warn($"No card template for genre={genre} detail={detail} particular={particular} " +
+                     $"(card table has {GameData.CardData.Count} row(s)); uid={Player.Uid} gets no card.");
+            return null;
+        }
 
         var character = new CharacterInfo
         {

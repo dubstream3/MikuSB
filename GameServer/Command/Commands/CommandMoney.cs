@@ -9,7 +9,7 @@ namespace MikuSB.GameServer.Command.Commands;
 // group 1 (sid = moneyType * 2 + 1), tid 4 being the Vigor player field instead. Tokens are accepted
 // as the numeric id or as a name from cash/cash.json: /money get silver, /money add 3 100000 @4,
 // /money set gold 5000 @4, /money list, /money spend -a 1000 @4.
-[CommandInfo("money", "Read, set or hand out in-game currencies.", "Usage: /money <get|set|add|spend> <id|name> [value] [-a] [@uid] | /money list [@uid] | /money seed [@uid] | /money reset [@uid]", ["cash", "m"], [PermEnum.Admin, PermEnum.Support])]
+[CommandInfo("money", "Game.Command.Money.Desc", "Game.Command.Money.Usage", ["cash", "m"], [PermEnum.Admin, PermEnum.Support])]
 public class CommandMoney : ICommands
 {
     /// <summary>Cash.GetMoneyCount can address money ids 1..200; 4 is the Vigor player field.</summary>

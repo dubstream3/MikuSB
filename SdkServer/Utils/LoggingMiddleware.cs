@@ -142,7 +142,11 @@ public class RequestLoggingMiddleware(RequestDelegate next)
             buffer.Position = 0;
             await buffer.CopyToAsync(originalBody);
         }
-        else if (!ShouldSkip(path) && ConfigManager.Config.HttpServer.EnableLog)
+        // Failures are logged even with verbose request logging off: a 404 on an SDK endpoint
+        // is the difference between "the client never reached us" and "it reached us and asked
+        // for something we do not serve" — the first question whenever a CN login still ends up
+        // on the official screen.
+        else if (!ShouldSkip(path) && (ConfigManager.Config.HttpServer.EnableLog || statusCode >= 400))
         {
             if (statusCode == 200)
             {

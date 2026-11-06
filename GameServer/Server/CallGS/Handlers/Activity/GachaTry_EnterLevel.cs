@@ -23,12 +23,17 @@ namespace MikuSB.GameServer.Server.CallGS.Handlers.Activity;
 //
 // Request:  { nActId, nGirlIdx, nLevelID, tbLog }
 // Response: { nSeed }
+//
+// Nothing is granted here. The trial roster belongs to the level itself: try_girl.Girl carries the
+// character and its level ([genre, detail, particular, level]) and the client builds the formation from
+// that row, so the card never has to be owned — and this handler only runs after the client has already
+// sent the entry, so a grant at this point could not have unlocked anything anyway.
 [CallGSApi("GachaTry_EnterLevel")]
 public class GachaTry_EnterLevel : CallGSHandler<GachaTryEnterLevelParam>
 {
     private static readonly Logger Log = new(nameof(GachaTry_EnterLevel));
 
-    protected override Task<CallGSResult> HandleAsync(CallGSContext context, GachaTryEnterLevelParam request)
+    protected override async Task<CallGSResult> HandleAsync(CallGSContext context, GachaTryEnterLevelParam request)
     {
         var player = context.Connection.Player;
         var uid = player?.Uid ?? 0;
@@ -40,7 +45,7 @@ public class GachaTry_EnterLevel : CallGSHandler<GachaTryEnterLevelParam>
         {
             Log.Warn($"Unknown gacha try entry by uid={uid} " +
                      $"(act={request.ActId}, girl={request.GirlIdx}, level={request.LevelId}).");
-            return Task.FromResult(CallGSResult.Error("error.BadParam"));
+            return CallGSResult.Error("error.BadParam");
         }
 
         // The client only stores the seed and echoes it back inside the settlement payload, so any
@@ -50,7 +55,7 @@ public class GachaTry_EnterLevel : CallGSHandler<GachaTryEnterLevelParam>
         Log.Info($"Gacha try act {actId} girl {request.GirlIdx} level {request.LevelId} " +
                  $"entered by uid={uid} (seed={seed}).");
 
-        return Task.FromResult(CallGSResult.Ok(new JsonObject { ["nSeed"] = seed }));
+        return CallGSResult.Ok(new JsonObject { ["nSeed"] = seed });
     }
 }
 

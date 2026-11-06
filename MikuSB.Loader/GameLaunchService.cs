@@ -8,14 +8,12 @@ namespace MikuSB.Loader;
 
 public static class GameLaunchService
 {
+    internal static readonly Logger Logger = new("GameLaunch");
+
     public static int Launch(params string[] extraGameArguments)
     {
         ConfigManager.LoadConfig();
-        if (ConfigManager.Config.Loader.EnableInGameConsole
-            && ConfigManager.Config.Loader.AutoUpdateInGameConsole)
-        {
-            InGameConsoleDownloadService.EnsurePresent();
-        }
+        EnsureInGameConsoleOptional();
         PatchDownloadService.EnsurePatchPresent();
         var options = LaunchOptions.FromConfig(extraGameArguments);
         return Launch(options, true);
@@ -28,18 +26,76 @@ public static class GameLaunchService
     public static int LaunchWithoutPatch(params string[] extraGameArguments)
     {
         ConfigManager.LoadConfig();
-        if (ConfigManager.Config.Loader.EnableInGameConsole
-            && ConfigManager.Config.Loader.AutoUpdateInGameConsole)
-        {
-            InGameConsoleDownloadService.EnsurePresent();
-        }
+        EnsureInGameConsoleOptional();
 
         var options = LaunchOptions.FromConfig(extraGameArguments);
         return Launch(options, false);
     }
 
+    /// <summary>
+    ///     The in-game console is an optional extra. GitHub answers 403 to every caller that already used
+    ///     up the 60/h unauthenticated quota, and 8 of the 10 mirrors refuse the release API, so when none
+    ///     of them answers the game still has to start - the downloader's exception used to abort the whole
+    ///     launch and read as "the client is broken".
+    /// </summary>
+    private static void EnsureInGameConsoleOptional()
+    {
+        if (!ConfigManager.Config.Loader.EnableInGameConsole
+            || !ConfigManager.Config.Loader.AutoUpdateInGameConsole)
+        {
+            return;
+        }
+
+        try
+        {
+            InGameConsoleDownloadService.EnsurePresent();
+        }
+        catch (Exception exception)
+        {
+            Logger.Warn($"In-game console unavailable this launch: {exception.Message}");
+        }
+    }
+
     public static int Launch(LaunchOptions options)
     {
+        return Launch(options, true);
+    }
+
+    /// <summary>
+    ///     Starts the client with the specific-channel (CN) build of the patch DLL injected, instead of pointing
+    ///     the SDK domains at this machine through hosts. Only that DLL is injected: the configured patch list is
+    ///     replaced, because the global and the CN build hook the same functions with different domain tables and
+    ///     loading both would leave whichever ran last deciding where the client connects.
+    /// </summary>
+    public static int LaunchCnWithPatch(params string[] extraGameArguments)
+    {
+        ConfigManager.LoadConfig();
+        var config = ConfigManager.Config;
+        if (config.Loader.EnableInGameConsole && config.Loader.AutoUpdateInGameConsole)
+        {
+            InGameConsoleDownloadService.EnsurePresent();
+        }
+
+        var cnPatchPaths = ResolvePatchPaths([config.Loader.CnPatchPath]);
+        var expected = Path.Combine(AppContext.BaseDirectory, config.Loader.CnPatchPath);
+        if (cnPatchPaths.Count == 0 || !File.Exists(cnPatchPaths[0]))
+        {
+            // This DLL is not something the updater fetches: it is built from the local patch tree, so the only
+            // fix is to copy it in, and the message has to say where.
+            throw new FileNotFoundException(
+                $"CN patch DLL is missing: put the CN-channel build at {expected}. / " +
+                $"国服补丁 DLL 缺失：请把 CN 版 MikuSB-Patch.dll 复制到 {expected}。",
+                expected);
+        }
+
+        var patchPaths = new List<string>(cnPatchPaths);
+        if (config.Loader.EnableInGameConsole)
+        {
+            patchPaths.AddRange(ResolvePatchPaths([config.Loader.InGameConsoleLoaderPath])
+                .Where(File.Exists));
+        }
+
+        var options = LaunchOptions.FromConfig(extraGameArguments, patchPaths);
         return Launch(options, true);
     }
 
@@ -99,8 +155,23 @@ public static class GameLaunchService
         }
     }
 
-    private static void InjectDll(IntPtr processHandle, string dllPath)
+    /// <summary>
+    /// Resolves patch paths written the way the config writes them (relative to the server folder). Lives here
+    /// as well as on <see cref="LaunchOptions" /> because <see cref="LaunchCnWithPatch" /> has to check the CN
+    /// DLL exists before it hands the list over.
+    /// </summary>
+    private static List<string> ResolvePatchPaths(IEnumerable<string>? values)
     {
+        var baseDirectory = AppContext.BaseDirectory;
+        return (values ?? [])
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(value => Path.IsPathRooted(value)
+                ? value
+                : Path.GetFullPath(Path.Combine(baseDirectory, value)))
+            .ToList();
+    }
+
+    private static void InjectDll(IntPtr processHandle, string dllPath)    {
         var dllBytes = Encoding.Unicode.GetBytes(dllPath + '\0');
         var remoteBuffer = VirtualAllocEx(
             processHandle,
@@ -321,22 +392,55 @@ public sealed class LaunchOptions
     public required IReadOnlyList<string> GameArguments { get; init; }
     public required IReadOnlyDictionary<string, string> EnvironmentVariables { get; init; }
 
-    public static LaunchOptions FromConfig(IEnumerable<string>? extraGameArguments = null)
+    /// <param name="extraGameArguments">Arguments appended to the configured ones (command line, panel button).</param>
+    /// <param name="patchPathsOverride">
+    ///     When set, these paths are injected instead of <c>Loader.PatchPaths</c>. The CN DLL mode uses it so the
+    ///     global patch list (and the in-game console loader that normally rides along with it) is not also loaded.
+    /// </param>
+    public static LaunchOptions FromConfig(IEnumerable<string>? extraGameArguments = null,
+        IReadOnlyList<string>? patchPathsOverride = null)
     {
         var config = ConfigManager.Config;
         var serverBaseDirectory = AppContext.BaseDirectory;
         var gamePath = ResolvePath(config.Loader.GamePath, AppContext.BaseDirectory);
-        var configuredPatchPaths = (config.Loader.PatchPaths ?? []).ToList();
-        if (config.Loader.EnableInGameConsole
-            && !configuredPatchPaths.Contains(config.Loader.InGameConsoleLoaderPath, StringComparer.OrdinalIgnoreCase))
+        List<string> patchPaths;
+        if (patchPathsOverride is { Count: > 0 })
         {
-            configuredPatchPaths.Add(config.Loader.InGameConsoleLoaderPath);
+            patchPaths = ResolvePatchPaths(patchPathsOverride, serverBaseDirectory);
+        }
+        else
+        {
+            var configuredPatchPaths = (config.Loader.PatchPaths ?? []).ToList();
+            if (config.Loader.EnableInGameConsole
+                && !configuredPatchPaths.Contains(config.Loader.InGameConsoleLoaderPath, StringComparer.OrdinalIgnoreCase))
+            {
+                // Only join the injection list when the download actually produced the loader: adding a
+                // missing file here turned "the optional console could not be fetched" into
+                // "Patch DLL not found.", which reads like the patch itself is broken.
+                var consoleLoaderPath = ResolvePath(config.Loader.InGameConsoleLoaderPath, serverBaseDirectory);
+                if (File.Exists(consoleLoaderPath))
+                {
+                    configuredPatchPaths.Add(config.Loader.InGameConsoleLoaderPath);
+                }
+                else
+                {
+                    GameLaunchService.Logger.Warn(
+                        $"In-game console loader is not installed ({consoleLoaderPath}); launching without it.");
+                }
+            }
+
+            patchPaths = ResolvePatchPaths(configuredPatchPaths, serverBaseDirectory);
         }
 
-        var patchPaths = ResolvePatchPaths(configuredPatchPaths, serverBaseDirectory);
         var gameArgs = new List<string>(config.Loader.Arguments ?? []);
         if (extraGameArguments is not null)
             gameArgs.AddRange(extraGameArguments.Where(x => !string.IsNullOrWhiteSpace(x)));
+
+        // The setup wizard stores the region and the matching launch arguments together, so a config that went
+        // through it is already consistent. Ones that did not - a config copied between a CN and a global
+        // install, a hand-edited argument list, an old default - are corrected here: the region is the
+        // operator's answer to "which client is this", so it wins over whatever channel flag is lying around.
+        gameArgs = NormalizeChannelArguments(gameArgs, config.Loader.Region);
 
         // The client has to be told which channel it is logging into, and that is exactly the answer the setup
         // wizard collects. A config that never went through the wizard therefore has no honest way to launch:
@@ -352,7 +456,12 @@ public sealed class LaunchOptions
         PersistResolvedArgumentsIfChanged(config, gameArgs);
 
         var env = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        if (config.Loader.SetAllProxy && config.Proxy.Enabled)
+        // The CN client is redirected at the DNS layer: hosts entries, or the injected DLL rewriting
+        // getaddrinfo/connect. Handing it ALL_PROXY would undo both. socks5h resolves the name inside the
+        // proxy and forwards the request to the real server, so every SDK call would leave this machine and
+        // come back with the official answer (the login screen then shows the channel QR code again).
+        var cnRegion = string.Equals(config.Loader.Region, "cn", StringComparison.OrdinalIgnoreCase);
+        if (!cnRegion && config.Loader.SetAllProxy && config.Proxy.Enabled)
             env["ALL_PROXY"] = $"socks5h://127.0.0.1:{config.Proxy.Port}";
 
         if (string.IsNullOrWhiteSpace(gamePath))
@@ -380,6 +489,82 @@ public sealed class LaunchOptions
             GameArguments = gameArgs,
             EnvironmentVariables = env
         };
+    }
+
+    /// <summary>
+    ///     Collapses the channel arguments into the single one <c>Loader.Region</c> implies, leaving every
+    ///     other argument alone. Handing the client two contradicting flags (one from the config, one passed
+    ///     on the command line) is worse than either answer, so they are merged rather than appended. With no
+    ///     region chosen the operator's own flag stays - that state has to keep failing loudly further down
+    ///     instead of quietly picking a channel for the player.
+    /// </summary>
+    private static List<string> NormalizeChannelArguments(List<string> gameArgs, string? region)
+    {
+        var target = region?.Trim().ToLowerInvariant() switch
+        {
+            "cn" => "-ChannelID=jinshan",
+            "global" => "-channelid=seasun",
+            _ => null
+        };
+
+        var channelIndices = new List<int>();
+        for (var i = 0; i < gameArgs.Count; i++)
+        {
+            if (gameArgs[i].Contains("channelid", StringComparison.OrdinalIgnoreCase))
+            {
+                channelIndices.Add(i);
+            }
+        }
+
+        if (target is null)
+        {
+            if (channelIndices.Count <= 1)
+            {
+                return gameArgs;
+            }
+
+            target = gameArgs[channelIndices[^1]];
+            GameLaunchService.Logger.Warn(
+                $"Loader.Arguments has {channelIndices.Count} channel arguments and no Loader.Region; keeping the last one ({target}).");
+        }
+        else if (channelIndices.Count == 1
+                 && string.Equals(gameArgs[channelIndices[0]], target, StringComparison.OrdinalIgnoreCase))
+        {
+            return gameArgs;
+        }
+        else if (channelIndices.Count > 0)
+        {
+            GameLaunchService.Logger.Warn(
+                $"Loader.Region is {region}; replacing {string.Join(", ", channelIndices.Select(i => gameArgs[i]))} with {target}.");
+        }
+        else
+        {
+            GameLaunchService.Logger.Info($"Loader.Region is {region}; adding the channel argument {target}.");
+        }
+
+        var corrected = new List<string>(gameArgs.Count);
+        var placed = false;
+        for (var i = 0; i < gameArgs.Count; i++)
+        {
+            if (!channelIndices.Contains(i))
+            {
+                corrected.Add(gameArgs[i]);
+                continue;
+            }
+
+            if (!placed)
+            {
+                corrected.Add(target);
+                placed = true;
+            }
+        }
+
+        if (!placed)
+        {
+            corrected.Add(target);
+        }
+
+        return corrected;
     }
 
     private static List<string> EnsureUserDirArgument(List<string> gameArgs, string baseDirectory)

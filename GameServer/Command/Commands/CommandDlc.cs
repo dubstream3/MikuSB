@@ -1,4 +1,4 @@
-﻿using MikuSB.Configuration;
+using MikuSB.Configuration;
 using MikuSB.Data;
 using MikuSB.Enums.Player;
 using MikuSB.GameServer.Game.Activity;
@@ -27,7 +27,7 @@ namespace MikuSB.GameServer.Command.Commands;
 ///   /dlc off              serve no era (client falls back to its own time windows), until restart
 ///   /dlc off -save        ... and persist that too
 /// </summary>
-[CommandInfo("dlc", "Serve any DLC era at runtime.", "Usage: /dlc [<id>|off|status] [-save]", ["era"], [PermEnum.Admin, PermEnum.Support])]
+[CommandInfo("dlc", "Game.Command.Dlc.Desc", "Game.Command.Dlc.Usage", ["era"], [PermEnum.Admin, PermEnum.Support])]
 public class CommandDlc : ICommands
 {
     private static readonly Logger Log = new(nameof(CommandDlc));
@@ -109,10 +109,21 @@ public class CommandDlc : ICommands
 
             var sync = new NtfSyncPlayer();
             HandlerReqLogin.ApplyPinnedEra(player, sync);
-            // The era's try girls are owned cards on this server, so a switch has to hand them out.
-            await GachaTryService.GrantEraCharactersAsync(player);
+            // No sweep of the era's try roster: handing that out here is what made entering and leaving an
+            // activity gift every character. The trial level carries its own fixed character
+            // (try_girl.Girl = [genre, detail, particular, level]) and the client builds the formation
+            // from that row, so no card has to be owned for it.
             DlcMissionActiveService.RollDailyState(player, sync);
-            if (sync.Custom.Count > 0)
+            // 当期赠送角色: each era ships exactly one Class=free_items giveaway (DLC32 瑟瑞斯·悠游,
+            // DLC35 茉莉安·霄鹰). Grant it on the switch through the same claim path the player's own
+            // 领取 button uses, so the card, the support cards and the currency all land, and the
+            // receive flag stops the invite splash from popping again. Cards granted before the shift
+            // away from the era-wide roster are never touched.
+            await ActivityFreeItemsService.GrantEraGiftAsync(player, sync);
+            // The giveaway lands a card (sync.Items) next to the currency rows (sync.Custom): gating the
+            // push on Custom alone left the newly granted character off the client's roster until the
+            // next relogin, which reads as "the era gave me nothing".
+            if (sync.Custom.Count > 0 || sync.Items.Count > 0)
                 await player.SendPacket(CmdIds.NtfSyncAttr, sync);
 
             await HandlerReqLogin.PushDlcEraSwitch(connection);

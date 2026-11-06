@@ -137,6 +137,87 @@ public class CommandTextCHS
     public GameCommandTextCHS Game { get; } = new();
     public GameCommandCnTextCHS GameCn { get; } = new();
     public GameCommandHostsCleanTextCHS HostsClean { get; } = new();
+    public AttrTextCHS Attr { get; } = new();
+    public DlcTextCHS Dlc { get; } = new();
+    public LuaTextCHS Lua { get; } = new();
+    public MoneyTextCHS Money { get; } = new();
+    public QuestTextCHS Quest { get; } = new();
+    public ItemTextCHS Item { get; } = new();
+}
+
+/// <summary>
+///     path: Game.Command.Attr
+/// </summary>
+public class AttrTextCHS
+{
+    public string Desc => "读写玩家的属性值（等级、经验、技能、货币等）";
+
+    public string Usage => "用法：/attr get <gid> <sid> [@uid]\n" +
+                           "用法：/attr set <gid> <sid> <value> [@uid]";
+}
+
+/// <summary>
+///     path: Game.Command.Dlc
+/// </summary>
+public class DlcTextCHS
+{
+    public string Desc => "运行期切换任意 DLC 时代（活动复刻）";
+
+    public string Usage => "用法：/dlc <期号> [-save]\n" +
+                           "用法：/dlc off\n" +
+                           "用法：/dlc status\n" +
+                           "-save 表示同时写进 Config.json，重启后仍然生效";
+}
+
+/// <summary>
+///     path: Game.Command.Lua
+/// </summary>
+public class LuaTextCHS
+{
+    public string Desc => "在已连接的客户端里执行 Lua 代码";
+
+    public string Usage => "用法：/lua <Lua 代码> [@uid]";
+}
+
+/// <summary>
+///     path: Game.Command.Money
+/// </summary>
+public class MoneyTextCHS
+{
+    public string Desc => "查询、设置或发放游戏内货币";
+
+    public string Usage => "用法：/money list [@uid]\n" +
+                           "用法：/money get <id|名称> [@uid]\n" +
+                           "用法：/money set <id|名称> <数量> [@uid]\n" +
+                           "用法：/money add <id|名称> <数量> [@uid]\n" +
+                           "用法：/money spend <id|名称> <数量> [-a] [@uid]\n" +
+                           "用法：/money seed [@uid]\n" +
+                           "用法：/money reset [@uid]\n" +
+                           "-a 表示对全部货币生效";
+}
+
+/// <summary>
+///     path: Game.Command.Quest
+/// </summary>
+public class QuestTextCHS
+{
+    public string Desc => "一键完成全部任务关卡（测试用）";
+
+    public string Usage => "用法：/quest complete_all <1|0|on|off>";
+}
+
+/// <summary>
+///     path: Game.Command.Item
+/// </summary>
+public class ItemTextCHS
+{
+    public string Desc => "发放指定道具（材料、消耗品等 supplies 模板）";
+
+    public string Usage => "用法：/item <detail> [-p<particular>] [-l<等级>] [-g<类型>] [-c<数量>] [@uid]\n" +
+                           "默认：类型 5、particular 1、等级 1、数量 1";
+
+    public string NotFound => "未找到道具模板 {0}！";
+    public string Added => "已向玩家添加 {0} 个道具（模板 {1}）！";
 }
 
 #endregion
@@ -320,14 +401,16 @@ public class GiveAllTextCHS
 {
     public string Desc => "给予玩家所有物品\n" +
                           "注意：-1 表示全部";
-    public string Usage => "用法：/giveall weapon <detail/-1> -p<特定> -l<等級>\n" +
+    public string Usage => "用法：/giveall weapon <detail/-1> -p<特定> -l<等级>\n" +
                            "用法：/giveall weaponskin <detail/-1> -p<特定>\n" +
-                           "用法：/giveall card <detail/-1> -p<特定> -l<等級>" +
-                           "用法：/giveall profile <detail/-1> -g<类型> -p<特定> -l<等级>" +
-                           "用法：/giveall skinpart <detail/-1> -g<類型> -p<特定> -l<等級>" +
-                           "用法：/giveall weaponpart <detail/-1> -g<類型> -p<特定> -l<等級>" +
-                           "用法：/giveall call <detail/-1> -g<類型> -p<特定> -l<等級>\n" +
-                           "用法：/giveall piece <detail/-1> -p<特定> -c<數量>\n" +
+                           "用法：/giveall card <detail/-1> -p<特定> -l<等级>\n" +
+                           "用法：/giveall profile <detail/-1> -g<类型> -p<特定> -l<等级>\n" +
+                           "用法：/giveall skinpart <detail/-1> -g<类型> -p<特定> -l<等级>\n" +
+                           "用法：/giveall weaponpart <detail/-1> -g<类型> -p<特定> -l<等级>\n" +
+                           "用法：/giveall call <detail/-1> -g<类型> -p<特定> -l<等级>\n" +
+                           "用法：/giveall skin <detail/-1> -g<类型> -p<特定> -l<等级>\n" +
+                           "用法：/giveall furniture <detail/-1> -g<类型> -p<特定> -l<等级>\n" +
+                           "用法：/giveall piece <detail/-1> -p<特定> -c<数量>\n" +
                            "用法：/giveall girl <detail/-1> -p<特定>";
     public string NotFound => "未找到 {0}！";
     public string GiveAllItems => "已向玩家添加 {0} 个 {1}！";
@@ -358,8 +441,8 @@ public class GameCommandTextCHS
 
 public class GameCommandCnTextCHS
 {
-    public string Desc => "写入 hosts 并启动特定渠道的客户端";
-    public string Usage => "用法: /game-cn [额外游戏参数]";
+    public string Desc => "写入 hosts 或注入国服补丁 DLL，然后启动特定渠道的客户端";
+    public string Usage => "用法: /game-cn [-hosts|-dll] [额外游戏参数]";
     public string Started => "游戏已启动。PID: {0}";
     public string Failed => "游戏启动失败: {0}";
     public string HostsUpdated => "已更新 hosts 文件: {0}";
@@ -367,6 +450,10 @@ public class GameCommandCnTextCHS
     public string HostsFailed => "写入 hosts 失败: {0}";
     public string NeedAdmin => "写入 hosts 需要管理员权限。请以管理员身份重新启动服务器, 或手动把下面这段加入 {0}:\n{1}";
     public string Unsupported => "当前系统不支持自动维护 hosts。";
+    public string DllMode => "DLL 注入模式：不改 hosts，直接注入国服补丁。";
+    public string DllStarted => "游戏已启动（国服 DLL 注入）。PID: {0}";
+    public string DllFailed => "游戏启动失败（DLL 注入）: {0}";
+    public string DllMissing => "国服补丁 DLL 不能注入: {0}";
 }
 
 public class GameCommandHostsCleanTextCHS
@@ -378,6 +465,10 @@ public class GameCommandHostsCleanTextCHS
     public string NeedAdmin => "清理 hosts 需要管理员权限, 请以管理员身份重新启动服务端后再试: {0}";
     public string Failed => "清理 hosts 失败: {0}";
     public string Unsupported => "当前系统不支持自动维护 hosts。";
+    public string DllMode => "DLL 注入模式：不改 hosts，直接注入国服补丁。";
+    public string DllStarted => "游戏已启动（国服 DLL 注入）。PID: {0}";
+    public string DllFailed => "游戏启动失败（DLL 注入）: {0}";
+    public string DllMissing => "国服补丁 DLL 不能注入: {0}";
 }
 
 #endregion

@@ -73,10 +73,10 @@
     "InGameConsoleLoaderPath": "Patch\\MikuSB-InGame-GUI-Console.Loader.dll",
     "Arguments": [
       "-FeatureLevelES31",
-      "-ChannelID=jinshan",
+      "-channelid=seasun",
       "-NoSplash"
     ],
     "SetAllProxy": true,
-    "ManageCnHosts": true
+    "ManageCnHosts": false
   }
 }
