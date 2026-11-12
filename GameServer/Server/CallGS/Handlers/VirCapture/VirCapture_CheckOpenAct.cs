@@ -2,6 +2,7 @@ using MikuSB.Data;
 using MikuSB.Data.Excel;
 using MikuSB.GameServer.Game.Player;
 using MikuSB.Proto;
+using MikuSB.Util;
 using System.Globalization;
 using System.Text.Json.Nodes;
 
@@ -18,8 +19,9 @@ public class VirCapture_CheckOpenAct : CallGSHandler
 
     protected override Task<CallGSResult> HandleAsync(CallGSContext context, string param)
     {
-        var now = DateTime.Now;
-        var act = ResolveCurrent(GameData.VirCaptureTimeData.Values, now);
+        var now = ServerClock.Now;
+        var act = VirCaptureEraTime.ResolveCurrent(
+            GameData.VirCaptureTimeData.Values, x => x.StartTime, x => x.EndTime);
         if (act == null)
         {
             return Task.FromResult(CallGSResult.Ok("{\"bOpen\":false}"));
@@ -31,15 +33,22 @@ public class VirCapture_CheckOpenAct : CallGSHandler
         SetAttr(player, ActIdSid, act.Id, sync);
         EnsureMinAttr(player, CurLevelSid, 1, sync);
 
+        // nAwardTime is a settle time the client only accepts when it is later than
+        // the period end, so falling back to the end time keeps the old behaviour.
+        var endTime = ParseConfigTime(act.EndTime);
+        var awardTime = ParseConfigTime(act.AwardTime) ?? endTime;
+
         var response = new JsonObject
         {
             ["bOpen"] = true,
             ["nId"] = act.Id,
             ["nStartTime"] = ToUnixSeconds(ParseConfigTime(act.StartTime)),
-            ["nEndTime"] = ToUnixSeconds(ParseConfigTime(act.EndTime))
+            ["nEndTime"] = ToUnixSeconds(endTime),
+            ["nAwardTime"] = ToUnixSeconds(awardTime)
         };
 
-        var season = ResolveCurrent(GameData.VirCaptureSeasonData.Values, now);
+        var season = VirCaptureEraTime.ResolveCurrent(
+            GameData.VirCaptureSeasonData.Values, x => x.StartTime, x => x.EndTime);
         if (season != null)
         {
             SetAttr(player, SeasonActIdSid, season.Id, sync);
@@ -55,44 +64,43 @@ public class VirCapture_CheckOpenAct : CallGSHandler
             SetAttr(player, SeasonActIdSid, 0, sync);
         }
 
-        var trial = ResolveCurrent(GameData.VirCaptureTrialTimeData.Values, now);
+        // 试炼期次以 max(EndTime, AwardTime) 作为关闭时间（VirCaptureConfig:CheckOpenTrialConfig），
+        // 并且和其它窗口一样服从所服务的 DLC 时代：pin 时代内已过期的期次仍然开放。
+        var trial = ResolveCurrentTrial();
         SetAttr(player, TrialActIdSid, trial?.Id ?? 0, sync);
+        if (trial != null)
+        {
+            response["nTrialId"] = trial.Id;
+            response["nTrialStartTime"] = ToUnixSeconds(ParseConfigTime(trial.StartTime));
+            response["nTrialEndTime"] = ToUnixSeconds(ParseConfigTime(trial.EndTime));
+            response["nTrialAwardTime"] = ToUnixSeconds(ParseConfigTime(trial.AwardTime));
+        }
 
         return Task.FromResult(CallGSResult.Ok(response.ToJsonString(), sync));
     }
 
-    private static T? ResolveCurrent<T>(IEnumerable<T> configs, DateTime now) where T : class
+    private static VirCaptureTrialTimeExcel? ResolveCurrentTrial()
     {
-        var parsed = configs
-            .Select(x => new
-            {
-                Config = x,
-                Start = ParseConfigTime(GetTimeValue(x, true)),
-                End = ParseConfigTime(GetTimeValue(x, false))
-            })
-            .Where(x => x.Start.HasValue && x.End.HasValue)
-            .OrderBy(x => x.Start)
-            .ToList();
+        VirCaptureTrialTimeExcel? best = null;
+        DateTime bestStart = DateTime.MinValue;
 
-        var current = parsed.FirstOrDefault(x => x.Start <= now && now < x.End);
-        if (current != null)
-            return current.Config;
-
-        var latestStarted = parsed.LastOrDefault(x => x.Start <= now);
-        if (latestStarted != null && latestStarted.End > latestStarted.Start)
-            return latestStarted.Config;
-
-        return null;
-    }
-
-    private static string? GetTimeValue<T>(T value, bool start) where T : class
-    {
-        return value switch
+        foreach (var row in GameData.VirCaptureTrialTimeData.Values)
         {
-            VirCaptureTimeExcel time => start ? time.StartTime : time.EndTime,
-            VirCaptureSeasonExcel season => start ? season.StartTime : season.EndTime,
-            _ => null
-        };
+            var start = ParseConfigTime(row.StartTime);
+            if (start == null || start > VirCaptureEraTime.Now)
+                continue;
+
+            if (!VirCaptureEraTime.IsOpen(row.StartTime, row.EndTime, row.AwardTime))
+                continue;
+
+            if (start.Value >= bestStart)
+            {
+                bestStart = start.Value;
+                best = row;
+            }
+        }
+
+        return best;
     }
 
     private static DateTime? ParseConfigTime(string? raw)

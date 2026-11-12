@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "source": "GameServer/Game/Dlc/DlcClientPatches.cs -> DevDiagnostics",
+  "notes": [
+    "Contract for the MIKU_CAP lines the client prints into Game.log after login.",
+    "Every tag is one fact the payload observed inside the running game; the payload is read-only",
+    "and prints each fact on its own line, so a missing line means the probe did not reach that code",
+    "path. Checked by: python tools/devlog.py cap --expect",
+    "Types: int | id_list (a,b,c) | map (k=v,...) | flag (fixed value) | bool | text.",
+    "required=false means the fact may legitimately be absent (module not loaded yet).",
+    "forbidden=true means the tag must NOT appear; 'error' is printed only when the payload's pcall",
+    "failed, which also suppresses 'done'."
+  ],
+  "tags": {
+    "gacha_ids": {
+      "type": "id_list",
+      "required": true,
+      "allow_empty": false,
+      "why": "Gacha.tbGacha keys: an empty table means the gacha config never loaded"
+    },
+    "display": {
+      "type": "map",
+      "required": true,
+      "why": "Gacha.tbDisplayGroup -> nGachaId; a display row pointing at a missing pool is a blank banner"
+    },
+    "curdlc": {
+      "type": "int",
+      "required": true,
+      "min": 0,
+      "why": "DLC_Logic.GetCurConf().nId: the era the client actually opened with"
+    },
+    "online16_level": {
+      "type": "int",
+      "required": false,
+      "nullable": true,
+      "why": "Online.GetConfig(16).ResetLevel; nil means the online config row is absent"
+    },
+    "boss5": {
+      "type": "int",
+      "required": false,
+      "why": "OnlineBoss.GetConfig(5).nId"
+    },
+    "pool_in_time": {
+      "type": "id_list",
+      "required": true,
+      "allow_empty": true,
+      "why": "pools the client currently treats as inside their window; empty is a legitimate answer"
+    },
+    "pool_floor": {
+      "type": "int",
+      "required": false,
+      "nullable": true,
+      "why": "MikuPoolFloor written by the GachaPoolWindows payload; nil before that payload runs"
+    },
+    "done": {
+      "type": "flag",
+      "required": true,
+      "value": "1",
+      "why": "end-of-block sentinel; its absence means the payload died before finishing"
+    },
+    "error": {
+      "type": "text",
+      "required": false,
+      "forbidden": true,
+      "why": "printed instead of 'done' when the payload's pcall failed"
+    }
+  }
+}

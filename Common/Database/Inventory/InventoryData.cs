@@ -35,6 +35,14 @@ public class BaseGameItemInfo
     public uint Level { get; set; }
     public uint Exp { get; set; }
 
+    /// <summary>
+    /// Affix pairs of a monster card stored as the plain item type: [key, level] per logical slot
+    /// (VirCapture.lua:112-122 - 1..3 attributes, 4..6 skills, 7..9 chips). Support cards keep their
+    /// own <see cref="GameSupportCardInfo.Affixs"/> instead, so the name is distinct to keep the JSON
+    /// of both shapes unambiguous.
+    /// </summary>
+    public List<uint> CardAffixs { get; set; } = [];
+
     public virtual Item ToProto()
     {
         var proto = new Item
@@ -44,8 +52,11 @@ public class BaseGameItemInfo
             Count = ItemCount,
             Flag = (uint)Flag
         };
-        if (Level > 0 || Exp > 0)
+        if (Level > 0 || Exp > 0 || CardAffixs.Count > 0)
+        {
             proto.Enhance = new Enhance { Level = Level, Exp = Exp };
+            proto.Enhance.Affixs.AddRange(CardAffixs);
+        }
         return proto;
     }
 }

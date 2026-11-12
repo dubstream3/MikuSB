@@ -3,14 +3,31 @@ using Newtonsoft.Json.Linq;
 
 namespace MikuSB.Data.Excel;
 
+/// <summary>
+/// `dlc/vircapture/tower.json` - 爬塔 level table (70 rows).
+///
+/// Implements <see cref="ILevelRewardConfig"/> so the shared RewardManager can resolve
+/// FirstDropID / BaseDropID / RandomDropID through ExtraData (same contract the DLC chapters use),
+/// which is what lets the tower settlement pay its first-clear and per-clear drops.
+/// </summary>
 [ResourceEntity("dlc/vircapture/tower.json")]
-public class VirCaptureTowerExcel : ExcelResource
+public class VirCaptureTowerExcel : ExcelResource, ILevelRewardConfig
 {
     [JsonProperty("ID")] public uint Id { get; set; }
+
     [JsonProperty("Condition")] public JToken? ConditionRaw { get; set; }
+
     [JsonProperty("MapID")] public uint MapId { get; set; }
+
     [JsonProperty("TrialCard")] public List<uint> TrialCard { get; set; } = [];
+
     [JsonProperty("TaskPath")] public string TaskPath { get; set; } = "";
+
+    /// <summary>Drop / reward columns (FirstDropID, BaseDropID, RandomDropID, ShowAward, ...).</summary>
+    [JsonExtensionData]
+    public IDictionary<string, JToken> ExtraData { get; set; } = new Dictionary<string, JToken>();
+
+    uint ILevelRewardConfig.ID => Id;
 
     [JsonIgnore]
     public Dictionary<int, uint> Condition { get; } = [];

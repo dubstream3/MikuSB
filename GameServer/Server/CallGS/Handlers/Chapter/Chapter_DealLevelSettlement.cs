@@ -105,7 +105,13 @@ public class Chapter_DealLevelSettlement : CallGSHandler<DealLevelSettlementPara
 
         if (string.Equals(sCmd, "VirCaptureTower_LevelSettlement", StringComparison.Ordinal))
         {
-            var (response, sync) = VirCaptureTower_LevelSettlement.HandleSettlement(player, tbParam);
+            var (response, sync) = await VirCaptureTower_LevelSettlement.HandleSettlementAsync(player, tbParam);
+            return (response, sync);
+        }
+
+        if (string.Equals(sCmd, "VirCaptureTrial_LevelSettlement", StringComparison.Ordinal))
+        {
+            var (response, sync) = VirCaptureTrial_LevelSettlement.HandleSettlement(player, tbParam);
             return (response, sync);
         }
 

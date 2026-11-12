@@ -100,17 +100,14 @@ public static class ActivityFreeItemsService
             return 0;
 
         var pinned = DlcRuntimeOverrides.GetPinnedActivity();
-        var eraStart = DlcRuntimeOverrides.ParseConfigTime(pinned?.EnterStartTime);
-        if (pinned is null || eraStart is null)
+        if (pinned is null || string.IsNullOrWhiteSpace(pinned.EnterStartTime))
             return 0;
 
         // Bound the search by BOTH ends of the era: without the upper bound "latest start after the era
         // began" picked the next era's giveaway (pinning 32 handed out 557, the DLC35 gift, because its
         // 2026-02-11 start is also later than 32's floor), and since that row had already been received
-        // the call returned silently - the 2026-11-05 "切期赠送角色不生效".
-        var eraEnd = DlcRuntimeOverrides.ParseConfigTime(pinned.CloseEndTime)
-                     ?? DlcRuntimeOverrides.ParseConfigTime(pinned.EndTime);
-
+        // the call returned silently - the 2026-11-05 "切期赠送角色不生效". The half-open check lives in
+        // IsInsideServedEra so this selection and ClaimAsync can never drift apart again.
         ActivityExcel? gift = null;
         var giftStart = DateTime.MinValue;
 
@@ -119,15 +116,17 @@ public static class ActivityFreeItemsService
             if (!IsFreeItems(row))
                 continue;
 
+            // One membership definition for both the era grant and the request-driven claim: the row
+            // must start inside [floor, stop) and must still be open when the era begins.
+            if (!DlcRuntimeOverrides.IsInsideServedEra(row.StartTime, row.EndTime))
+                continue;
+
+            // Already received rows do not shadow a later, still-unreceived giveaway in the same era.
+            if (player.Attributes.GetValue(GroupId, ReceiveSid(row.Id)) != 0)
+                continue;
+
             var start = DlcRuntimeOverrides.ParseConfigTime(row.StartTime);
-            if (start is null || start.Value < eraStart.Value)
-                continue;
-
-            // A giveaway that only started after the era closed belongs to a later version.
-            if (eraEnd is not null && start.Value > eraEnd.Value)
-                continue;
-
-            if (DlcRuntimeOverrides.IsHistoricalWindow(row.EndTime))
+            if (start is null)
                 continue;
 
             if (gift is null || start.Value > giftStart)
@@ -203,7 +202,30 @@ public static class ActivityFreeItemsService
             return [];
         }
 
-        var rewarded = await player.RewardManager.GrantConfiguredRewardsAsync(ReadRewardRows(row.CustomData), sync);
+        // The receiver flag is the ONLY thing that stops the client from re-opening the splash, so it
+        // must not be written until every configured row was actually granted. A missing card/weapon
+        // template used to return true from RewardManager and this flag was set unconditionally, which
+        // silently ate the giveaway (docs/contracts/activity-era-architecture.md 5.x).
+        var expected = ReadRewardRows(row.CustomData)
+            .Where(MikuSB.GameServer.Game.Reward.RewardManager.IsGrantableRow)
+            .ToList();
+        if (expected.Count == 0)
+        {
+            Log.Warn(
+                $"Free items activity {row.Id} has no readable reward rows; refusing the claim and leaving " +
+                $"the receive flag at 0 for uid={player.Uid}.");
+            return [];
+        }
+
+        var rewarded = await player.RewardManager.GrantConfiguredRewardsAsync(expected, sync);
+        if (rewarded.Count < expected.Count)
+        {
+            Log.Warn(
+                $"Free items activity {row.Id} only granted {rewarded.Count}/{expected.Count} reward row(s) " +
+                $"for uid={player.Uid}; leaving the receive flag at 0 so the claim can be retried.");
+            return rewarded;
+        }
+
         ActivitySignService.SetAttr(player, sid, 1, sync);
 
         Log.Info(

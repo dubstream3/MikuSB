@@ -19,6 +19,7 @@ using MikuSB.GameServer.Server.CallGS.Handlers.Dlc;
 using MikuSB.GameServer.Server.CallGS.Handlers.Girl;
 using MikuSB.GameServer.Server.CallGS.Handlers.Online;
 using MikuSB.GameServer.Server.CallGS.Handlers.Weapon;
+using MikuSB.GameServer.Server.CallGS.Handlers.VirCapture;
 using MikuSB.GameServer.Server.Packet.Send.Friend;
 using MikuSB.GameServer.Server.Packet.Send.Login;
 using MikuSB.GameServer.Server.Packet.Send.Misc;
@@ -538,6 +539,21 @@ public class HandlerReqLogin : Handler
     {
         try
         {
+            // Re-seed the per-mode act ids before the push: login seeds them once, but a switch changes
+            // which season/act is served (e.g. 32 has no Donoduel, 35 has season 1), and every reader
+            // (DonoDuel:GetActId, SeasonBossLogic.GetCurTimeCfg, AlienDefense.GetActId) keeps serving the
+            // old value - or zero - until the next relog.
+            var player = connection.Player;
+            if (player != null)
+            {
+                var sync = new NtfSyncPlayer();
+                ApplyPinnedRoleFestivalAct(player, sync);
+                ApplyPinnedDonoDuelAct(player, sync);
+                ApplyPinnedSeasonBossAct(player, sync);
+                ApplyPinnedAlienDefenseAct(player, sync);
+                await player.SendPacket(CmdIds.NtfSyncAttr, sync);
+            }
+
             await PushDlcWindowTimes(connection);
             await PushDlcEraPatches(connection);
         }
@@ -574,6 +590,9 @@ public class HandlerReqLogin : Handler
         await PushRushTime(connection);
         await PushFestivalMessageTime(connection);
         await PushSeasonBossTime(connection);
+        // 新星开拓 trial periods: the client reads its own trial_timelist, so an era-pinned server
+        // has to push the same window or the player cannot even see the trial it accepts.
+        await VirCaptureTimeSync.PushAsync(connection);
         // Last: the DLC_SyncTime callback re-runs ShowBtnDlc, so the sub feature windows above must
         // already be in place when the DLC UI is rebuilt.
         await PushDlcSyncTime(connection);
@@ -613,9 +632,17 @@ public class HandlerReqLogin : Handler
         await SendClientPatch(connection, nameof(DlcClientPatches.DlcMissionBoard), DlcClientPatches.DlcMissionBoard);
         // 供应站（商城）页签同样只看客户端本地窗口：IBLogic.GetGroupList 用 IsInTime 过滤页签、
         // 还要求该页签的商品非空，两层都是 ibshoptab/ibgoods 的历史时间，于是复刻时代之后
-        // 「时装」下面只剩配件一类。这里把三张表一起钉到当前时间（补丁自带幂等标记）。
-        await SendClientPatch(connection, nameof(DlcClientPatches.IbshopWindows), DlcClientPatches.IbshopWindows);
-        await SendClientPatch(connection, nameof(DlcClientPatches.FarmWarWindows), DlcClientPatches.FarmWarWindows);
+        // 「时装」下面只剩配件一类。这里把三张表一起钉到当前时间；Off/切期会把原始窗口还原。
+        await SendClientPatch(
+            connection,
+            nameof(DlcClientPatches.IbshopWindows),
+            DlcClientPatches.IbshopWindowsFor(floor, era));
+        await SendClientPatch(
+            connection,
+            nameof(DlcClientPatches.FarmWarWindows),
+            DlcClientPatches.FarmWarWindowsFor(
+            DlcRuntimeOverrides.ActivationFloor(),
+            DlcRuntimeOverrides.EffectiveDlcId));
         // 海姆向前冲（Rush）主界面按 online.txt 每行第一个地图的 MapType 决定显示哪个模式按钮，
         // 而 MapType 来自 PartyLogic.tbHandBookConf；查不到就回落成 MapType 0，于是后来的行把先前的
         // 覆盖掉，「冲关啦」按钮反而打开最后一行的关卡表（优化吧的 9626）。补丁保留原查表并在未命中时
@@ -636,6 +663,13 @@ public class HandlerReqLogin : Handler
             connection,
             nameof(DlcClientPatches.GachaPoolWindows),
             DlcClientPatches.GachaPoolWindowsFor(floor, DlcRuntimeOverrides.ActivationEraEnd(), era));
+#if MIKU_DEV
+        // Dev loop: one read-only report of what the client really loaded, so the next question is
+        // answered from Game.log instead of another round of trial patches. Always on in a dev build:
+        // gating it on EnableDebug meant a dev config with the flag off reported nothing at all. It
+        // compiles out of a release (-p:MikuDev=false), so a public package cannot ship it.
+        await SendClientPatch(connection, nameof(DlcClientPatches.DevDiagnostics), DlcClientPatches.DevDiagnostics);
+#endif
         // Before DLC 35 the era main screens (Dlc1Main..Dlc34Main) compare their button windows themselves
         // instead of going through DlcFuncBase/IsInTime, so a pinned DLC 6/7 still answers 已结束 on
         // every entry - see DlcLegacyMainWindows. Era-independent (it only rewrites windows that already
@@ -662,7 +696,7 @@ public class HandlerReqLogin : Handler
         await SendClientPatch(
             connection,
             nameof(DlcClientPatches.GachaTryWindows),
-            DlcClientPatches.GachaTryWindowsFor(floor, DlcRuntimeOverrides.ActivationEraEnd(), era));
+            DlcClientPatches.GachaTryWindowsFor(floor, DlcRuntimeOverrides.ActivationEraEnd(), era, tryActIds));
     }
 
     /// <summary>
@@ -711,8 +745,18 @@ public class HandlerReqLogin : Handler
         // would throw away the nBegin/nEnd overrides and the string-key metatable that patch installs
         // on the very same table (DlcShopWindows.lua:3).
         await SendClientPatch(connection, nameof(DlcClientPatches.SupplyShop), DlcClientPatches.SupplyShop);
-        await SendClientPatch(connection, nameof(DlcClientPatches.IbshopWindows), DlcClientPatches.IbshopWindows);
-        await SendClientPatch(connection, nameof(DlcClientPatches.FarmWarWindows), DlcClientPatches.FarmWarWindows);
+        await SendClientPatch(
+            connection,
+            nameof(DlcClientPatches.IbshopWindows),
+            DlcClientPatches.IbshopWindowsFor(
+            DlcRuntimeOverrides.ActivationFloor(),
+            DlcRuntimeOverrides.EffectiveDlcId));
+        await SendClientPatch(
+            connection,
+            nameof(DlcClientPatches.FarmWarWindows),
+            DlcClientPatches.FarmWarWindowsFor(
+            DlcRuntimeOverrides.ActivationFloor(),
+            DlcRuntimeOverrides.EffectiveDlcId));
         // 海姆向前冲主界面的模式按钮由 PartyLogic.GetMapMode 决定，见 PartyModeFix 的注释。
         await SendClientPatch(connection, nameof(DlcClientPatches.PartyModeFix), DlcClientPatches.PartyModeFix);
         await SendClientPatch(connection, nameof(DlcClientPatches.DlcShopWindows), DlcClientPatches.DlcShopWindows);
@@ -780,7 +824,8 @@ public class HandlerReqLogin : Handler
                 DlcClientPatches.GachaTryWindowsFor(
                     DlcRuntimeOverrides.ActivationFloor(),
                     DlcRuntimeOverrides.ActivationEraEnd(),
-                    DlcRuntimeOverrides.EffectiveDlcId));
+                    DlcRuntimeOverrides.EffectiveDlcId,
+                    tryActIds));
         }
 
         // 抽卡池: independent of 先行试用, so it is pushed outside that block. The banner roster is client
@@ -797,6 +842,11 @@ public class HandlerReqLogin : Handler
                 DlcRuntimeOverrides.ActivationFloor(),
                 DlcRuntimeOverrides.ActivationEraEnd(),
                 DlcRuntimeOverrides.EffectiveDlcId));
+#if MIKU_DEV
+        // Same dev report as on the era-switch path: this is the site a plain login actually takes,
+        // so without it a dev build logs in silently and the client state stays unknown.
+        await SendClientPatch(connection, nameof(DlcClientPatches.DevDiagnostics), DlcClientPatches.DevDiagnostics);
+#endif
 
         // 决战哈姆 / 冲关啦: BP_WPZBugRunMgr.lua:11-23 gates the mode's whole client preload block
         // behind "if not self:HasAuthority()", which is always false in this standalone-hosted world, so
@@ -1078,8 +1128,10 @@ public class HandlerReqLogin : Handler
     /// </summary>
     private static readonly char[] ForbiddenPatchChars = ['+', '<', '>', '&', '\'', '"'];
 
-    /// <summary>Placeholder prefix used by DlcClientPatches; anything left after rendering is a bug.</summary>
-    private const string UnresolvedTokenMarker = "MIKU_";
+    // Placeholders are matched against the exact token list DlcClientPatches ships (see
+    // DlcClientPatches.Placeholders). A bare "MIKU_" prefix test also matched the print tags the
+    // hand-written patches use (MIKU_TEAMFIX, MIKU_MAPFIX, MIKU_HOST*), which silently dropped 21
+    // patches - including every Online*/ZBug* one - on every login.
 
     public static async Task SendClientPatch(Connection connection, string name, string lua)
     {
@@ -1105,10 +1157,13 @@ public class HandlerReqLogin : Handler
             return;
         }
 
-        if (lua.Contains(UnresolvedTokenMarker, StringComparison.Ordinal))
+        foreach (var placeholder in DlcClientPatches.Placeholders)
         {
+            if (!lua.Contains(placeholder, StringComparison.Ordinal))
+                continue;
+
             Logger.GetByClassName().Error(
-                $"Client patch '{name}' still holds an unsubstituted '{UnresolvedTokenMarker}' placeholder; " +
+                $"Client patch '{name}' still holds the unsubstituted placeholder '{placeholder}'; " +
                 "dropping it instead of shipping a payload the Lua side reads as nil.");
             return;
         }

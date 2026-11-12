@@ -572,6 +572,8 @@ public static class AttrIds
         public const uint TrialActivitySid = 6;
         public const uint TrialPointsSid = 7;
         public const uint DailyExpSid = 8;
+        /// <summary>yyyyMMdd of the day (128,8) was last reset; added for the daily-exp reset (073 §4).</summary>
+        public const uint DailyExpDateSid = 10;
         public const uint SeasonActivitySid = 9;
         public const uint ColorMaxStartSid = 11;
         public const uint ColorMaxEndSid = 20;

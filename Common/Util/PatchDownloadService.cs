@@ -8,11 +8,31 @@ public static class PatchDownloadService
     private const string PatchRelativePath = @"Patch\MikuSB-Patch.dll";
     private const int DownloadTimeoutSeconds = 120;
 
-    // Overridable so a fork or a LAN mirror can serve its own build without a recompile.
-    private static readonly string PatchDownloadUrl =
-        Environment.GetEnvironmentVariable("MIKUSB_PATCH_URL")
-        ?? "https://github.com/Kei-Luna/MikuSB-Patch/releases/download/MikuSB-Patch/MikuSB-Patch.dll";
+    // Public builds fetch the DLL from this project's own public repository release; the legacy
+    // Kei-Luna location stays behind it because that namespace has been answering HTTP 504. An
+    // internal (dev) build ships one locally instead, so the first File.Exists short-circuits both.
+    // MIKUSB_PATCH_URL overrides the whole list.
+    private static readonly string[] PatchDownloadUrls = BuildUrlList();
 
+    private static string[] BuildUrlList()
+    {
+        var overridden = Environment.GetEnvironmentVariable("MIKUSB_PATCH_URL");
+        if (!string.IsNullOrWhiteSpace(overridden))
+            return [overridden];
+
+        return
+        [
+            "https://github.com/dubstream3/MikuSB/releases/download/MikuSB-Patch/MikuSB-Patch.dll",
+            "https://github.com/dubstream3/MikuSB-Patch/releases/download/MikuSB-Patch/MikuSB-Patch.dll",
+            "https://github.com/Kei-Luna/MikuSB-Patch/releases/download/MikuSB-Patch/MikuSB-Patch.dll",
+        ];
+    }
+
+    /// <summary>
+    /// Makes sure Patch/MikuSB-Patch.dll exists next to the executable. Called when the resource
+    /// archive is fetched (so the DLL always arrives together with the resources, never as a "please
+    /// put it here" dialog) and again right before the game is launched.
+    /// </summary>
     public static void EnsurePatchPresent()
     {
         var patchPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, PatchRelativePath));
@@ -37,7 +57,25 @@ public static class PatchDownloadService
                 : $"Patch DLL downloaded from {host}.")
         };
 
-        GitHubApi.DownloadAsync(PatchDownloadUrl, patchPath, options).GetAwaiter().GetResult();
-        Logger.Info("Patch DLL download completed.");
+        Exception? last = null;
+        foreach (var url in PatchDownloadUrls)
+        {
+            try
+            {
+                GitHubApi.DownloadAsync(url, patchPath, options).GetAwaiter().GetResult();
+                if (File.Exists(patchPath))
+                {
+                    Logger.Info($"Patch DLL download completed from {url}.");
+                    return;
+                }
+            }
+            catch (Exception e)
+            {
+                last = e;
+                Logger.Warn($"Patch DLL download from {url} failed: {e.Message}");
+            }
+        }
+
+        Logger.Error("Every patch DLL source failed. The launcher cannot inject without Patch/MikuSB-Patch.dll.", last);
     }
 }

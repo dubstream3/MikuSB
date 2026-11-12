@@ -13,6 +13,11 @@ public class MonsterCardExcel : ExcelResource
     [JsonProperty("RikiId")] public uint RikiId { get; set; }
     [JsonProperty("CostValue")] public uint CostValue { get; set; }
     [JsonProperty("Exp")] public uint Exp { get; set; }
+    [JsonProperty("AttackRandomId")] public List<uint> AttackRandomId { get; set; } = [];
+    [JsonProperty("DefenseRandomId")] public List<uint> DefenseRandomId { get; set; } = [];
+    [JsonProperty("HealthRandomId")] public List<uint> HealthRandomId { get; set; } = [];
+    [JsonProperty("SkillRandomId")] public List<uint> SkillRandomId { get; set; } = [];
+    [JsonProperty("ChipRandomId")] public List<uint> ChipRandomId { get; set; } = [];
 
     [JsonIgnore]
     public ulong TemplateId => GameResourceTemplateId.FromGdpl(Genre, Detail, Particular, Level);

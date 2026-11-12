@@ -1,4 +1,4 @@
-﻿using MikuSB.Data;
+using MikuSB.Data;
 using MikuSB.Data.Excel;
 using MikuSB.Database;
 using MikuSB.Database.Inventory;
@@ -224,6 +224,12 @@ public class InventoryManager(PlayerInstance player) : BasePlayerManager(player)
             ItemType = genre,
             ItemCount = 1
         };
+
+        // Affixes are what the capture settlement page and the formation panel read back
+        // (pItem:AffixAttrLevel / GetAffixKeyAndValue); a card without them always shows the
+        // default "A/A/A, no skill" shape.
+        monsterInfo.CardAffixs = Server.CallGS.Handlers.VirCapture.VirCaptureMonsterAffixService
+            .Generate(GameData.MonsterCardData[templateId]);
         InventoryData.Items[monsterInfo.UniqueId] = monsterInfo;
 
         if (sendPacket) await Player.SendPacket(new PacketNtfCallScript([monsterInfo]));

@@ -28,7 +28,7 @@ path = os.path.normpath(path)
 
 lines = open(path, encoding="utf-8").read().splitlines()
 
-start_re = re.compile(r'public const string (\w+) = """')
+start_re = re.compile(r'(?:public|private|internal|protected)\s+(?:static\s+)?const\s+string\s+(\w+)\s*=\s*"""')
 blocks = []
 i = 0
 while i < len(lines):

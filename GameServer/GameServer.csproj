@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -10,6 +10,12 @@
     <StartupObject></StartupObject>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>MikuGameServer</AssemblyName>
+    <!-- Dev-only diagnostics compile out of a release: -p:MikuDev=false (build.ps1 -Public). -->
+    <MikuDev Condition="'$(MikuDev)' == ''">true</MikuDev>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MikuDev)' == 'true'">
+    <DefineConstants>$(DefineConstants);MIKU_DEV</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

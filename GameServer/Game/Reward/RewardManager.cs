@@ -44,6 +44,13 @@ public sealed class RewardManager(PlayerInstance player) : BasePlayerManager(pla
         };
     }
 
+    /// <summary>
+    /// One reward row is grantable when it carries the five GDPL+count values and a positive count.
+    /// Exposed so callers that must decide "did every configured row actually grant" count exactly the
+    /// rows this method will attempt, instead of the raw table rows (several configs ship count=0 rows).
+    /// </summary>
+    public static bool IsGrantableRow(IReadOnlyList<uint> row) => row.Count >= 5 && row[4] != 0;
+
     public async ValueTask<JsonArray> GrantConfiguredRewardsAsync(
         IEnumerable<IReadOnlyList<uint>> rewardRows,
         NtfSyncPlayer sync)
@@ -51,7 +58,7 @@ public sealed class RewardManager(PlayerInstance player) : BasePlayerManager(pla
         var response = new JsonArray();
         foreach (var row in rewardRows)
         {
-            if (row.Count < 5 || row[4] == 0)
+            if (!IsGrantableRow(row))
                 continue;
 
             var reward = new RewardEntry(row[0], row[1], row[2], row[3], row[4]);
@@ -259,6 +266,20 @@ public sealed class RewardManager(PlayerInstance player) : BasePlayerManager(pla
         switch (itemType)
         {
             case ItemTypeEnum.TYPE_CARD:
+            {
+                // AddCharacter also answers null for "already owned", so a null cannot distinguish a
+                // missing template from a duplicate. Check the template first: a missing one is a hard
+                // failure (the row must not report success), a duplicate is a no-op success.
+                var hasCardTemplate = GameData.CardData.Values.Any(x =>
+                    x.Genre == (int)itemType && x.Detail == reward.Detail && x.Particular == reward.Particular);
+                if (!hasCardTemplate)
+                {
+                    Logger.Warn(
+                        $"No card template for genre={itemType} detail={reward.Detail} particular={reward.Particular}; " +
+                        $"reward row reports failure for uid={Player.Uid}.");
+                    return false;
+                }
+
                 for (var i = 0u; i < reward.Count; i++)
                 {
                     var character = await Player.CharacterManager.AddCharacter(itemType, reward.Detail, reward.Particular, reward.Level, sendPacket: false);
@@ -266,22 +287,39 @@ public sealed class RewardManager(PlayerInstance player) : BasePlayerManager(pla
                         sync.Items.Add(character.ToProto());
                 }
                 return true;
+            }
             case ItemTypeEnum.TYPE_WEAPON:
+            {
                 for (var i = 0u; i < reward.Count; i++)
                 {
                     var item = await Player.InventoryManager.AddWeaponItem(itemType, reward.Detail, reward.Particular, reward.Level, sendPacket: false);
-                    if (item != null)
-                        sync.Items.Add(item.ToProto());
+                    if (item == null)
+                    {
+                        Logger.Warn(
+                            $"No weapon template for genre={itemType} detail={reward.Detail} particular={reward.Particular} " +
+                            $"level={reward.Level}; reward row reports failure for uid={Player.Uid}.");
+                        return false;
+                    }
+                    sync.Items.Add(item.ToProto());
                 }
                 return true;
+            }
             case ItemTypeEnum.TYPE_SUPPORT:
+            {
                 for (var i = 0u; i < reward.Count; i++)
                 {
                     var item = await Player.InventoryManager.AddSupportCardItem(reward.Detail, reward.Particular, reward.Level, sendPacket: false);
-                    if (item != null)
-                        sync.Items.Add(item.ToProto());
+                    if (item == null)
+                    {
+                        Logger.Warn(
+                            $"No support card template for detail={reward.Detail} particular={reward.Particular} " +
+                            $"level={reward.Level}; reward row reports failure for uid={Player.Uid}.");
+                        return false;
+                    }
+                    sync.Items.Add(item.ToProto());
                 }
                 return true;
+            }
             case ItemTypeEnum.TYPE_SUPPLIES:
             {
                 var templateId = GameResourceTemplateId.FromGdpl(reward.Genre, reward.Detail, reward.Particular, reward.Level);

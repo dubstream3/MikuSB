@@ -2,6 +2,7 @@ using MikuSB.Data;
 using MikuSB.Data.Excel;
 using MikuSB.GameServer.Game.Player;
 using MikuSB.Proto;
+using MikuSB.Util;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -28,8 +29,7 @@ public class VirCaptureLevel_EnterLevel : CallGSHandler<VirCaptureEnterLevelPara
             return Task.FromResult(CallGSResult.Error("error.BadParam"));
         }
 
-        var now = DateTime.Now;
-        var act = ResolveCurrent(GameData.VirCaptureTimeData.Values, now);
+        var act = VirCaptureStateHelper.ResolveCurrentAct(context.Connection.Player!);
         if (act == null || !act.CaptureRegionId.Contains((uint)req.LevelId))
         {
             return Task.FromResult(CallGSResult.Error("ui.TxtNotOpen"));
@@ -40,14 +40,18 @@ public class VirCaptureLevel_EnterLevel : CallGSHandler<VirCaptureEnterLevelPara
             return Task.FromResult(CallGSResult.Error("error.BadParam"));
         }
 
-        var regionStart = ParseConfigTime(region.StartTime);
-        var regionEnd = ParseConfigTime(region.EndTime);
-        if (!regionStart.HasValue || !regionEnd.HasValue || now < regionStart.Value || now >= regionEnd.Value)
+        // 时代优先的窗口判定：pin 了 DLC 时代时，在该时代内结束的抓捕区仍视为开放。
+        if (!VirCaptureEraTime.IsOpen(region.StartTime, region.EndTime))
         {
             return Task.FromResult(CallGSResult.Error("ui.TxtNotOpen"));
         }
 
         var player = context.Connection.Player!;
+        if (!VirCaptureConditionHelper.Check(player, region.Condition, $"EnterLevel.region:{req.LevelId}"))
+        {
+            return Task.FromResult(CallGSResult.Error("error.condition_limit"));
+        }
+
         var sync = new NtfSyncPlayer();
         EnsureMapState(player, (uint)req.LevelId, sync);
 

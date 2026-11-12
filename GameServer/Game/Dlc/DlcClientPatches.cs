@@ -639,9 +639,10 @@ public static class DlcClientPatches
         local floor = MIKU_ACTIVATION_FLOOR
         local stop = MIKU_ACT_STOPAT
         local era = MIKU_ACT_ERA
-        if MikuGlobalTimePatched and MikuGlobalEraFloor == floor and MikuGlobalEraId == era then return end
+        if MikuGlobalTimePatched and MikuGlobalEraFloor == floor and MikuGlobalEraStop == stop and MikuGlobalEraId == era then return end
         MikuGlobalTimePatched = true
         MikuGlobalEraFloor = floor
+        MikuGlobalEraStop = stop
         MikuGlobalEraId = era
         local old = MikuRawIsInTime or IsInTime
         MikuRawIsInTime = old
@@ -657,11 +658,14 @@ public static class DlcClientPatches
         -- activity of every version at once.
         if not nStart or nStart == -1 or nStart == 0 then return false end
         if not nEnd or nEnd == -1 or nEnd == 0 then return false end
-        if math.max(nEnd, floor) ~= nEnd then return false end
+        -- Half-open [start, end): a window that ends exactly when the era opens was already closed,
+        -- so nEnd == floor must be rejected as well as nEnd below it. The extra equality test keeps
+        -- the payload free of angle brackets, which the packet charset forbids.
+        if math.max(nEnd, floor) ~= nEnd or nEnd == floor then return false end
         -- Only the windows of the served era may reopen. Without an upper bound every later
         -- version qualifies as well, and the lobby fills with activities from eras nobody plays
         -- (the duplicate tiles came from exactly that). Comparisons avoid the wire charset.
-        if stop and stop ~= 0 and nStart and nStart ~= 0 and math.max(nStart, stop) == nStart and nStart ~= stop then return false end
+        if stop and stop ~= 0 and nStart and nStart ~= 0 and math.max(nStart, stop) == nStart then return false end
         local t = nNow or GetTime()
         if old(-1, nEnd, t) then return false end
         return true
@@ -673,6 +677,25 @@ public static class DlcClientPatches
         end
         gtwfix()
         """;
+
+    /// <summary>
+    /// Every placeholder a rendered payload must no longer contain. The sender refuses a payload that
+    /// still holds one of these because the Lua side would read nil and the patch would fail silently.
+    ///
+    /// This is deliberately an allow-list of *these* strings and not the bare "MIKU_" prefix: the
+    /// hand-written patches under patches/client-lua use "MIKU_TEAMFIX" / "MIKU_MAPFIX" / "MIKU_HOST*"
+    /// as print tags, so a prefix match dropped 21 legitimate patches on every login (Server.log had
+    /// 85 "unsubstituted 'MIKU_'" lines). Keep this list in sync when a token is added.
+    /// </summary>
+    public static readonly string[] Placeholders =
+    [
+        ActivationFloorToken,
+        ActivationEraToken,
+        GachaTryFloorToken,
+        GachaTryActIdsToken,
+        GachaTryActCountToken,
+        GachaStopToken,
+    ];
 
     /// <summary>Placeholder in <see cref="GlobalTimeWindows"/>; replaced before the payload is sent.</summary>
     public const string ActivationFloorToken = "MIKU_ACTIVATION_FLOOR";
@@ -762,12 +785,20 @@ public static class DlcClientPatches
         if not nStart or nStart == -1 or nStart == 0 or math.max(nStart, 0) ~= nStart then return false end
         if not nEnd or nEnd == -1 or nEnd == 0 or math.max(nEnd, 0) ~= nEnd then return false end
         if math.max(nStart, floor) ~= nStart then return false end
-        if math.max(nEnd, floor) ~= nEnd then return false end
-        -- ... and it has to sit inside the served era, not merely after the beginning.
-        if stop and stop ~= 0 and math.max(nStart, stop) == nStart and nStart ~= stop then return false end
-        if Activityface.tbMikuEraFaceShown[InId] then return false end
-        Activityface.tbMikuEraFaceShown[InId] = true
-        return oldCheck(InId)
+        if math.max(nEnd, floor) ~= nEnd or nEnd == floor then return false end
+        -- ... and it has to sit inside the served era, not merely after the beginning. A start
+        -- exactly at the stop belongs to the next era.
+        if stop and stop ~= 0 and math.max(nStart, stop) == nStart then return false end
+        -- Visibility is keyed by (era, faceId): the same activity id can be re-announced by a later
+        -- era, and a flag keyed by the id alone suppressed it forever. The mark is written only after
+        -- the shipped check actually said yes - consuming it on a refused/absent splash was what made
+        -- a valid popup disappear after one failed UI attempt.
+        local key = tostring(era) .. tostring(InId)
+        if Activityface.tbMikuEraFaceShown[key] then return false end
+        local ok, shown = pcall(oldCheck, InId)
+        if not ok then error(shown, 0) end
+        if shown then Activityface.tbMikuEraFaceShown[key] = true end
+        return shown
         end
         Activityface.tbPopFaceId = {}
         Activityface.bLoginFirst = false
@@ -782,18 +813,39 @@ public static class DlcClientPatches
     /// 客户端本地 CSV 的历史窗口，服务端不参与，所以复刻时代之后「供应站/时装」只剩配件一类
     /// 页签、互动/时装/武器皮肤全部消失。这里把商城的页签与商品窗口统一钉到当前时间，和
     /// DlcShopWindows 对崇福集市做的事一样，只是对象换成了 IBLogic 的三张表。
+    /// Only while an era is pinned: the shipped windows are snapshotted and restored on Off/switch,
+    /// and a rebuilt tbIbShopList (module reload) forces a re-stamp instead of leaving the new table
+    /// untouched behind the one-shot flag.
     /// </summary>
     public const string IbshopWindows = """
         local function ibfix()
         if not IBLogic or not IBLogic.tbIbShopList then return end
-        if IBLogic.bMikuWindowPatched then return end
         if not next(IBLogic.tbIbShopList) then return end
         if not next(IBLogic.tbIbGoods or {}) then return end
-        IBLogic.bMikuWindowPatched = true
+        local floor = MIKU_ACT_FLOOR
+        local era = MIKU_ACT_ERA
+        local on = floor ~= 0
+        local raw = IBLogic.bMikuWindowRaw
+        if raw and IBLogic.bMikuWindowEra == era and IBLogic.bMikuWindowOn == on
+        and IBLogic.bMikuWindowTable == IBLogic.tbIbShopList then return end
+        if raw then
+        for _, rec in pairs(raw) do
+        rec.t.nStartTime = rec.s
+        rec.t.nEndTime = rec.e
+        if rec.ss ~= nil then rec.t.nShowStartTime = rec.ss end
+        if rec.se ~= nil then rec.t.nShowEndTime = rec.se end
+        end
+        end
+        IBLogic.bMikuWindowRaw = nil
+        IBLogic.bMikuWindowEra = era
+        IBLogic.bMikuWindowOn = on
+        IBLogic.bMikuWindowTable = IBLogic.tbIbShopList
+        if not on then return end
         local now = GetTime() local off1 = 3600 local off2 = -2592000
+        local saved = {}
         local function stamp(t)
         if not t then return end
-        t.nStartTime = now - off1
+        table.insert(saved, { t = t, s = t.nStartTime, e = t.nEndTime, ss = t.nShowStartTime, se = t.nShowEndTime })        t.nStartTime = now - off1
         t.nEndTime = now - off2
         if t.nShowStartTime then t.nShowStartTime = now - off1 end
         if t.nShowEndTime then t.nShowEndTime = now - off2 end
@@ -801,9 +853,16 @@ public static class DlcClientPatches
         for _, v in pairs(IBLogic.tbIbShopList) do stamp(v) end
         for _, list in pairs(IBLogic.tbIbShopGroup) do for _, v in ipairs(list) do stamp(v) end end
         for _, v in pairs(IBLogic.tbIbGoods) do stamp(v) end
+        IBLogic.bMikuWindowRaw = saved
         end
         ibfix()
         """;
+
+    /// <summary>Binds the pinned era floor/id into <see cref="IbshopWindows"/> (0 = Off restores).</summary>
+    public static string IbshopWindowsFor(long floor, uint eraId = 0) =>
+        IbshopWindows
+            .Replace(GachaTryFloorToken, floor.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+            .Replace(ActivationEraToken, eraId.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
 
     /// <summary>
     /// The party screen decides which mode button to show by mapping the first level of each
@@ -1484,6 +1543,13 @@ public static class DlcClientPatches
     /// <summary>Replaced by the pinned era's activation floor (unix seconds) in <see cref="GachaTryWindowsFor"/>.</summary>
     public const string GachaTryFloorToken = "MIKU_ACT_FLOOR";
 
+    /// <summary>Replaced by the comma-separated activity ids the served era owns (see <see cref="GachaTryWindows"/>).</summary>
+    public const string GachaTryActIdsToken = "MIKU_ACT_IDS";
+
+    /// <summary>Replaced by the number of ids in <see cref="GachaTryActIdsToken"/>; used by the payload guard.</summary>
+    public const string GachaTryActCountToken = "MIKU_ACT_IDCOUNT";
+
+
     /// <summary>
     /// 先行试用 / 角色试玩 (gacha try). Two independent client gates keep DLC 35's try button shut:
     ///
@@ -1533,6 +1599,20 @@ public static class DlcClientPatches
         local floor = MIKU_ACT_FLOOR
         local stop = MIKU_ACT_STOPAT
         local era = MIKU_ACT_ERA
+        -- Only the rows the era resolver assigned to this era. Stamping every row whose window merely
+        -- touches the era opened activities that never belonged to it (event minigames, story acts) and
+        -- cleared their entry conditions.
+        local ids = {MIKU_ACT_IDS}
+        local idcount = MIKU_ACT_IDCOUNT
+        -- {a,b} is a sequence, not a set: index it once so the membership test below is by id
+        -- instead of by position (positional lookup silently matched nothing and stamped no row).
+        local idset = {}
+        for _, id in ipairs(ids) do idset[id] = true end
+        -- Same snapshot already applied: leave the stamped rows exactly as they are. This check has
+        -- to come before the restore, not after it: restoring first and returning early rewound the
+        -- previous stamp to the shipped window, so every re-push silently closed the try acts that
+        -- the push before it had opened.
+        if MikuTryWin2 and MikuTryWinFloor == floor and MikuTryWinEra == era and MikuTryStop == stop and MikuTryIds == idcount then return end
         -- No era served: nothing to stamp. Opening every try row here is what produced a blank white
         -- activity entry that dropped the player into an old version event.
         -- Restore first, whatever the reason this run exists (era switch, Off, reload). Returning
@@ -1546,19 +1626,16 @@ public static class DlcClientPatches
         end
         MikuTryRaw = {}
         if floor == 0 or stop == 0 then MikuTryWin2 = nil return end
-        if MikuTryWin2 and MikuTryWinFloor == floor and MikuTryWinEra == era and MikuTryStop == stop then return end
         local now = GetTime() local off1 = 3600 local off2 = -2592000
         local stopon = stop and stop ~= 0
-        -- Every activity row that was running inside the served era: its window ends after the era
-        -- began and starts before the era ended. This covers the DLC page of try groups, the era of
-        -- mini games and everything else the Activity page lists, instead of the try groups alone.
         for _, row in pairs(Activity.tbConfig) do
+        if idset[row.nId] then
         local s = row.nStartTime
         local e = row.nEndTime
-        if e and e ~= -1 and e ~= 0 and math.max(e, floor) == e then
+        if e and e ~= -1 and e ~= 0 and math.max(e, floor) == e and e ~= floor and e ~= s then
         local inside = true
-        -- A row starting after the era ended belongs to a later version and must stay closed.
-        if stopon and s and s ~= -1 and s ~= 0 and math.max(s, stop) == s and s ~= stop then inside = false end
+        -- A row starting at or after the era ended belongs to a later version and must stay closed.
+        if stopon and s and s ~= -1 and s ~= 0 and math.max(s, stop) == s then inside = false end
         if inside then
         MikuTryRaw[row.nId] = { row = row, s = s, e = e, c = row.tbCondition }
         local srv = nil
@@ -1569,10 +1646,12 @@ public static class DlcClientPatches
         end
         end
         end
+        end
         MikuTryWin2 = true
         MikuTryWinFloor = floor
         MikuTryWinEra = era
         MikuTryStop = stop
+        MikuTryIds = idcount
         end
         MikuTryApply = gtry
         gtry()
@@ -1591,17 +1670,21 @@ public static class DlcClientPatches
 
     /// <summary>
     /// Binds the pinned era's activation floor (DlcRuntimeOverrides.ActivationFloor(), e.g. DLC 35 ->
-    /// 1769630400) and era id into <see cref="GachaTryWindows"/>. The floor is what tells the patch
-    /// which rows of the DLC's try groups belong to this era and which ones are earlier reprints that
-    /// stay closed; the era id is what lets a runtime era switch re-stamp the rows of the new era
-    /// (the previous era's rows were stamped open in the running session, and the reload only puts the
-    /// shipped windows back - the guard would otherwise treat that as "already done").
+    /// 1769630400), era id and the exact activity ids the era owns into <see cref="GachaTryWindows"/>.
+    /// The floor/stop pair still decides which of those rows is inside the era; the id list is what
+    /// keeps the payload from stamping unrelated activities, and the count lets a runtime era switch
+    /// re-stamp the new era even when floor/stop/era happen to match.
     /// </summary>
-    public static string GachaTryWindowsFor(long floor, long eraStop, uint eraId = 0) =>
-        GachaTryWindows
+    public static string GachaTryWindowsFor(long floor, long eraStop, uint eraId, IReadOnlyCollection<uint> actIds)
+    {
+        var ids = actIds == null ? string.Empty : string.Join(",", actIds);
+        return GachaTryWindows
             .Replace(GachaTryFloorToken, floor.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
             .Replace(GachaStopToken, eraStop.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
-            .Replace(ActivationEraToken, eraId.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
+            .Replace(ActivationEraToken, eraId.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+            .Replace(GachaTryActCountToken, (actIds?.Count ?? 0).ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+            .Replace(GachaTryActIdsToken, ids, StringComparison.Ordinal);
+    }
 
     /// <summary>
     /// 抽卡池 - the one thing <c>/dlc</c> never touched. The roster is client data: Gacha.lua:877-979
@@ -1653,34 +1736,81 @@ public static class DlcClientPatches
         local lo = os.date([[%Y%m%d%H%M]], now - off1)
         local hi = os.date([[%Y%m%d%H%M]], now - off2)
         local stopon = stop and stop ~= 0
+        local floorN = tonumber(os.date([[%Y%m%d%H%M]], floor))
+        local stopN = tonumber(os.date([[%Y%m%d%H%M]], stopon and stop or now))
+        -- Windows arrive as strings, as epochs, or as a decorated cell, so
+        -- normalise to the 12 digit minute number and compare numbers. ParseTime was the wrong tool
+        -- here: on a value it did not expect it returned nil and every banner was left untouched.
+        MikuPoolNum = function(v)
+        if type(v) == [[number]] then return v end
+        if type(v) ~= [[string]] then return nil end
+        local d = string.gsub(v, [[%D]], [[]])
+        if math.min(string.len(d), 12) ~= 12 then return nil end
+        return tonumber(string.sub(d, 1, 12))
+        end
+        local wnum = MikuPoolNum
+        local nRaw = {} local nOpen = {} local nSet = {}
+        -- Every patch build re-times the whole gacha.txt (the Windows table puts the entire backlog in a
+        -- handful of 2026 windows), so the rows of a pinned era are inside their window in no build at
+        -- all: that slice of gacha.txt and of gacha_group.txt is simply not in the table the client
+        -- loads. The roster below is that missing slice, taken from the settings pak that still ships
+        -- the real dates: one entry per pool row of the era gacha_group, in file order. Stamping only
+        -- these ids is what stops the client from inventing a banner for every later pool in the table.
+        MikuRosterRows = {}
+        MikuRosterWant = {}
+        for _, row in ipairs(MIKU_GACHA_ROSTER) do
+        if row[5] then
+        MikuRosterWant[row[5]] = true
+        table.insert(MikuRosterRows, { nId = row[1] - 1000, sGroupName = row[2], nGroupIcon = row[3], nGropMark = row[4], nGachaId = row[5] })
+        end
+        end
+        local rostered = #MikuRosterRows ~= 0
         for id, info in pairs(Gacha.tbGacha) do
+        -- LoadCfg stamps tbPoolTime from the table, but it runs after this payload on a cold login,
+        -- so the first pass sees a table without windows. Keep topping the snapshot up instead of
+        -- treating a missing window as permanent.
+        if not MikuPoolRaw[id] and info.tbPoolTime and info.tbPoolTime[1] and info.tbPoolTime[2] then
+        MikuPoolRaw[id] = { info.tbPoolTime[1], info.tbPoolTime[2] }
+        end
         local w = MikuPoolRaw[id]
         local open = false
         local leave = false
+        -- Roster mode adds nothing on top of the time rule for the rows the table still dates correctly;
+        -- it only supplies the slice this build no longer ships. So a roster row opens regardless of the
+        -- window it carries (or does not carry), and every other row is decided by its own window.
+        local want = rostered and MikuRosterWant[id] == true
         if not w then
         -- Shipped without a window at all: touch nothing. Treating no window as in this era
         -- used to hand out a brand new window, which is the opposite of leaving it alone.
         leave = true
         else
-        local okp, s = pcall(ParseTime, w[1])
-        local okq, e = false, nil
-        if okp then okq, e = pcall(ParseTime, w[2]) end
-        if not (okp and okq and s and e) then
-        -- Unparseable window: leave the banner alone rather than hiding a pool we cannot read.
+        local s = wnum(w[1])
+        local e = wnum(w[2])
+        if not (s and e) or s == e then
+        -- Unreadable or empty window: leave the banner alone rather than hiding a pool we cannot read.
         leave = true
-        elseif math.max(e, floor) == e and e ~= floor then
-        if stopon then open = math.min(s, stop) == s and s ~= stop else open = true end
+        elseif math.max(e, floorN) == e and e ~= floorN then
+        if stopon then open = math.min(s, stopN) == s and s ~= stopN else open = true end
         end
         end
+        if want then open = true end
         if floor == 0 then
         info.tbPoolTime = w and { w[1], w[2] } or nil
+        elseif open then
+        table.insert(nSet, tostring(id))
+        info.tbPoolTime = { lo, hi }
         elseif leave then
         -- Deliberately no assignment.
-        elseif open then
-        info.tbPoolTime = { lo, hi }
         else
-        info.tbPoolTime = nil
+        -- Outside the era: put the shipped window back instead of dropping it. nil meant the banner
+        -- vanished for the rest of the session, including after switching away from this era.
+        info.tbPoolTime = { w[1], w[2] }
         end
+        end
+        if MikuDispApply then MikuDispApply() end
+        for id, r in pairs(MikuPoolRaw) do table.insert(nRaw, tostring(id)) end
+        for id, info in pairs(Gacha.tbGacha) do
+        if info.tbPoolTime and info.tbPoolTime[1] and info.tbPoolTime[2] then table.insert(nOpen, tostring(id)) end
         end
         MikuPoolFloor = floor
         MikuPoolEra = era
@@ -1692,10 +1822,36 @@ public static class DlcClientPatches
         Gacha.LoadCfg = function(...)
         MikuPoolFloor = nil
         local r = oldload(...)
+        -- The rebuild dropped every row we added, so forget them and re-add against the new table.
+        if MikuDispApply then MikuDispApply() end
         if MikuPoolApply then MikuPoolApply() end
         return r
         end
         end
+        end
+        return true
+        end
+        -- Called both from gpools and right after every Gacha.LoadCfg: LoadCfg rebuilds
+        -- tbDisplayGroup from scratch, so a roster row added before it is thrown away, and the
+        -- gpools state guard would then short-circuit and never add it back.
+        MikuDispApply = function()
+        if not Gacha or not Gacha.tbDisplayGroup then return false end
+        -- Take the previous roster back out by reference: tbDisplayGroup is an ARRAY walked with ipairs,
+        -- and removing by id would delete whichever shipped row happened to sit at that index.
+        for _, row in pairs(MikuDispRow or {}) do
+        for i = #Gacha.tbDisplayGroup, 1, -1 do
+        if Gacha.tbDisplayGroup[i] == row then table.remove(Gacha.tbDisplayGroup, i) end
+        end
+        end
+        MikuDispRow = {}
+        local rows = MikuRosterRows
+        if MIKU_ACT_FLOOR == 0 or not rows or #rows == 0 then return true end
+        -- The shipped file lists the era groups first, so prepend instead of appending them behind the
+        -- permanent and starter pools the table already carries. Re-insert in reverse to keep file order.
+        for i = #rows, 1, -1 do
+        local row = rows[i]
+        table.insert(Gacha.tbDisplayGroup, 1, row)
+        MikuDispRow[row.nGachaId] = row
         end
         return true
         end
@@ -1716,18 +1872,89 @@ public static class DlcClientPatches
         end
         """;
 
+#if MIKU_DEV
+    /// <summary>
+    /// Dev-only instrumentation. Prints one MIKU_CAP line per fact we keep guessing at (which gacha
+    /// pools the client actually loaded, what its roster points at, whether the online boss config
+    /// exists) into Game.log, where tools/devlog.py cap picks it up. Read-only: it never assigns to a
+    /// client table, so it is safe to leave always-on while EnableDebug is true.
+    /// </summary>
+    public const string DevDiagnostics = """
+        local function keys(tb) local o = {} for k in pairs(tb or {}) do table.insert(o, tostring(k)) end table.sort(o) return table.concat(o, [[,]]) end
+        local ok, err = pcall(function()
+        if Gacha and Gacha.tbGacha then mcap([[gacha_ids]], keys(Gacha.tbGacha)) end
+        if Gacha and Gacha.tbDisplayGroup then
+        local o = {}
+        for k, r in pairs(Gacha.tbDisplayGroup) do
+        if r then table.insert(o, tostring(k) .. [[=]] .. tostring(r.nGachaId)) end
+        end
+        table.sort(o)
+        mcap([[display]], table.concat(o, [[,]]))
+        end
+        if DLC_Logic and DLC_Logic.GetCurConf then
+        local c = DLC_Logic.GetCurConf()
+        mcap([[curdlc]], c and tostring(c.nId) or [[nil]])
+        end
+        if Online and Online.GetConfig then
+        local c = Online.GetConfig(16)
+        mcap([[online16_level]], c and tostring(c.ResetLevel) or [[nil]])
+        end
+        if OnlineBoss and OnlineBoss.GetConfig then
+        local c = OnlineBoss.GetConfig(5)
+        mcap([[boss5]], c and tostring(c.nId) or [[nil]])
+        end
+        if Gacha and Gacha.tbGacha then
+        -- Which pools the client currently treats as inside their window. This is the only answer
+        -- to why the banner list is empty that does not involve another trial patch.
+        local o = {}
+        for id, info in pairs(Gacha.tbGacha) do
+        local okp, r = pcall(function() return info:IsInTime() end)
+        if okp and r then table.insert(o, tostring(id)) end
+        end
+        table.sort(o)
+        mcap([[pool_in_time]], table.concat(o, [[,]]))
+        mcap([[pool_floor]], tostring(MikuPoolFloor))
+        end
+        mcap([[done]], [[1]])
+        end)
+        if not ok then mcap([[error]], err) end
+        """;
+#endif
+
     /// <summary>
     /// Vegetable war (farmwar, the 爆爆菜园 mini game) keeps its own windows in
     /// FarmWarActivityCfg.tbActivityCfg / tbChapter / tbLevel, separate from Activity.tbConfig, so the
     /// era-wide stamp in GachaTryWindows never reaches it and the client keeps showing "already
-    /// ended". Stamp those tables after every config load.
+    /// ended". Stamps those tables only while an era is pinned, snapshots the shipped values and puts
+    /// them back when the pin goes away, so Off and era switches both return the client to its own
+    /// data instead of leaving every level open forever.
     /// </summary>
     public const string FarmWarWindows = """
         local function farmfix()
         if not FarmWarActivityCfg then return end
-        local now = GetTime() local off2 = -2592000 local lo = now - 3600 local hi = now - off2
+        local floor = MIKU_ACT_FLOOR
+        local era = MIKU_ACT_ERA
+        local raw = FarmWarActivityCfg.bMikuFarmRaw
+        local on = floor ~= 0
+        if raw and FarmWarActivityCfg.bMikuFarmEra == era and FarmWarActivityCfg.bMikuFarmOn == on then return end
+        if raw then
+        for _, rec in pairs(raw) do
+        rec.t.nStartTime = rec.s
+        rec.t.nEndTime = rec.e
+        end
+        end
+        FarmWarActivityCfg.bMikuFarmRaw = nil
+        FarmWarActivityCfg.bMikuFarmEra = era
+        FarmWarActivityCfg.bMikuFarmOn = on
+        if not on then return end
+        local now = GetTime()
+        local lo = now - 3600
+        local off2 = -2592000
+        local hi = now - off2
+        local saved = {}
         local function stamp(t)
         if not t then return end
+        table.insert(saved, { t = t, s = t.nStartTime, e = t.nEndTime })
         if t.nStartTime ~= nil then t.nStartTime = lo end
         if t.nEndTime ~= nil then t.nEndTime = hi end
         end
@@ -1736,12 +1963,14 @@ public static class DlcClientPatches
         for _, v in pairs(list) do stamp(v) end
         end
         for _, v in pairs(FarmWarActivityCfg.tbLevel or {}) do stamp(v) end
+        FarmWarActivityCfg.bMikuFarmRaw = saved
         end
-        if FarmWarActivityCfg and not FarmWarActivityCfg.bMikuFarm then
-        FarmWarActivityCfg.bMikuFarm = true
+        if FarmWarActivityCfg and not FarmWarActivityCfg.bMikuFarmHook then
+        FarmWarActivityCfg.bMikuFarmHook = true
         if FarmWarActivityCfg.LoadCfg then
         local oldfarmload = FarmWarActivityCfg.LoadCfg
         FarmWarActivityCfg.LoadCfg = function(...)
+        FarmWarActivityCfg.bMikuFarmRaw = nil
         local r = oldfarmload(...)
         farmfix()
         return r
@@ -1751,8 +1980,91 @@ public static class DlcClientPatches
         farmfix()
         """;
 
+    /// <summary>Binds the pinned era floor/id into <see cref="FarmWarWindows"/> (0 = Off restores).</summary>
+    public static string FarmWarWindowsFor(long floor, uint eraId = 0) =>
+        FarmWarWindows
+            .Replace(GachaTryFloorToken, floor.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+            .Replace(ActivationEraToken, eraId.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
+
     /// <summary>Replaced by the pinned era's end (unix seconds) in <see cref="GachaPoolWindowsFor"/>.</summary>
     public const string GachaStopToken = "MIKU_ACT_STOPAT";
+
+    /// <summary>Replaced by <see cref="RenderGachaRoster"/> in <see cref="GachaPoolWindowsFor"/>.</summary>
+    public const string GachaRosterToken = "MIKU_GACHA_ROSTER";
+
+    /// <summary>
+    /// One gacha_group row: the pool id, the localisation key used as the group header, the group icon,
+    /// the group mark (1 limited, 2 multi-pool, 3 starter, 0 none) and the banner it belongs to.
+    /// </summary>
+    private readonly record struct GachaRosterRow(int PoolId, string GroupName, long GroupIcon, int GroupMark, int GachaId);
+
+    /// <summary>
+    /// The banner roster each pinned era shipped, for the eras whose rows are no longer in the tables the
+    /// client loads. Every Windows patch build re-times the whole gacha.txt and rebuilds gacha_group.txt
+    /// from the pools it still lists, so a pinned era ends up with no pool inside its window and no group
+    /// row at all - and inventing one per pool (the old fallback) put every later banner in the tree under
+    /// a single borrowed group.
+    /// <para>
+    /// DLC 35 (2026-01-29 .. 2026-03-12) shipped four character banners and one eight-pool banner, 24
+    /// pool rows, exactly as PAK_Game_Settings_0 still carries them: per group the four rows are
+    /// 100% character, 100% weapon, 50% character, 50% weapon. ShowResource / UpNum / Pool are identical
+    /// in both tables, so only the windows and the group rows have to be restored.
+    /// </para>
+    /// </summary>
+    private static readonly Dictionary<uint, GachaRosterRow[]> GachaRosters = new()
+    {
+        [35] = new GachaRosterRow[]
+        {
+            new(13, "card.girl013_suits", 130510006L, 1, 191),
+            new(14, "card.girl013_suits", 130510006L, 1, 192),
+            new(15, "card.girl013_suits", 130510006L, 1, 91),
+            new(16, "card.girl013_suits", 130510006L, 1, 92),
+            new(17, "card.girl054_suits", 130520004L, 1, 193),
+            new(18, "card.girl054_suits", 130520004L, 1, 194),
+            new(19, "card.girl054_suits", 130520004L, 1, 93),
+            new(20, "card.girl054_suits", 130520004L, 1, 94),
+            new(21, "card.girl084_suits", 130470004L, 0, 179),
+            new(22, "card.girl084_suits", 130470004L, 0, 180),
+            new(23, "card.girl084_suits", 130470004L, 0, 79),
+            new(24, "card.girl084_suits", 130470004L, 0, 80),
+            new(25, "card.girl133_suits", 130480004L, 0, 181),
+            new(26, "card.girl133_suits", 130480004L, 0, 182),
+            new(27, "card.girl133_suits", 130480004L, 0, 81),
+            new(28, "card.girl133_suits", 130480004L, 0, 82),
+            new(29, "gacha.diyup3", 0L, 2, 195),
+            new(30, "gacha.diyup3", 0L, 2, 196),
+            new(31, "gacha.diyup3", 0L, 2, 95),
+            new(32, "gacha.diyup3", 0L, 2, 96),
+            new(33, "gacha.diyup3", 0L, 2, 197),
+            new(34, "gacha.diyup3", 0L, 2, 198),
+            new(35, "gacha.diyup3", 0L, 2, 97),
+            new(36, "gacha.diyup3", 0L, 2, 98),
+        },
+    };
+
+    /// <summary>
+    /// Renders an era's roster as a Lua table of <c>{poolId, [[groupName]], icon, mark, gachaId}</c> rows
+    /// in file order. Long-bracket strings keep the payload free of quote characters, and an absent icon
+    /// or mark is written as nil so the client sees what it would have read from the table (the group
+    /// header widget tests nGroupIcon for truthiness and compares nGropMark to 1..3).
+    /// </summary>
+    private static string RenderGachaRoster(uint eraId)
+    {
+        if (!GachaRosters.TryGetValue(eraId, out var rows) || rows.Length == 0)
+            return "{}";
+
+        var parts = new List<string>(rows.Length);
+        foreach (var row in rows)
+        {
+            parts.Add("{"
+                + row.PoolId.ToString(CultureInfo.InvariantCulture) + ",[[" + row.GroupName + "]],"
+                + (row.GroupIcon == 0 ? "nil" : row.GroupIcon.ToString(CultureInfo.InvariantCulture)) + ","
+                + (row.GroupMark == 0 ? "nil" : row.GroupMark.ToString(CultureInfo.InvariantCulture)) + ","
+                + row.GachaId.ToString(CultureInfo.InvariantCulture) + "}");
+        }
+
+        return "{" + string.Join(",", parts) + "}";
+    }
 
     /// <summary>
     /// Binds the pinned era into <see cref="GachaPoolWindows"/>: the floor is the era's beginning and
@@ -1764,7 +2076,8 @@ public static class DlcClientPatches
         GachaPoolWindows
             .Replace(GachaTryFloorToken, floor.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
             .Replace(GachaStopToken, eraStop.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
-            .Replace(ActivationEraToken, eraId.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
+            .Replace(ActivationEraToken, eraId.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+            .Replace(GachaRosterToken, RenderGachaRoster(eraId), StringComparison.Ordinal);
 
     /// <summary>
     /// Renders every era payload once with sample values and returns the ones that would die on the
@@ -1779,8 +2092,13 @@ public static class DlcClientPatches
         {
             (nameof(GlobalTimeWindows), GlobalTimeWindowsFor(floor, stop, era)),
             (nameof(ActivityFaceQuiet), ActivityFaceQuietFor(floor, stop, era)),
-            (nameof(GachaTryWindows), GachaTryWindowsFor(floor, stop, era)),
+            (nameof(GachaTryWindows), GachaTryWindowsFor(floor, stop, era, new uint[] { 305, 311, 357, 368, 561, 576 })),
             (nameof(GachaPoolWindows), GachaPoolWindowsFor(floor, stop, era)),
+            // Rendered a second time with a real roster: the empty roster used above renders as {} and
+            // would never exercise the rows the DLC payload actually ships.
+            (nameof(GachaPoolWindows) + "#35", GachaPoolWindowsFor(floor, stop, 35)),
+            (nameof(IbshopWindows), IbshopWindowsFor(floor, era)),
+            (nameof(FarmWarWindows), FarmWarWindowsFor(floor, era)),
         };
 
         var problems = new List<string>();

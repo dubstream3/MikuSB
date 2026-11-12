@@ -685,6 +685,33 @@ public static class OnlineRoomService
         var fromRow = ResetLevelId(row.ResetLevel);
         if (IsKnownLevel(fromRow)) return fromRow;
 
+        // Most of online/online.json stores the *MapType* there (see these level.json columns:
+        // Id / Type / MapType / MapID). Resolve the type through online/level.json before giving up,
+        // otherwise a party activity silently opens whatever party level happens to have the lowest id
+        // - which for 永续连战 landed the player in the 冲关啦 roller-rush level.
+        var byMapType = LevelIdForMapType(fromRow);
+        if (byMapType != 0)
+        {
+            Logger.Info($"Online activity {onlineId}: ResetLevel '{row.ResetLevel}' resolved as MapType {fromRow} " +
+                        $"to online level {byMapType}.");
+            return byMapType;
+        }
+
+        // The ResetLevel cell is not always a level id: for a good part of online/online.json it holds
+        // the row's MapType (online/level.json keeps the type, map/map.json keys by id), so nothing
+        // matches and the room address stays empty - the client then never receives NtfOnlineStart and
+        // both "立即出击" (solo) and matchmaking stall with "No room address could be resolved".
+        // Rather than leaving the player in the lobby, fall back to the first level the party folder
+        // table knows about and say so loudly; OnlineRoomLevels pins the exact map when it matters.
+        var fallback = FirstPartyLevel();
+        if (fallback != 0)
+        {
+            Logger.Warn($"Online activity {onlineId}: ResetLevel '{row.ResetLevel}' is not a level id " +
+                        $"(it is probably a MapType); falling back to party level {fallback}. " +
+                        $"Pin ServerOption.OnlineRoomLevels[\"{onlineId}\"] to choose the map explicitly.");
+            return fallback;
+        }
+
         Logger.Warn($"Online activity {onlineId} has no usable level id (ResetLevel='{row.ResetLevel}').");
         return 0;
     }
@@ -775,6 +802,75 @@ public static class OnlineRoomService
             Logger.Warn($"Unreadable party map attribute '{raw}': {e.Message}");
             return null;
         }
+    }
+
+    private static Dictionary<uint, uint>? _levelByMapType;
+
+    /// <summary>
+    /// online/level.json map type -> playable level id. ResetLevel cells in online/online.json are
+    /// usually a MapType (e.g. 永续连战's [[88]] means "the level whose MapType is 88"), not a map id.
+    /// </summary>
+    private static Dictionary<uint, uint> LevelByMapType
+    {
+        get
+        {
+            if (_levelByMapType != null) return _levelByMapType;
+
+            var map = new Dictionary<uint, uint>();
+            var path = $"{ConfigManager.Config.Path.ResourcePath}/online/level.json";
+            if (!File.Exists(path))
+            {
+                Logger.Warn($"online/level.json not found at '{path}'; MapType fallback disabled.");
+                return _levelByMapType = map;
+            }
+
+            try
+            {
+                var list = JsonConvert.DeserializeObject<List<OnlineLevelRowJson>>(File.ReadAllText(path)) ?? [];
+                foreach (var item in list)
+                {
+                    if (item.Id == 0 || item.MapType == 0) continue;
+                    // The level id wins over MapID: map/map.json is keyed by level id for these rows.
+                    var levelId = IsKnownLevel(item.Id) ? item.Id : item.MapID;
+                    if (levelId != 0 && !map.ContainsKey(item.MapType))
+                        map[item.MapType] = levelId;
+                }
+
+                Logger.Info($"Loaded {map.Count} MapType row(s) from online/level.json.");
+            }
+            catch (Exception e)
+            {
+                Logger.Warn($"Unreadable online/level.json ('{path}'): {e.Message}");
+            }
+
+            return _levelByMapType = map;
+        }
+    }
+
+    private static uint LevelIdForMapType(uint mapType)
+    {
+        return mapType != 0 && LevelByMapType.TryGetValue(mapType, out var levelId) ? levelId : 0;
+    }
+
+    /// <summary>online/level.json row, as far as the ResetLevel fallback cares.</summary>
+    private sealed class OnlineLevelRowJson
+    {
+        [JsonProperty("Id")] public uint Id { get; set; }
+        [JsonProperty("MapType")] public uint MapType { get; set; }
+        [JsonProperty("MapID")] public uint MapID { get; set; }
+    }
+
+    /// <summary>Lowest party level id the shipped map/folder tables know about, or 0 when none do.</summary>
+    private static uint FirstPartyLevel()
+    {
+        var best = 0u;
+        foreach (var levelId in MapRows.Keys)
+        {
+            if (!IsPartyLevel(levelId)) continue;
+            if (best == 0 || levelId < best) best = levelId;
+        }
+
+        return best;
     }
 
     /// <summary>

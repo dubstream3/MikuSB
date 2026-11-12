@@ -64,6 +64,26 @@ pwsh -File build.ps1
 
 Produces `build/MikuSB-win-x64/`, `build/MikuSB-win-x64.zip` and `build/MikuSB-win-x64.zip.sha256`. Debug symbols are dropped by default, because a locally built assembly records the absolute build path; pass `-WithSymbols` if you need them. On a machine without access to nuget.org, restore from a local cache with `-Source <folder>,<folder> -NoReadyToRun`.
 
+## Testing
+
+```powershell
+pwsh -File tools/test.ps1
+```
+
+Runs the client-patch charset gate, the static era audit (`tests/EraAudit`), and the Lua execution
+audit (`tests/EraAudit/lua/run.js`, needs `fengari`). When a server is listening on
+`127.0.0.1:21000` it also runs `tests/EraSmoke` against a real login; otherwise that step is skipped
+with a printed reason. `-Caps` additionally validates the client's `MIKU_CAP` block against
+`tools/caps.json`. Results are written to `build/test-results.json`, and `build.ps1` copies them into
+`BUILD-INFO.txt` so a package states what was actually run.
+
+See [`docs/testing-automation.md`](docs/testing-automation.md) for layer boundaries, the GM Lua
+channel, payload rules and troubleshooting.
+
+Pinned eras need their banner list rebuilt inside the client, because no patch build ships a row
+that is in-window for a past era. The roster format, the era-35 data and the verification commands
+are in [`docs/gacha-era-roster.md`](docs/gacha-era-roster.md).
+
 ## Running a specific channel
 
 This fork follows a specific channel of the client and carries fixes on top of upstream:

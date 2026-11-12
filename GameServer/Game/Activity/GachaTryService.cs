@@ -5,6 +5,7 @@ using MikuSB.Data.Excel;
 using MikuSB.Database;
 using MikuSB.GameServer.Game.Dlc;
 using MikuSB.GameServer.Game.Player;
+using MikuSB.GameServer.Game.Reward;
 using MikuSB.Proto;
 using MikuSB.Util;
 using Newtonsoft.Json.Linq;
@@ -89,6 +90,7 @@ public static class GachaTryService
     {
         var result = new List<uint>();
         var floor = DlcRuntimeOverrides.ActivationFloor();
+        var stop = DlcRuntimeOverrides.ActivationEraEnd();
         var groups = SelectTryGroupIds();
 
         foreach (var act in GameData.GachaTryData.Values)
@@ -102,11 +104,12 @@ public static class GachaTryService
             if (groups.Count > 0 && !groups.Contains(DlcRuntimeOverrides.ReadUint(conf.GroupId)))
                 continue;
 
-            if (DlcRuntimeOverrides.IsHistoricalWindow(conf.EndTime))
-                continue;
-
+            // Half-open membership: a row that starts at/after the era stop, or that closed at/before
+            // the era floor, belongs to another version. The old check only had the floor, so every
+            // later era's try act (start after CloseEndTime) still opened here.
             var start = DlcRuntimeOverrides.ToUnixSeconds(DlcRuntimeOverrides.ParseConfigTime(conf.StartTime));
-            if (start == 0 || (floor != 0 && start < floor))
+            var end = DlcRuntimeOverrides.ToUnixSeconds(DlcRuntimeOverrides.ParseConfigTime(conf.EndTime));
+            if (!DlcEraWindow.Intersects(floor, stop, start, end))
                 continue;
 
             result.Add(act.ActId);
@@ -149,8 +152,13 @@ public static class GachaTryService
     /// </summary>
     public static uint ResolveActId(uint requested)
     {
-        if (requested != 0 && GameData.GachaTryData.ContainsKey(requested))
+        // Only an act of the served era is accepted: GameData.GachaTryData carries every shipped era,
+        // so "the id exists" used to let a client settle a later era's trial and take its reward.
+        if (requested != 0 && SelectEraActIds().Contains(requested))
             return requested;
+
+        if (requested != 0)
+            Log.Warn($"Gacha try act {requested} is not part of the served era; falling back to the era act.");
 
         return SelectActId();
     }
@@ -191,19 +199,42 @@ public static class GachaTryService
             return group;
         }
 
+        // Settlement is a reward entry: it must prove era membership itself, not trust that the client
+        // only names acts it saw. Otherwise a replayed/old packet pays a later era's trial.
+        if (!SelectEraActIds().Contains(actId))
+        {
+            Log.Warn($"Gacha try settlement for act {actId} outside the served era (uid={player.Uid}); refusing.");
+            return group;
+        }
+
         var tryGirlId = act.TryGirlAt(girlIdx);
         var first = !IsGirlPassed(player, actId, girlIdx);
 
-        if (first && GameData.TryGirlData.TryGetValue(tryGirlId, out var girl))
+        if (first)
         {
-            var rows = DlcRuntimeOverrides.ReadRewardRows(girl.Reward);
+            if (!GameData.TryGirlData.TryGetValue(tryGirlId, out var girl))
+            {
+                // No reward row means "cannot prove what this clear pays" - do not mark it as passed,
+                // otherwise the bit permanently eats the reward.
+                Log.Warn($"Gacha try act {actId} girl {girlIdx} has no try_girl {tryGirlId} row (uid={player.Uid}); not marking it passed.");
+                return group;
+            }
+
+            var rows = DlcRuntimeOverrides.ReadRewardRows(girl.Reward)
+                .Where(RewardManager.IsGrantableRow)
+                .ToList();
             var granted = await player.RewardManager.GrantConfiguredRewardsAsync(rows, sync);
+            if (granted.Count < rows.Count)
+            {
+                Log.Warn($"Gacha try act {actId} girl {girlIdx} granted {granted.Count}/{rows.Count} row(s) " +
+                         $"for uid={player.Uid}; not marking it passed.");
+                foreach (var row in granted)
+                    group.Add(row?.DeepClone());
+                return group;
+            }
+
             foreach (var row in granted)
                 group.Add(row?.DeepClone());
-        }
-        else if (first)
-        {
-            Log.Warn($"Gacha try act {actId} girl {girlIdx} has no try_girl {tryGirlId} row (uid={player.Uid}).");
         }
 
         var packed = player.Attributes.GetValue(AttrIds.Activity.GroupId, RewardSid(actId)) | (1u << (int)girlIdx);

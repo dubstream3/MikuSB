@@ -8,9 +8,6 @@ namespace MikuSB.GameServer.Server.CallGS.Handlers.VirCapture;
 [CallGSApi("VirCaptureTower_EnterLevel")]
 public class VirCaptureTower_EnterLevel : CallGSHandler<VirCaptureTowerEnterLevelParam>
 {
-    private const uint LaunchPassGroupId = AttrIds.Tower.PassGid;
-    private const uint VirCaptureGroupId = AttrIds.VirCapture.Gid;
-    private const uint VirCaptureLevelSid = AttrIds.VirCapture.CurrentLevelSid;
     private static readonly Random Random = new();
 
     protected override Task<CallGSResult> HandleAsync(CallGSContext context, VirCaptureTowerEnterLevelParam req)
@@ -27,42 +24,12 @@ public class VirCaptureTower_EnterLevel : CallGSHandler<VirCaptureTowerEnterLeve
         }
 
         var player = context.Connection.Player!;
-        if (!CheckConditions(player, levelCfg.Condition))
+        if (!VirCaptureConditionHelper.Check(player, levelCfg.ConditionRaw, $"Tower.EnterLevel:{req.LevelId}"))
         {
             return Task.FromResult(CallGSResult.Error("tip.LevelLocked"));
         }
 
         return Task.FromResult(CallGSResult.Ok($"{{\"nSeed\":{Random.Next(1, 1_000_000_000)}}}"));
-    }
-
-    private static bool CheckConditions(PlayerInstance player, IReadOnlyDictionary<int, uint> conditions)
-    {
-        foreach (var (key, value) in conditions)
-        {
-            switch (key)
-            {
-                case 1:
-                    if (player.Data.Level < value)
-                        return false;
-                    break;
-                case 2:
-                {
-                    var pass = player.Attributes.GetValue(LaunchPassGroupId, value);
-                    if (pass == 0)
-                        return false;
-                    break;
-                }
-                case 20:
-                {
-                    var virLevel = player.Attributes.GetValue(VirCaptureGroupId, VirCaptureLevelSid);
-                    if (virLevel < value)
-                        return false;
-                    break;
-                }
-            }
-        }
-
-        return true;
     }
 }
 

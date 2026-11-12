@@ -44,6 +44,30 @@ public class Activity_GetAward : CallGSHandler
         foreach (var pair in request)
             response[pair.Key] = pair.Value?.DeepClone();
 
+        var isFreeItems = GameData.ActivityData.TryGetValue(activityId, out var activityRow) &&
+                          ActivityFreeItemsService.IsFreeItems(activityRow);
+
+        // One eligibility gate for every reward shape below (free items, daily sign, short sign, quest
+        // board). Before this, only the free_items branch checked the era, so a crafted request could
+        // collect a later era's sign/quest rewards while an earlier era was pinned. View/ACK paths must
+        // never pay out for a row that does not belong to the served era.
+        if (activityId != 0 && activityRow is not null &&
+            !DlcRuntimeOverrides.IsInsideServedEra(activityRow.StartTime, activityRow.EndTime))
+        {
+            var refused = awardType switch
+            {
+                ActivitySignService.AwardTypeDay => "DaySign",
+                ActivitySignService.AwardTypeAmount => "ShortSign",
+                _ => isFreeItems ? "Activity_UpdateActiveWidget" : "ActivityQuest_GetReward"
+            };
+            Logger.GetByClassName().Warn(
+                $"Refusing activity {activityId} reward (nType={awardType}) for uid={player.Uid}: window " +
+                $"{activityRow.StartTime}..{activityRow.EndTime} is outside the served era " +
+                $"(floor={DlcRuntimeOverrides.ActivationFloor()}, stop={DlcRuntimeOverrides.ActivationEraEnd()}).");
+            response["tbRewards"] = new JsonArray();
+            return CallGSResult.Ok(response.ToJsonString(), new NtfSyncPlayer(), refused);
+        }
+
         // 特别邀请 / 自选 SSR (Class=free_items): those widgets send nId only and wait for
         // Event.ActivityReward, which only the Activity_UpdateActiveWidget callback fires - see
         // ActivityFreeItemsService for the full contract and for why the splash re-opened 89 times.

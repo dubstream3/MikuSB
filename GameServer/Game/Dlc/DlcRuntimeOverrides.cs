@@ -154,15 +154,15 @@ public static class DlcRuntimeOverrides
             return false;
 
         var end = ToUnixSeconds(ParseConfigTime(windowEndRaw));
-        return end > 0 && end < floor;
+        return DlcEraWindow.IsHistorical(floor, end);
     }
 
     /// <summary>
-    /// True when the row really belongs to the served era: its start sits at or after the era began and,
-    /// when the era has an end, at or before that end. Rows that cannot be dated (permanent activities)
-    /// answer false while a pin is active - they were open in every version, so accepting them is exactly
-    /// what let the client hand out every historical giveaway at once. With no pin the shipped semantics
-    /// stay untouched.
+    /// True when the row really belongs to the served era: its start sits at or after the era began
+    /// and strictly before its end, and a dated end must still be open when the era begins. Rows that
+    /// cannot be dated (permanent activities) answer false while a pin is active - they were open in
+    /// every version, so accepting them is exactly what let the client hand out every historical
+    /// giveaway at once. With no pin the shipped semantics stay untouched.
     /// </summary>
     public static bool IsInsideServedEra(string? windowStartRaw, string? windowEndRaw)
     {
@@ -171,11 +171,8 @@ public static class DlcRuntimeOverrides
             return true;
 
         var start = ToUnixSeconds(ParseConfigTime(windowStartRaw));
-        if (start <= 0 || start < floor)
-            return false;
-
-        var stop = ActivationEraEnd();
-        return stop <= 0 || start <= stop;
+        var end = ToUnixSeconds(ParseConfigTime(windowEndRaw));
+        return DlcEraWindow.IsInside(floor, ActivationEraEnd(), start, end);
     }
 
     /// <summary>
@@ -252,7 +249,31 @@ public static class DlcRuntimeOverrides
             return 0;
 
         var acts = SelectDefendActs(pinned.Id);
-        return acts.Count > 0 ? acts[0].Id : 0;
+        if (acts.Count == 0)
+            return 0;
+
+        // Two acts ship per DLC and only one of them is current. Taking acts[0] kept the client on the
+        // finished period for the whole second half of the era. Prefer the row whose window contains
+        // now, then the first row that intersects the served era. The DlcId column is the explicit
+        // ownership declaration, so a row whose times cannot be parsed still falls back to acts[0] -
+        // dropping it would remove the battle pass the client reads from attribute (10, 0).
+        var floor = ActivationFloor();
+        var stop = ActivationEraEnd();
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        DefendActExcel? intersecting = null;
+        foreach (var act in acts)
+        {
+            var start = ToUnixSeconds(ParseConfigTime(act.StartTime?.ToString()));
+            var end = ToUnixSeconds(ParseConfigTime(act.EndTime?.ToString()));
+            if (start <= 0 || end <= 0 || !DlcEraWindow.Intersects(floor, stop, start, end))
+                continue;
+
+            intersecting ??= act;
+            if (start <= now && now < end)
+                return act.Id;
+        }
+
+        return intersecting?.Id ?? acts[0].Id;
     }
 
     /// <summary>
@@ -433,24 +454,13 @@ public static class DlcRuntimeOverrides
     }
 
     /// <summary>
-    /// True when [start, end] overlaps the served era [floor, era end]. Used by the func-id selectors
+    /// True when [start, end) overlaps the served era [floor, stop). Used by the func-id selectors
     /// below as a fallback: eras that predate the DlcFuncConfId column (DLC25 and earlier have no func
     /// block at all) still ship 异星守护 / 弑神斗场 / 多诺, they just have to be found by their own
     /// window instead of by an explicit id.
     /// </summary>
-    private static bool IntersectsEra(long start, long end)
-    {
-        var floor = ActivationFloor();
-        if (floor <= 0)
-            return false;
-
-        var stop = ActivationEraEnd();
-        if (end > 0 && end < floor)
-            return false;
-        if (stop > 0 && start > 0 && start > stop)
-            return false;
-        return true;
-    }
+    private static bool IntersectsEra(long start, long end) =>
+        DlcEraWindow.Intersects(ActivationFloor(), ActivationEraEnd(), start, end);
 
     /// <summary>
     /// 多诺-巅峰对决 (Donoduel) season id. DonoDuel:GetActId() reads attribute (gid 185, sid 1) and
@@ -486,17 +496,11 @@ public static class DlcRuntimeOverrides
             }
         }
 
-        // A single shipped season is the only season there is: serve it even when its window sits
-        // outside the era, otherwise every era before the table grew loses the entry.
-        if (GameData.DonoDuelSeasonData.Count == 1)
-        {
-            var only = ReadUint(GameData.DonoDuelSeasonData.Values.First().SeasonID);
-            Logger.GetByClassName().Info($"Donoduel season {only} is the only shipped row; serving it for era {act?.Id}.");
-            return only;
-        }
-
+        // A single shipped season is NOT evidence that it belongs to this era: donoduel_season.json
+        // ships one row whose window is 2026-02-05..2026-03-12, which made eras 30 and 32 serve a
+        // season that did not exist yet. The window test above is the only membership evidence.
         Logger.GetByClassName().Warn(
-            $"Donoduel season {actId} has no dlc/DonoDuel/donoduel_season row; skipping Donoduel attribute.");
+            $"Donoduel season {actId} has no dlc/DonoDuel/donoduel_season row in the served era; skipping Donoduel attribute.");
         return 0;
     }
 

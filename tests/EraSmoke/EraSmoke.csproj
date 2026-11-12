@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <AssemblyName>era-smoke</AssemblyName>
+    <RootNamespace>EraSmoke</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <!-- Same generated protobuf types the server uses, taken from the launcher build (it copies both
+       MikuProto and Google.Protobuf) so the framing cannot drift from what is actually on the wire.
+       Build MikuSB/MikuSB.csproj (or the solution) first. -->
+  <ItemGroup>
+    <Reference Include="MikuProto">
+      <HintPath>..\..\MikuSB\bin\$(Configuration)\net10.0\MikuProto.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Protobuf">
+      <HintPath>..\..\MikuSB\bin\$(Configuration)\net10.0\Google.Protobuf.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
