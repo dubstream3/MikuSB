@@ -39,7 +39,8 @@ public static class SetupService
         "sh-qrcode.xgsdk.com",
         "activity.xgsdk.com",
         "gpm-conf.testplus.cn",
-        "cbjq-serverlist.xoyocdn.com"
+        "cbjq-serverlist.xoyocdn.com",
+        "cbjq-battle-serverlist.xoyocdn.com"
     ];
 
     /// <summary>

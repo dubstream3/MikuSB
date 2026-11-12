@@ -14,7 +14,7 @@ public static class GameLaunchService
     {
         ConfigManager.LoadConfig();
         EnsureInGameConsoleOptional();
-        PatchDownloadService.EnsurePatchPresent();
+        PatchDownloadService.EnsureAllPresent();
         var options = LaunchOptions.FromConfig(extraGameArguments);
         return Launch(options, true);
     }
@@ -76,15 +76,17 @@ public static class GameLaunchService
             InGameConsoleDownloadService.EnsurePresent();
         }
 
+        // The CN build is a release asset like the global one, so a fresh install fetches it here instead of
+        // asking the operator to copy a file the server could download itself.
+        PatchDownloadService.EnsureCnPatchPresent();
+
         var cnPatchPaths = ResolvePatchPaths([config.Loader.CnPatchPath]);
         var expected = Path.Combine(AppContext.BaseDirectory, config.Loader.CnPatchPath);
         if (cnPatchPaths.Count == 0 || !File.Exists(cnPatchPaths[0]))
         {
-            // This DLL is not something the updater fetches: it is built from the local patch tree, so the only
-            // fix is to copy it in, and the message has to say where.
             throw new FileNotFoundException(
-                $"CN patch DLL is missing: put the CN-channel build at {expected}. / " +
-                $"国服补丁 DLL 缺失：请把 CN 版 MikuSB-Patch.dll 复制到 {expected}。",
+                $"CN patch DLL is missing and could not be downloaded: {expected}. / " +
+                $"国服补丁 DLL 缺失且自动下载失败：{expected}。请检查网络后重试。",
                 expected);
         }
 

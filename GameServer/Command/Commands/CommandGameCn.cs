@@ -7,8 +7,8 @@ namespace MikuSB.GameServer.Command.Commands;
 
 /// <summary>
 ///     Starts the specific-channel (CN) client. Two routes reach the same server: the hosts block points the
-///     seven SDK domains at this machine and the client starts untouched (<c>hosts</c>, the default), or the CN
-///     build of the patch DLL is injected and the hosts file is left alone (<c>dll</c>). The mode is decided by
+///     SDK domains at this machine and the client starts untouched (<c>hosts</c>), or the CN build of the
+///     patch DLL is injected and the hosts file is left alone (<c>dll</c>, the default). The mode is decided by
 ///     <c>-dll</c>/<c>-hosts</c> on the command line, falling back to <c>Loader.CnLaunchMode</c>.
 /// </summary>
 [CommandInfo("game-cn", "Game.Command.GameCn.Desc", "Game.Command.GameCn.Usage", [],
@@ -118,9 +118,10 @@ public class CommandGameCn : ICommands
             }
         }
 
-        return string.Equals(ConfigManager.Config.Loader.CnLaunchMode, "dll", StringComparison.OrdinalIgnoreCase)
-            ? "dll"
-            : "hosts";
+        // DLL injection is the default route: it needs no administrator rights and leaves hosts alone.
+        return string.Equals(ConfigManager.Config.Loader.CnLaunchMode, "hosts", StringComparison.OrdinalIgnoreCase)
+            ? "hosts"
+            : "dll";
     }
 
     /// <summary>

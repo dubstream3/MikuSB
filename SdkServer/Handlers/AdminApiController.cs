@@ -403,7 +403,7 @@ public class AdminApiController : ControllerBase
             arguments = config.Loader.Arguments,
             patch_paths = config.Loader.PatchPaths,
             patch_present = PatchPresent(config),
-            cn_launch_mode = NormalizeCnLaunchMode(config.Loader.CnLaunchMode) ?? "hosts",
+            cn_launch_mode = NormalizeCnLaunchMode(config.Loader.CnLaunchMode) ?? "dll",
             cn_patch_path = config.Loader.CnPatchPath,
             cn_patch_present = CnPatchPresent(config),
             elevated = SetupService.IsElevated(),
@@ -436,7 +436,7 @@ public class AdminApiController : ControllerBase
 
     /// <summary>
     /// Step one of the wizard: pin the channel and make sure that channel's own patch DLL is on disk. The
-    /// global build pulls it from the release feed, the CN build ships it inside the package, so this only
+    /// global build and the CN build both pull their own DLL from the release feed, so this only
     /// has to check the file survived the copy.
     ///
     /// It runs synchronously on purpose: the panel unlocks the path step only after this answers, and a
@@ -456,6 +456,18 @@ public class AdminApiController : ControllerBase
 
         if (region == "cn")
         {
+            // The CN build is a release asset, so this step fetches it the same way the global branch
+            // below does; only a network failure leaves the operator with a message instead of a file.
+            var downloaded = false;
+            try
+            {
+                downloaded = PatchDownloadService.EnsureCnPatchPresent();
+            }
+            catch (Exception ex)
+            {
+                ConfigManager.Logger.Warn($"[setup] CN patch DLL download failed: {ex.Message}");
+            }
+
             var ready = CnPatchPresent(config);
             return Ok(new
             {
@@ -464,10 +476,12 @@ public class AdminApiController : ControllerBase
                 patch_ready = ready,
                 patch_path = config.Loader.CnPatchPath,
                 // The panel localises this row from the code; detail stays as the raw fallback.
-                code = ready ? "cn_ready" : "cn_missing",
+                code = ready ? "cn_ready" : (downloaded ? "cn_missing" : "cn_download_failed"),
                 detail = ready
                     ? $"国服补丁 DLL 已就位：{config.Loader.CnPatchPath}"
-                    : $"国服补丁 DLL 不在 {config.Loader.CnPatchPath}：把 CN 版 MikuSB-Patch.dll 放到该路径后再继续。"
+                    : downloaded
+                        ? $"国服补丁 DLL 不在 {config.Loader.CnPatchPath}：把 CN 版 MikuSB-Patch.dll 放到该路径后再继续。"
+                        : $"国服补丁 DLL 下载失败：{config.Loader.CnPatchPath}。请检查网络后重试。"
             });
         }
 
@@ -560,7 +574,7 @@ public class AdminApiController : ControllerBase
             config.Loader.CnLaunchMode = mode;
         }
 
-        var cnMode = NormalizeCnLaunchMode(config.Loader.CnLaunchMode) ?? "hosts";
+        var cnMode = NormalizeCnLaunchMode(config.Loader.CnLaunchMode) ?? "dll";
         if (region == "cn")
         {
             // The CN client is pulled to this machine by the DLL or the hosts block, never by the SOCKS
@@ -653,7 +667,7 @@ public class AdminApiController : ControllerBase
 
         // The CN build has two routes to the same server, so the panel's buttons say which one they mean. Sending
         // the mode also stores it, which keeps the overview's launch button on whatever the operator last chose.
-        var cnMode = NormalizeCnLaunchMode(request?.Mode) ?? NormalizeCnLaunchMode(config.Loader.CnLaunchMode) ?? "hosts";
+        var cnMode = NormalizeCnLaunchMode(request?.Mode) ?? NormalizeCnLaunchMode(config.Loader.CnLaunchMode) ?? "dll";
         if (NormalizeCnLaunchMode(request?.Mode) is { } requestedMode && requestedMode != config.Loader.CnLaunchMode)
         {
             config.Loader.CnLaunchMode = requestedMode;

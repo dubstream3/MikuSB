@@ -2347,6 +2347,7 @@ const CODE_STRINGS = {
     'setup.check.install.missing': '找不到这个客户端的安装根目录。',
     'setup.channel.code.cn_ready': '国服补丁 DLL 已就位：{0}',
     'setup.channel.code.cn_missing': '国服补丁 DLL 不在 {0}：把 CN 版 MikuSB-Patch.dll 放到该路径后再继续。',
+    'setup.channel.code.cn_download_failed': '国服补丁 DLL 下载失败：{0}。请检查网络后重试。',
     'setup.channel.code.ready': '国际服补丁 DLL 已就位。',
     'setup.channel.code.missing': '国际服补丁 DLL 仍未下载成功，检查网络后重试。',
     'setup.channel.code.download_failed': '下载国际服补丁 DLL 失败，检查网络后重试（详情见日志）。',
@@ -2368,6 +2369,7 @@ const CODE_STRINGS = {
     'setup.check.install.missing': '找不到這個用戶端的安裝根目錄。',
     'setup.channel.code.cn_ready': '國服補丁 DLL 已就位：{0}',
     'setup.channel.code.cn_missing': '國服補丁 DLL 不在 {0}：把 CN 版 MikuSB-Patch.dll 放到該路徑後再繼續。',
+    'setup.channel.code.cn_download_failed': '國服補丁 DLL 下載失敗：{0}。請檢查網路後重試。',
     'setup.channel.code.ready': '國際服補丁 DLL 已就位。',
     'setup.channel.code.missing': '國際服補丁 DLL 仍未下載成功，檢查網路後重試。',
     'setup.channel.code.download_failed': '下載國際服補丁 DLL 失敗，檢查網路後重試（詳情見日誌）。',
@@ -2389,6 +2391,7 @@ const CODE_STRINGS = {
     'setup.check.install.missing': 'このクライアントのインストール先が見つかりません。',
     'setup.channel.code.cn_ready': 'CN 用パッチ DLL は配置済みです: {0}',
     'setup.channel.code.cn_missing': 'CN 用パッチ DLL が {0} にありません。CN 版 MikuSB-Patch.dll を置いてから続行してください。',
+    'setup.channel.code.cn_download_failed': 'CN 用パッチ DLL をダウンロードできませんでした。ネットワークを確認して再試行してください（詳細はログ）。',
     'setup.channel.code.ready': 'グローバル用パッチ DLL は配置済みです。',
     'setup.channel.code.missing': 'グローバル用パッチ DLL を取得できませんでした。ネットワークを確認して再試行してください。',
     'setup.channel.code.download_failed': 'グローバル用パッチ DLL のダウンロードに失敗しました。ネットワークを確認して再試行してください（詳細はログ）。',
@@ -2410,6 +2413,7 @@ const CODE_STRINGS = {
     'setup.check.install.missing': '이 클라이언트의 설치 루트를 찾을 수 없습니다.',
     'setup.channel.code.cn_ready': 'CN 패치 DLL 이 준비되었습니다: {0}',
     'setup.channel.code.cn_missing': 'CN 패치 DLL 이 {0} 에 없습니다. CN 용 MikuSB-Patch.dll 을 넣은 뒤 계속하세요.',
+    'setup.channel.code.cn_download_failed': 'CN 패치 DLL 다운로드에 실패했습니다. 네트워크를 확인하고 다시 시도하세요 (자세한 내용은 로그).',
     'setup.channel.code.ready': '글로벌 패치 DLL 이 준비되었습니다.',
     'setup.channel.code.missing': '글로벌 패치 DLL 을 아직 받지 못했습니다. 네트워크를 확인하고 다시 시도하세요.',
     'setup.channel.code.download_failed': '글로벌 패치 DLL 다운로드에 실패했습니다. 네트워크를 확인하고 다시 시도하세요 (자세한 내용은 로그).',
@@ -2431,6 +2435,7 @@ const CODE_STRINGS = {
     'setup.check.install.missing': 'Cannot find the install root for this client.',
     'setup.channel.code.cn_ready': 'CN patch DLL is in place: {0}',
     'setup.channel.code.cn_missing': 'CN patch DLL is not at {0}. Copy the CN MikuSB-Patch.dll there and continue.',
+    'setup.channel.code.cn_download_failed': 'Downloading the CN patch DLL failed. Check the network and try again (details in the log).',
     'setup.channel.code.ready': 'Global patch DLL is in place.',
     'setup.channel.code.missing': 'The global patch DLL is still missing. Check the network and try again.',
     'setup.channel.code.download_failed': 'Downloading the global patch DLL failed. Check the network and try again (details in the log).',
@@ -2452,6 +2457,7 @@ const CODE_STRINGS = {
     'setup.check.install.missing': "Impossible de trouver la racine d'installation de ce client.",
     'setup.channel.code.cn_ready': 'DLL de patch CN en place : {0}',
     'setup.channel.code.cn_missing': "La DLL de patch CN n'est pas dans {0}. Copiez-y le MikuSB-Patch.dll CN puis continuez.",
+    'setup.channel.code.cn_download_failed': 'Le téléchargement de la DLL de patch CN a échoué. Vérifiez le réseau et réessayez (détails dans le journal).',
     'setup.channel.code.ready': 'DLL de patch globale en place.',
     'setup.channel.code.missing': 'La DLL de patch globale est toujours absente. Vérifiez le réseau et réessayez.',
     'setup.channel.code.download_failed': 'Le téléchargement de la DLL de patch globale a échoué. Vérifiez le réseau et réessayez (détails dans le journal).',
@@ -3518,7 +3524,7 @@ async function renderSetup() {
   const channelReady = !!region && (region === 'cn' ? !!data.cn_patch_present : !!data.patch_present);
   const pathReady = channelReady && !!probe.valid;
   const configReady = pathReady && !!data.configured;
-  const cnMode = state.setupMode || data.cn_launch_mode || 'hosts';
+  const cnMode = state.setupMode || data.cn_launch_mode || 'dll';
   const locked = (unlocked) => (unlocked ? '' : ' disabled');
   // The CN route is only tested against the old official launcher, so the wizard says so and links the
   // exact build instead of leaving people to hunt for it.
@@ -3662,14 +3668,14 @@ async function renderSetup() {
     }
   }
 
-  // Step one does real work: it asks the server to make sure that channel's patch DLL is on disk (the
-  // global build downloads it, the CN build ships it). Only when that answers does the path step unlock,
+  // Step one does real work: it asks the server to make sure that channel's patch DLL is on disk (both
+  // builds download their own file from the release feed). Only when that answers does the path step unlock,
   // which is why the click awaits the endpoint instead of just repainting the card.
   Array.from(view.querySelectorAll('[data-region]')).forEach((button) => {
     button.addEventListener('click', async () => {
       const next = button.dataset.region;
       state.setupRegion = next;
-      state.setupMode = next === 'cn' ? (data.cn_launch_mode || 'hosts') : null;
+      state.setupMode = next === 'cn' ? (data.cn_launch_mode || 'dll') : null;
       await renderSetup();
       const box = document.getElementById('setup-channel-msg');
       if (box) box.textContent = t('setup.channel.preparing');

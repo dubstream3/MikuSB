@@ -61,7 +61,10 @@ public static class HostsFileService
         ("127.0.0.1", "sh-qrcode.xgsdk.com"),
         ("127.0.0.1", "activity.xgsdk.com"),
         ("127.0.0.1", "gpm-conf.testplus.cn"),
-        ("127.0.0.1", "cbjq-serverlist.xoyocdn.com")
+        ("127.0.0.1", "cbjq-serverlist.xoyocdn.com"),
+        // The 3.7 client asks the battle endpoint separately; without it the client reaches the
+        // real CDN and the login stops at "get server info" (HTTP 522).
+        ("127.0.0.1", "cbjq-battle-serverlist.xoyocdn.com")
     ];
 
     public static bool IsSupported => OperatingSystem.IsWindows();

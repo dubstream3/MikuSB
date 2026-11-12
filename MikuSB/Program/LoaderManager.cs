@@ -249,16 +249,16 @@ public class LoaderManager : MikuSB
         {
             await UpdateService.EnsureResourcesPresentAsync();
 
-            // The injected patch DLL travels with the resources: fetching it here means an operator
-            // never has to be told to "put the DLL in Patch/". A failure is logged, not thrown - the
-            // server still starts and serves data; the launch path re-checks before injecting.
+            // Both channel builds travel with the resources: fetching them here means an operator never
+            // has to be told to "put the DLL in Patch/". A failure is logged, not thrown - the server
+            // still starts and serves data; the launch path re-checks before injecting.
             try
             {
-                PatchDownloadService.EnsurePatchPresent();
+                PatchDownloadService.EnsureAllPresent();
             }
             catch (Exception patchError)
             {
-                Logger.Error("Could not prepare Patch/MikuSB-Patch.dll.", patchError);
+                Logger.Error("Could not prepare the channel patch DLLs under Patch/.", patchError);
             }
 
             Logger.Info(I18NManager.Translate("Server.ServerInfo.LoadingItem", I18NManager.Translate("Word.GameData")));

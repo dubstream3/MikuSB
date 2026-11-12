@@ -267,16 +267,16 @@ public class LoaderOptions
     public bool ManageCnHosts { get; set; }
 
     /// <summary>
-    ///     How the specific-channel (CN) client is started: <c>hosts</c> points the seven SDK domains at this
-    ///     machine and starts the untouched client, <c>dll</c> injects a CN-channel build of the patch DLL and
-    ///     leaves the hosts file alone. Only the CN region reads it; the global build always injects.
+    ///     How the specific-channel (CN) client is started: <c>dll</c> (the default) injects a CN-channel
+    ///     build of the patch DLL and leaves the hosts file alone, <c>hosts</c> points the SDK domains at this
+    ///     machine and starts the untouched client. Only the CN region reads it; the global build always injects.
     /// </summary>
-    public string CnLaunchMode { get; set; } = "hosts";
+    public string CnLaunchMode { get; set; } = "dll";
 
     /// <summary>
     ///     DLL injected when <see cref="CnLaunchMode" /> is <c>dll</c>. Deliberately separate from
-    ///     <see cref="PatchPaths" />: that list is refreshed from the release assets, and those only ever carry
-    ///     the global-channel build, so sharing a path would let an update silently replace the CN DLL.
+    ///     <see cref="PatchPaths" />: the release ships both channel builds, but the CN file must keep its own
+    ///     name so an update can refresh it without the two channels overwriting each other.
     /// </summary>
     public string CnPatchPath { get; set; } = @"Patch\MikuSB-Patch-cn.dll";
 
